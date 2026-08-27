@@ -183,28 +183,25 @@ export default {
 }
 .left-floating-sidebar {
     position: fixed;
-    left: 15px;
-    top: 74px; /* 64px navbar + 10px spacing for perfect top alignment with content */
-    bottom: 15px;
-    width: 270px;
+    left: 0;
+    top: 64px; /* Docked directly under navbar */
+    bottom: 0;
+    width: 240px;
     z-index: 1000;
-    background-color: #343a40 !important;
-    border: 1px solid #4b545c;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    background-color: #1e293b !important; /* Premium Dark Slate */
+    border-right: 1px solid #334155;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .sidebar-header {
-    background-color: #343a40 !important;
-    border-bottom: 1px solid #4f5962 !important;
-    border-radius: 12px 12px 0 0;
+    background-color: #1e293b !important;
+    border-bottom: 1px solid #334155 !important;
 }
 
 .sidebar-group-header {
-    color: #868e96 !important;
-    letter-spacing: 0.5px;
-    font-size: 0.75rem;
+    color: #64748b !important;
+    letter-spacing: 0.05em;
+    font-size: 0.7rem;
+    font-weight: 700;
 }
 
 /* Sidebar Overlay */
@@ -214,18 +211,18 @@ export default {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(15, 23, 42, 0.6);
     z-index: 1055;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(4px);
     transition: opacity 0.3s ease;
 }
 
-/* Page container background white */
+/* Page container background light slate */
 .content-wrapper {
-    background-color: #ffffff !important;
+    background-color: #f8fafc !important;
     margin-top: 64px !important;
-    padding-top: 10px !important;
-    min-height: calc(100vh - 104px) !important;
+    min-height: calc(100vh - 64px) !important;
+    padding: 1.25rem !important;
 }
 
 /* Sidebar navigation links */
@@ -233,37 +230,37 @@ export default {
     text-decoration: none !important;
 }
 .sidebar-link {
-    color: #c2c7d0 !important;
-    transition: all 0.15s ease-in-out;
+    color: #cbd5e1 !important;
+    transition: all 0.2s ease-in-out;
     border: 1px solid transparent;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
 }
 .sidebar-link i {
-    color: #c2c7d0 !important;
-    transition: color 0.15s ease;
+    color: #94a3b8 !important;
+    transition: color 0.2s ease;
 }
 .sidebar-link:hover {
     color: #ffffff !important;
-    background-color: #495057 !important;
+    background-color: #334155 !important;
 }
 .sidebar-link:hover i {
-    color: #ffffff !important;
+    color: #38bdf8 !important;
 }
 .active-link {
     color: #ffffff !important;
-    background-color: #4f5962 !important;
-    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35) !important;
     font-weight: 600;
 }
 .active-link i {
     color: #ffffff !important;
 }
 
-/* Desktop layout with left-pushing floating sidebar */
+/* Desktop layout with left docked sidebar */
 @media (min-width: 769px) {
     .content-wrapper,
     .main-footer {
-        margin-left: 310px !important;
+        margin-left: 240px !important;
         transition: margin-left 0.3s ease-in-out;
     }
     .main-header {

@@ -161,3 +161,111 @@ a:hover {
     width: 1%;
     white-space: nowrap;
 }
+
+/* ==========================================================================
+   APP GLOBAL DESIGN SYSTEM & REUSABLE UI COMPONENTS
+   ========================================================================== */
+
+/* Badges (Global Bold & Sleek Standard) */
+.badge,
+.app-badge {
+    font-size: 0.72rem !important;
+    font-weight: 700 !important; /* Bold badges per user requirement */
+    padding: 0.2rem 0.45rem !important;
+    border-radius: 4px !important;
+    display: inline-block;
+    line-height: 1.2;
+}
+
+/* App Card System */
+.app-card {
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important;
+    overflow: hidden;
+    background: #ffffff;
+}
+.app-card-header {
+    padding: 0.4rem 0.75rem !important;
+    background-color: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+.app-card-title {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #1e293b;
+    margin-bottom: 0;
+}
+.app-card-body {
+    padding: 0.5rem !important;
+}
+
+/* App Flat Underline Tabs */
+.app-tabs {
+    border-bottom: 1px solid #cbd5e1 !important;
+    margin-bottom: 0.5rem !important;
+}
+.app-tabs .nav-link,
+.app-tab-link {
+    color: #475569 !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    padding: 0.4rem 0.85rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    background: transparent !important;
+    transition: all 0.2s ease !important;
+    border-radius: 0 !important;
+}
+.app-tabs .nav-link:hover,
+.app-tab-link:hover {
+    color: #1f4068 !important;
+    border-bottom-color: #cbd5e1 !important;
+}
+.app-tabs .nav-link.active,
+.app-tab-link.active {
+    color: #1f4068 !important;
+    background-color: transparent !important;
+    border-bottom: 2px solid #1f4068 !important;
+}
+
+/* App Table System with Blue Headers, Border Bottom & Compact Padding */
+.app-table,
+.table {
+    margin-bottom: 0 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+}
+.app-table thead,
+.app-table thead tr,
+.app-table thead th,
+.app-table thead tr th,
+.table thead th,
+.table-sm thead th {
+    background-color: #007bff !important;
+    background: #007bff !important;
+    color: #ffffff !important;
+    border: none !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    padding: 0.35rem 0.5rem !important;
+    vertical-align: middle !important;
+}
+.app-table td,
+.app-table th,
+.table td,
+.table th,
+.table-sm td,
+.table-sm th {
+    padding: 0.25rem 0.45rem !important;
+    vertical-align: middle !important;
+    font-size: 0.75rem !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    border-top: 1px solid #e2e8f0 !important;
+}
+.app-table tr,
+.table tr {
+    border-bottom: 1px solid #e2e8f0 !important;
+}

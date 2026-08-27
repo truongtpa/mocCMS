@@ -52,10 +52,10 @@ defineEmits(['click'])
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 4px;
-    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+    border-radius: 4px;
     border: 1px solid transparent;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
@@ -65,7 +65,7 @@ defineEmits(['click'])
     margin: 0 0px;
 }
 .btn-icon-pure i {
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .btn-icon-pure:active:not(.btn-icon-pure--disabled) {

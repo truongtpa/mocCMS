@@ -1,9 +1,9 @@
 <template>
     <LTEContentWrapper :header="false">
         <template #content>
-            <div class="row justify-content-center">
-                <div class="col-12 col-xl-10">
-                    <div class="card border-0" style="border: 1px solid #e9ecef !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important; overflow: hidden; max-width: 1200px; margin: 0 auto;">
+            <div class="row m-0">
+                <div class="col-12 p-0">
+                    <div class="card border-0" style="border: 1px solid #cbd5e1 !important; border-radius: 8px !important; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important; overflow: hidden; background: #ffffff;">
                         <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #11998e, #38ef7d); border-radius: 12px 12px 0 0 !important; border-bottom: none !important;">
                             <h3 class="card-title float-none font-weight-bold mb-0">
                                 <i class="fas fa-trophy mr-2"></i>
@@ -37,42 +37,44 @@
                                 <span class="small text-muted">Bấm nút "Khai báo thành tích mới" để thêm thông tin.</span>
                             </div>
 
-                            <div v-else class="table-responsive">
-                                <table class="table table-hover border">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th style="width: 5%;">#</th>
-                                            <th style="width: 45%;">Tên giải thưởng / Thành tích</th>
-                                            <th style="width: 15%;">Năm nhận</th>
-                                            <th style="width: 20%;">Cấp khen thưởng</th>
-                                            <th style="width: 15%;" class="text-center">Minh chứng</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(item, idx) in list" :key="item.id">
-                                            <td>{{ idx + 1 }}</td>
-                                            <td class="font-weight-bold text-dark">{{ item.ten_giai_thuong }}</td>
-                                            <td>{{ item.nam_nhan }}</td>
-                                            <td>
-                                                <span class="badge" :class="getBadgeClass(item.cap_khen_thuong)">
-                                                    {{ item.cap_khen_thuong }}
-                                                </span>
-                                            </td>
-                                            <td class="text-center">
-                                                <a 
-                                                    v-if="item.file_minh_chung" 
-                                                    :href="item.file_minh_chung" 
-                                                    target="_blank" 
-                                                    class="btn btn-sm btn-outline-primary"
-                                                >
-                                                    <i class="fas fa-file-pdf mr-1"></i> Xem file
-                                                </a>
-                                                <span v-else class="text-muted small">Không có</span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            <AppTable
+                                v-else
+                                :columns="[
+                                    { key: 'idx', label: '#', width: '45px', align: 'center' },
+                                    { key: 'ten_giai_thuong', label: 'Tên giải thưởng / Thành tích', width: '45%' },
+                                    { key: 'nam_nhan', label: 'Năm nhận', width: '15%' },
+                                    { key: 'cap_khen_thuong', label: 'Cấp khen thưởng', width: '20%' },
+                                    { key: 'file_minh_chung', label: 'Minh chứng', width: '15%', align: 'center' }
+                                ]"
+                                :items="list"
+                                empty-text="Bạn chưa khai báo giải thưởng hoặc thành tích nào."
+                            >
+                                <template #col-idx="{ index }">
+                                    <span class="text-muted">{{ index + 1 }}</span>
+                                </template>
+                                <template #col-ten_giai_thuong="{ item }">
+                                    <span class="font-weight-bold text-dark">{{ item.ten_giai_thuong }}</span>
+                                </template>
+                                <template #col-nam_nhan="{ item }">
+                                    <span>{{ item.nam_nhan }}</span>
+                                </template>
+                                <template #col-cap_khen_thuong="{ item }">
+                                    <AppBadge :variant="getBadgeVariant(item.cap_khen_thuong)">
+                                        {{ item.cap_khen_thuong }}
+                                    </AppBadge>
+                                </template>
+                                <template #col-file_minh_chung="{ item }">
+                                    <a 
+                                        v-if="item.file_minh_chung" 
+                                        :href="item.file_minh_chung" 
+                                        target="_blank" 
+                                        class="btn btn-xs btn-outline-primary"
+                                    >
+                                        <i class="fas fa-file-pdf mr-1"></i> Xem file
+                                    </a>
+                                    <span v-else class="text-muted small">Không có</span>
+                                </template>
+                            </AppTable>
                         </div>
                     </div>
                 </div>
@@ -207,6 +209,16 @@ const submitForm = async () => {
 };
 
 // Helper style
+const getBadgeVariant = (cap) => {
+    switch (cap) {
+        case 'Cấp Quốc tế': return 'danger';
+        case 'Cấp Quốc gia': return 'warning';
+        case 'Cấp Tỉnh/Thành phố': return 'info';
+        case 'Cấp trường': return 'primary';
+        default: return 'secondary';
+    }
+};
+
 const getBadgeClass = (cap) => {
     switch (cap) {
         case 'Cấp Quốc tế': return 'badge-danger';

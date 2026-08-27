@@ -15,7 +15,7 @@
 
         <!-- Slot cho content -->
         <section class="content">
-            <div class="container-fluid">
+            <div class="container-fluid p-0">
                 <slot name="content"></slot>
             </div>
         </section>

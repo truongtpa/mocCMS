@@ -15,7 +15,7 @@
             <img :src="`/asset/admin/images/logo.png`" alt="VLUTE Logo" style="height: 44px; width: auto;" class="mr-2.5">
             <div class="d-none d-md-flex flex-column justify-content-center">
                 <span class="brand-title font-weight-bold text-dark mb-0" style="font-size: 1rem; line-height: 1.2;">ĐẠI HỌC SƯ PHẠM KỸ THUẬT VĨNH LONG</span>
-                <span class="brand-subtitle text-primary font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">CỔNG THÔNG TIN SINH VIÊN • VLUTE PORTAL</span>
+                <span class="brand-subtitle text-dark font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">CỔNG THÔNG TIN SINH VIÊN</span>
             </div>
         </router-link>
 

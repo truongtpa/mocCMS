@@ -21,6 +21,8 @@ import LTECodeEditor from './controls/LTECodeEditor.vue'
 import LTESuggestion from './controls/LTESuggestion.vue'
 import TablePro from './controls/TablePro.vue'
 import IconButton from './controls/IconButton.vue'
+import AppBadge from './controls/AppBadge.vue'
+import AppTable from './controls/AppTable.vue'
 
 // Đăng ký toàn cục các component
 const globalComponents = {
@@ -48,6 +50,8 @@ const globalComponents = {
         app.component('LTESuggestion', LTESuggestion)
         app.component('TablePro', TablePro)
         app.component('IconButton', IconButton)
+        app.component('AppBadge', AppBadge)
+        app.component('AppTable', AppTable)
     },
 }
 export default globalComponents

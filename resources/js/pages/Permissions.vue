@@ -1,15 +1,15 @@
 <template>
     <LTEContentWrapper :header="false">
         <template #content>
-            <div class="row justify-content-center">
-                <div class="col-12 px-2">
+            <div class="row m-0">
+                <div class="col-12 p-0">
                     <div class="card border-0" style="border: 1px solid #cbd5e1 !important; border-radius: 8px !important; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important; overflow: hidden; background: #ffffff;">
                         <!-- Light Mode Card Header -->
-                        <div class="card-header text-center py-2.5 px-3 bg-light border-bottom" style="background-color: #f8fafc !important; border-bottom: 2px solid #e2e8f0 !important;">
-                            <h4 class="card-title float-none font-weight-bold mb-0 text-md text-dark">
+                        <div class="card-header py-2 px-3 bg-light border-bottom d-flex align-items-center justify-content-between" style="background-color: #f8fafc !important; border-bottom: 1px solid #e2e8f0 !important;">
+                            <h6 class="card-title font-weight-bold mb-0 text-xs text-uppercase tracking-wider text-dark d-flex align-items-center">
                                 <i class="fas fa-user-shield mr-2 text-primary"></i>
                                 QUẢN LÝ VÀ PHÂN QUYỀN HỆ THỐNG (RBAC)
-                            </h4>
+                            </h6>
                         </div>
 
                         <div class="card-body p-2.5">
@@ -69,27 +69,21 @@
                                     <p class="mt-2 text-muted text-xs">Đang tải dữ liệu ma trận phân quyền...</p>
                                 </div>
 
-                                <div v-else class="table-responsive border rounded" style="max-height: calc(100vh - 210px); overflow-y: auto;">
-                                    <table class="table table-bordered table-hover align-middle mb-0 position-relative table-sm">
-                                        <!-- Vibrant Header with High Contrast White Text -->
-                                        <thead class="sticky-top" style="z-index: 10; background: linear-gradient(135deg, #1e4068, #162447); color: #ffffff;">
+                                <AppTable v-else>
+                                    <template #thead>
+                                        <thead style="background-color: #007bff !important;">
                                             <tr>
-                                                <th style="min-width: 280px;" class="align-middle py-2.5 px-3 text-white font-weight-bold border-0">TÊN QUYỀN</th>
+                                                <th style="min-width: 280px;" class="align-middle py-1.5 px-3 text-white font-weight-bold text-xs border-0">TÊN QUYỀN</th>
                                                 <th 
                                                     v-for="role in matrixData.ds_vai_tro" 
                                                     :key="role.id" 
-                                                    class="text-center align-middle py-2.5 px-2 text-white border-0"
+                                                    class="text-center align-middle py-1.5 px-2 text-white border-0"
                                                     style="min-width: 130px;"
                                                 >
-                                                    <span 
-                                                        class="badge px-2 py-1 font-weight-bold text-xs shadow-sm"
-                                                        :class="getRoleBadgeClass(role.ma_vai_tro)"
-                                                    >
+                                                    <AppBadge variant="light" class="shadow-sm">
                                                         {{ role.ten_vai_tro }}
-                                                    </span>
+                                                    </AppBadge>
                                                     <br>
-                                                    <!-- <small class="text-white-50 text-xs font-weight-bold" style="color: rgba(255, 255, 255, 0.85) !important;">({{ role.ma_vai_tro }})</small> -->
-                                                    <!-- Clean Check all column checkbox -->
                                                     <div class="mt-1 d-flex align-items-center justify-content-center">
                                                         <input 
                                                             type="checkbox" 
@@ -104,6 +98,8 @@
                                                 </th>
                                             </tr>
                                         </thead>
+                                    </template>
+                                    <template #tbody>
                                         <tbody>
                                             <template v-for="(groupPerms, ctrlName) in groupedMatrixPermissions" :key="ctrlName">
                                                 <!-- Light Mode Group Subheader Row -->
@@ -167,8 +163,8 @@
                                                 </tr>
                                             </template>
                                         </tbody>
-                                    </table>
-                                </div>
+                                    </template>
+                                </AppTable>
                             </div>
 
                             <!-- TAB 2: QUẢN LÝ VAI TRÒ -->
@@ -189,42 +185,44 @@
                                     <p class="mt-2 text-muted text-xs">Đang tải danh sách vai trò...</p>
                                 </div>
 
-                                <div v-else class="table-responsive border rounded" style="max-height: calc(100vh - 210px); overflow-y: auto;">
-                                    <table class="table table-hover table-sm mb-0">
-                                        <thead class="bg-light text-dark sticky-top border-bottom">
-                                            <tr>
-                                                <th style="width: 5%;" class="py-2 px-2">#</th>
-                                                <th style="width: 30%;" class="py-2 px-2">Mã Vai trò</th>
-                                                <th style="width: 45%;" class="py-2 px-2">Tên Vai trò</th>
-                                                <th style="width: 20%;" class="text-center py-2 px-2">Thao tác</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="(role, idx) in rolesList" :key="role.id">
-                                                <td class="py-1.5 px-2 text-xs">{{ idx + 1 }}</td>
-                                                <td class="py-1.5 px-2"><span class="badge badge-secondary px-2 py-1 text-xs">{{ role.ma_vai_tro }}</span></td>
-                                                <td class="font-weight-bold text-dark py-1.5 px-2 text-xs">{{ role.ten_vai_tro }}</td>
-                                                <td class="text-center py-1.5 px-2">
-                                                    <button 
-                                                        v-if="authStore.hasPermission('PhanQuyenController.luuVaiTro')"
-                                                        class="btn btn-xs btn-outline-primary mr-1 px-2 py-0.5" 
-                                                        @click="openEditRoleModal(role)"
-                                                    >
-                                                        <i class="fas fa-edit"></i> Sửa
-                                                    </button>
-                                                    <button 
-                                                        v-if="authStore.hasPermission('PhanQuyenController.xoaVaiTro')"
-                                                        class="btn btn-xs btn-outline-danger px-2 py-0.5" 
-                                                        :disabled="role.ma_vai_tro === 'admin'"
-                                                        @click="deleteRole(role)"
-                                                    >
-                                                        <i class="fas fa-trash-alt"></i> Xóa
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <AppTable
+                                    v-else
+                                    :columns="[
+                                        { key: 'idx', label: '#', width: '45px', align: 'left' },
+                                        { key: 'ma_vai_tro', label: 'Mã Vai trò', width: '30%' },
+                                        { key: 'ten_vai_tro', label: 'Tên Vai trò', width: '45%' }
+                                    ]"
+                                    :items="rolesList"
+                                    actions-width="20%"
+                                    empty-text="Chưa có vai trò nào trong hệ thống."
+                                >
+                                    <template #col-idx="{ index }">
+                                        <span class="text-muted">{{ index + 1 }}</span>
+                                    </template>
+                                    <template #col-ma_vai_tro="{ item }">
+                                        <AppBadge variant="secondary">{{ item.ma_vai_tro }}</AppBadge>
+                                    </template>
+                                    <template #col-ten_vai_tro="{ item }">
+                                        <span class="font-weight-bold text-dark">{{ item.ten_vai_tro }}</span>
+                                    </template>
+                                    <template #actions="{ item }">
+                                        <IconButton 
+                                            v-if="authStore.hasPermission('PhanQuyenController.luuVaiTro')"
+                                            variant="amber"
+                                            icon="fas fa-edit"
+                                            title="Sửa Vai trò"
+                                            @click="openEditRoleModal(item)"
+                                        />
+                                        <IconButton 
+                                            v-if="authStore.hasPermission('PhanQuyenController.xoaVaiTro')"
+                                            variant="red"
+                                            icon="fas fa-trash-alt"
+                                            title="Xóa Vai trò"
+                                            :disabled="item.ma_vai_tro === 'admin'"
+                                            @click="deleteRole(item)"
+                                        />
+                                    </template>
+                                </AppTable>
                             </div>
 
                             <!-- TAB 3: QUẢN LÝ QUYỀN HẠN -->
@@ -245,16 +243,18 @@
                                     <p class="mt-2 text-muted text-xs">Đang tải danh sách quyền hạn...</p>
                                 </div>
 
-                                <div v-else class="table-responsive border rounded" style="max-height: calc(100vh - 210px); overflow-y: auto;">
-                                    <table class="table table-hover table-sm mb-0">
-                                        <thead class="bg-light text-dark sticky-top border-bottom">
+                                <AppTable v-else>
+                                    <template #thead>
+                                        <thead style="background-color: #007bff !important;">
                                             <tr>
-                                                <th style="width: 5%;" class="py-2 px-2">#</th>
-                                                <th style="width: 40%;" class="py-2 px-2">Mã Quyền (Permission Key)</th>
-                                                <th style="width: 40%;" class="py-2 px-2">Tên Quyền Mô Tả</th>
-                                                <th style="width: 15%;" class="text-center py-2 px-2">Thao tác</th>
+                                                <th style="width: 45px;" class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">#</th>
+                                                <th style="width: 40%;" class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">Mã Quyền (Permission Key)</th>
+                                                <th style="width: 40%;" class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">Tên Quyền Mô Tả</th>
+                                                <th style="width: 15%;" class="text-center py-1.5 px-2 text-white font-weight-bold text-xs border-0">Thao tác</th>
                                             </tr>
                                         </thead>
+                                    </template>
+                                    <template #tbody>
                                         <tbody>
                                             <template v-for="(groupPerms, ctrlName) in groupedListPermissions" :key="ctrlName">
                                                 <tr style="background-color: #eff6ff; border-left: 4px solid #2563eb;">
@@ -263,30 +263,32 @@
                                                     </td>
                                                 </tr>
                                                 <tr v-for="(perm, idx) in groupPerms" :key="perm.id">
-                                                    <td class="py-1 px-2 text-xs">{{ idx + 1 }}</td>
-                                                    <td class="py-1 px-2"><code style="font-size: 0.78rem;">{{ perm.ma_quyen }}</code></td>
+                                                    <td class="py-1 px-2 text-xs text-muted">{{ idx + 1 }}</td>
+                                                    <td class="py-1 px-2"><code style="font-size: 0.78rem; color: #dc2626; font-weight: 500;">{{ perm.ma_quyen }}</code></td>
                                                     <td class="font-weight-bold text-dark py-1 px-2 text-xs">{{ perm.ten_quyen }}</td>
                                                     <td class="text-center py-1 px-2">
-                                                        <button 
-                                                            v-if="authStore.hasPermission('PhanQuyenController.luuQuyen')"
-                                                            class="btn btn-xs btn-outline-primary mr-1 px-2 py-0.5" 
-                                                            @click="openEditPermissionModal(perm)"
-                                                        >
-                                                            <i class="fas fa-edit"></i> Sửa
-                                                        </button>
-                                                        <button 
-                                                            v-if="authStore.hasPermission('PhanQuyenController.xoaQuyen')"
-                                                            class="btn btn-xs btn-outline-danger px-2 py-0.5" 
-                                                            @click="deletePermission(perm)"
-                                                        >
-                                                            <i class="fas fa-trash-alt"></i> Xóa
-                                                        </button>
+                                                        <div class="d-inline-flex align-items-center gap-1">
+                                                            <IconButton 
+                                                                v-if="authStore.hasPermission('PhanQuyenController.luuQuyen')"
+                                                                variant="amber"
+                                                                icon="fas fa-edit"
+                                                                title="Sửa Quyền"
+                                                                @click="openEditPermissionModal(perm)"
+                                                            />
+                                                            <IconButton 
+                                                                v-if="authStore.hasPermission('PhanQuyenController.xoaQuyen')"
+                                                                variant="red"
+                                                                icon="fas fa-trash-alt"
+                                                                title="Xóa Quyền"
+                                                                @click="deletePermission(perm)"
+                                                            />
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             </template>
                                         </tbody>
-                                    </table>
-                                </div>
+                                    </template>
+                                </AppTable>
                             </div>
 
                             <!-- TAB 4: GÁN VAI TRÒ NGƯỜI DÙNG -->
@@ -323,47 +325,51 @@
                                     <p class="mt-2 text-muted text-xs">Đang tải danh sách người dùng...</p>
                                 </div>
 
-                                <div v-else class="table-responsive border rounded" style="max-height: calc(100vh - 210px); overflow-y: auto;">
-                                    <table class="table table-hover table-sm mb-0">
-                                        <thead class="bg-light text-dark sticky-top border-bottom">
-                                            <tr>
-                                                <th style="width: 5%;" class="py-2 px-2">#</th>
-                                                <th style="width: 25%;" class="py-2 px-2">Họ và tên</th>
-                                                <th style="width: 30%;" class="py-2 px-2">Email</th>
-                                                <th style="width: 25%;" class="py-2 px-2">Vai trò hiện tại</th>
-                                                <th style="width: 15%;" class="text-center py-2 px-2">Thao tác</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr v-for="(u, idx) in usersList" :key="u.user_id">
-                                                <td class="py-1.5 px-2 text-xs">{{ idx + 1 }}</td>
-                                                <td class="font-weight-bold text-dark py-1.5 px-2 text-xs">{{ u.ho_ten }}</td>
-                                                <td class="py-1.5 px-2 text-xs">{{ u.email }}</td>
-                                                <td class="py-1.5 px-2 text-xs">
-                                                    <span 
-                                                        v-for="r in u.roles" 
-                                                        :key="r.vai_tro_id" 
-                                                        class="badge badge-info mr-1 px-1.5 py-0.5 text-xs"
-                                                    >
-                                                        {{ r.ten_vai_tro }}
-                                                    </span>
-                                                    <span v-if="!u.roles || u.roles.length === 0" class="text-muted small">
-                                                        (Chưa có vai trò)
-                                                    </span>
-                                                </td>
-                                                <td class="text-center py-1.5 px-2">
-                                                    <button 
-                                                        v-if="authStore.hasPermission('PhanQuyenController.ganVaiTroNguoiDung')"
-                                                        class="btn btn-xs btn-outline-success px-2 py-0.5" 
-                                                        @click="openAssignRoleModal(u)"
-                                                    >
-                                                        <i class="fas fa-user-tag mr-1"></i> Gán vai trò
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <AppTable
+                                    v-else
+                                    :columns="[
+                                        { key: 'idx', label: '#', width: '45px', align: 'left' },
+                                        { key: 'ho_ten', label: 'Họ và tên', width: '25%' },
+                                        { key: 'email', label: 'Email', width: '30%' },
+                                        { key: 'roles', label: 'Vai trò hiện tại', width: '25%' }
+                                    ]"
+                                    :items="usersList"
+                                    item-key="user_id"
+                                    actions-width="15%"
+                                    empty-text="Không tìm thấy người dùng phù hợp."
+                                >
+                                    <template #col-idx="{ index }">
+                                        <span class="text-muted">{{ index + 1 }}</span>
+                                    </template>
+                                    <template #col-ho_ten="{ item }">
+                                        <span class="font-weight-bold text-dark">{{ item.ho_ten }}</span>
+                                    </template>
+                                    <template #col-email="{ item }">
+                                        <span>{{ item.email }}</span>
+                                    </template>
+                                    <template #col-roles="{ item }">
+                                        <template v-if="item.roles && item.roles.length > 0">
+                                            <AppBadge 
+                                                v-for="r in item.roles" 
+                                                :key="r.vai_tro_id" 
+                                                variant="info" 
+                                                class="mr-1"
+                                            >
+                                                {{ r.ten_vai_tro }}
+                                            </AppBadge>
+                                        </template>
+                                        <span v-else class="text-muted small">(Chưa có vai trò)</span>
+                                    </template>
+                                    <template #actions="{ item }">
+                                        <IconButton 
+                                            v-if="authStore.hasPermission('PhanQuyenController.ganVaiTroNguoiDung')"
+                                            variant="blue"
+                                            icon="fas fa-user-tag"
+                                            title="Gán vai trò"
+                                            @click="openAssignRoleModal(item)"
+                                        />
+                                    </template>
+                                </AppTable>
                             </div>
 
                         </div>
@@ -868,29 +874,38 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.custom-tabs {
+    border-bottom: 1px solid #cbd5e1 !important;
+}
 .custom-tabs .nav-link {
-    color: #475569;
-    border: none;
-    border-bottom: 2px solid transparent;
-    padding: 0.5rem 1rem;
-    transition: all 0.2s ease;
+    color: #475569 !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    padding: 0.5rem 1rem !important;
+    background: transparent !important;
+    transition: all 0.2s ease !important;
+    border-radius: 0 !important;
 }
 .custom-tabs .nav-link:hover {
-    color: #1f4068;
+    color: #1f4068 !important;
+    border-bottom-color: #cbd5e1 !important;
 }
 .custom-tabs .nav-link.active {
-    color: #1f4068;
-    background-color: transparent;
-    border-bottom-color: #1f4068;
+    color: #1f4068 !important;
+    background-color: transparent !important;
+    border-bottom: 2px solid #1f4068 !important;
 }
-.table th {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.btn-xs {
-    font-size: 0.75rem;
-    line-height: 1.2;
-    border-radius: 0.2rem;
+
+/* Force Blue Table Header Background */
+.table thead,
+.table thead tr,
+.table thead th,
+.table thead tr th {
+    background-color: #007bff !important;
+    background: #007bff !important;
+    color: #ffffff !important;
+    border-bottom: none !important;
+    border-top: none !important;
+    font-weight: 700 !important;
 }
 </style>

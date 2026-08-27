@@ -1,9 +1,9 @@
 <template>
     <LTEContentWrapper :header="false">
         <template #content>
-            <div class="row justify-content-center">
-                <div class="col-12 col-xl-10">
-                    <div class="card border-0" style="border: 1px solid #e9ecef !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important; overflow: hidden; max-width: 1200px; margin: 0 auto;">
+            <div class="row m-0">
+                <div class="col-12 p-0">
+                    <div class="card border-0" style="border: 1px solid #cbd5e1 !important; border-radius: 8px !important; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important; overflow: hidden; background: #ffffff;">
                         <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #2b5876, #4e4376); border-radius: 12px 12px 0 0 !important; border-bottom: none !important;">
                             <h3 class="card-title float-none font-weight-bold mb-0">
                                 <i class="fas fa-calendar-check mr-2"></i>
@@ -33,32 +33,36 @@
                                 <span class="small text-muted">Bấm nút "Đặt lịch hẹn mới" để kết nối với giảng viên.</span>
                             </div>
 
-                            <div v-else class="table-responsive">
-                                <table class="table table-hover border">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th style="width: 5%;">#</th>
-                                            <th style="width: 25%;">Giảng viên</th>
-                                            <th style="width: 20%;">Thời gian hẹn</th>
-                                            <th style="width: 35%;">Nội dung cuộc gặp</th>
-                                            <th style="width: 15%;" class="text-center">Trạng thái</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(item, idx) in list" :key="item.id">
-                                            <td>{{ idx + 1 }}</td>
-                                            <td class="font-weight-bold text-dark">{{ item.ten_giang_vien }}</td>
-                                            <td>{{ formatDatetime(item.thoi_gian_bat_dau) }}</td>
-                                            <td>{{ item.noi_dung }}</td>
-                                            <td class="text-center">
-                                                <span class="badge" :class="getStatusClass(item.trang_thai)">
-                                                    {{ getStatusLabel(item.trang_thai) }}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                            <AppTable
+                                v-else
+                                :columns="[
+                                    { key: 'idx', label: '#', width: '45px', align: 'center' },
+                                    { key: 'ten_giang_vien', label: 'Giảng viên', width: '25%' },
+                                    { key: 'thoi_gian_bat_dau', label: 'Thời gian hẹn', width: '20%' },
+                                    { key: 'noi_dung', label: 'Nội dung cuộc gặp', width: '35%' },
+                                    { key: 'trang_thai', label: 'Trạng thái', width: '15%', align: 'center' }
+                                ]"
+                                :items="list"
+                                empty-text="Bạn chưa đặt lịch hẹn nào với giảng viên."
+                            >
+                                <template #col-idx="{ index }">
+                                    <span class="text-muted">{{ index + 1 }}</span>
+                                </template>
+                                <template #col-ten_giang_vien="{ item }">
+                                    <span class="font-weight-bold text-dark">{{ item.ten_giang_vien }}</span>
+                                </template>
+                                <template #col-thoi_gian_bat_dau="{ item }">
+                                    <span>{{ formatDatetime(item.thoi_gian_bat_dau) }}</span>
+                                </template>
+                                <template #col-noi_dung="{ item }">
+                                    <span>{{ item.noi_dung }}</span>
+                                </template>
+                                <template #col-trang_thai="{ item }">
+                                    <AppBadge :variant="getStatusVariant(item.trang_thai)">
+                                        {{ getStatusLabel(item.trang_thai) }}
+                                    </AppBadge>
+                                </template>
+                            </AppTable>
                         </div>
                     </div>
                 </div>
@@ -211,6 +215,14 @@ const formatDatetime = (dtStr) => {
         hour: '2-digit',
         minute: '2-digit'
     });
+};
+
+const getStatusVariant = (status) => {
+    switch (status) {
+        case 'da_xac_nhan': return 'success';
+        case 'tu_choi': return 'danger';
+        default: return 'warning';
+    }
 };
 
 const getStatusLabel = (status) => {

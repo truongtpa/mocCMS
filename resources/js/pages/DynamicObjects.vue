@@ -1,349 +1,325 @@
 <template>
     <LTEContentWrapper :header="false">
         <template #content>
-            <div class="dynamic-objects-container p-2.5 bg-slate-50 min-h-screen">
-                <!-- Single Light Header Card -->
-                <div class="bg-white rounded-xl px-3 py-1.5 border border-slate-200 shadow-2xs mb-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-boxes text-blue-600 text-sm"></i>
-                        <h1 class="text-xs font-bold text-slate-800 tracking-tight mb-0">Quản lý Đối tượng & Thuộc tính</h1>
-                    </div>
-
-                    <!-- Navigation Tabs (Segmented Pill Bar) -->
-                    <div class="inline-flex p-0.5 bg-slate-100 rounded-lg border border-slate-200/80">
-                        <button 
-                            @click="activeTab = 'types'" 
-                            :class="['px-2.5 py-0.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1', activeTab === 'types' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900']"
-                        >
-                            <i class="fas fa-list-ul text-[10px]"></i>
-                            Loại Đối Tượng
-                        </button>
-                        <button 
-                            @click="activeTab = 'fields'" 
-                            :class="['px-2.5 py-0.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1', activeTab === 'fields' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900']"
-                        >
-                            <i class="fas fa-sliders-h text-[10px]"></i>
-                            Thuộc Tính Động
-                        </button>
-                        <button 
-                            @click="activeTab = 'records'" 
-                            :class="['px-2.5 py-0.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1', activeTab === 'records' ? 'bg-white text-blue-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900']"
-                        >
-                            <i class="fas fa-database text-[10px]"></i>
-                            Dữ Liệu Đối Tượng
-                        </button>
-                    </div>
-                </div>
-
-                <!-- TAB 1: LOẠI ĐỐI TƯỢNG -->
-                <div v-if="activeTab === 'types'" class="space-y-2.5">
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-                        <div class="px-3 py-1.5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <h4 class="font-bold text-slate-800 text-xs mb-0">Danh mục Loại đối tượng</h4>
-                                <span class="text-[11px] text-slate-500 bg-slate-200/60 px-2 py-0.2 rounded-full font-bold">{{ types.length }} loại</span>
-                            </div>
-                            <button v-if="hasPermission('DynamicObjectController.saveType')" @click="openTypeModal()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg shadow-2xs transition-all flex items-center gap-1">
-                                <i class="fas fa-plus text-[9px]"></i> Thêm Loại đối tượng
-                            </button>
+            <div class="row m-0">
+                <div class="col-12 p-0">
+                    <div class="card border-0" style="border: 1px solid #cbd5e1 !important; border-radius: 8px !important; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03) !important; overflow: hidden; background: #ffffff;">
+                        <!-- Light Mode Card Header -->
+                        <div class="card-header py-1.5 px-2.5 bg-light border-bottom d-flex align-items-center justify-content-between" style="background-color: #f8fafc !important; border-bottom: 1px solid #e2e8f0 !important;">
+                            <h6 class="card-title font-weight-bold mb-0 text-xs text-uppercase tracking-wider text-dark d-flex align-items-center">
+                                <i class="fas fa-boxes mr-2 text-primary"></i>
+                                QUẢN LÝ ĐỐI TƯỢNG VÀ THUỘC TÍNH
+                            </h6>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs text-slate-700">
-                                <thead class="bg-slate-100 text-slate-600 uppercase text-[11px] font-bold border-b border-slate-200">
-                                    <tr>
-                                        <th class="py-2 px-2.5 w-8 text-center">#</th>
-                                        <th class="py-2 px-2.5 whitespace-nowrap">Mã Loại</th>
-                                        <th class="py-2 px-2.5">Tên Loại Đối Tượng & Mô Tả</th>
-                                        <th class="py-2 px-2.5 text-center whitespace-nowrap">Thuộc tính</th>
-                                        <th class="py-2 px-2.5 text-center whitespace-nowrap">Bản ghi</th>
-                                        <th class="py-2 px-2.5 text-center whitespace-nowrap">Phân loại</th>
-                                        <th class="py-2 px-2.5 text-right whitespace-nowrap">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <tr v-for="(type, idx) in types" :key="type.id" class="hover:bg-slate-50/80 transition-colors">
-                                        <td class="py-2 px-2.5 text-center font-mono text-xs text-slate-400">{{ idx + 1 }}</td>
-                                        <td class="py-2 px-2.5 font-mono text-xs font-bold text-blue-700 whitespace-nowrap">
-                                            <span class="bg-blue-50/80 px-1.5 py-0.5 rounded border border-blue-100">{{ type.ma_loai }}</span>
-                                        </td>
-                                        <td class="py-2 px-2.5">
-                                            <div class="font-bold text-slate-900 text-xs">{{ type.ten_loai }}</div>
-                                            <div v-if="type.mo_ta" class="text-[11px] text-slate-500 mt-0.5 leading-snug font-normal">
-                                                {{ type.mo_ta }}
-                                            </div>
-                                        </td>
-                                        <td class="py-2 px-2.5 text-center whitespace-nowrap">
-                                            <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                                                {{ type.fields_count || 0 }}
-                                            </span>
-                                        </td>
-                                        <td class="py-2 px-2.5 text-center whitespace-nowrap">
-                                            <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                                                {{ type.records_count || 0 }}
-                                            </span>
-                                        </td>
-                                        <td class="py-2 px-2.5 text-center whitespace-nowrap">
-                                            <span v-if="['giang_vien', 'sinh_vien'].includes(type.ma_loai)" class="text-xs bg-amber-50 text-amber-700 font-semibold px-2 py-0.5 rounded border border-amber-200">
-                                                Mặc định
-                                            </span>
-                                            <span v-else class="text-xs bg-slate-50 text-slate-600 font-semibold px-2 py-0.5 rounded border border-slate-200">
-                                                Mở rộng
-                                            </span>
-                                        </td>
-                                        <td class="py-2 px-2.5 text-right whitespace-nowrap">
-                                            <div class="inline-flex items-center gap-1 justify-end">
-                                                <button @click="configureFields(type)" class="w-6.5 h-6.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors" title="Cấu hình Thuộc tính">
-                                                    <i class="fas fa-sliders-h text-[11px]"></i>
-                                                </button>
-                                                <button @click="viewRecords(type)" class="w-6.5 h-6.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center transition-colors" title="Xem Dữ liệu đối tượng">
-                                                    <i class="fas fa-database text-[11px]"></i>
-                                                </button>
-                                                <button v-if="hasPermission('DynamicObjectController.saveType')" @click="openTypeModal(type)" class="w-6.5 h-6.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition-colors" title="Chỉnh sửa">
-                                                    <i class="fas fa-edit text-[11px]"></i>
-                                                </button>
-                                                <button v-if="hasPermission('DynamicObjectController.deleteType') && !['giang_vien', 'sinh_vien'].includes(type.ma_loai)" @click="deleteType(type)" class="w-6.5 h-6.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors" title="Xóa">
-                                                    <i class="fas fa-trash-alt text-[11px]"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="types.length === 0">
-                                        <td colspan="7" class="py-4 text-center text-slate-400 italic text-xs">
-                                            Chưa có loại đối tượng nào trong hệ thống.
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- TAB 2: THUỘC TÍNH ĐỘNG -->
-                <div v-if="activeTab === 'fields'" class="space-y-2.5">
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-                        <div class="px-3 py-1.5 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between gap-2">
-                            <div class="flex items-center gap-2">
-                                <label class="text-xs font-bold text-slate-700 whitespace-nowrap mb-0">Loại đối tượng:</label>
-                                <select
-                                    :value="selectedTypeId"
-                                    @change="onTypeSelectChange($event.target.value)"
-                                    class="text-xs font-semibold rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-slate-800 focus:ring-2 focus:ring-blue-500 outline-hidden"
+                        <div class="card-body p-2">
+                            <!-- Nav Tabs -->
+                            <ul class="nav nav-tabs custom-tabs mb-2" id="dynamicTab" role="tablist">
+                                <li class="nav-item">
+                                    <button 
+                                        class="nav-link font-weight-bold py-1 px-2.5 text-xs" 
+                                        :class="{ active: activeTab === 'types' }" 
+                                        @click="activeTab = 'types'"
+                                    >
+                                        <i class="fas fa-list-ul mr-1"></i> Loại Đối Tượng
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button 
+                                        class="nav-link font-weight-bold py-1 px-2.5 text-xs" 
+                                        :class="{ active: activeTab === 'fields' }" 
+                                        @click="activeTab = 'fields'"
+                                    >
+                                        <i class="fas fa-sliders-h mr-1"></i> Thuộc Tính Động
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button 
+                                        class="nav-link font-weight-bold py-1 px-2.5 text-xs" 
+                                        :class="{ active: activeTab === 'records' }" 
+                                        @click="activeTab = 'records'"
+                                    >
+                                        <i class="fas fa-database mr-1"></i> Dữ Liệu Đối Tượng
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <!-- TAB 1: LOẠI ĐỐI TƯỢNG -->
+                            <div v-if="activeTab === 'types'">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                    <h6 class="font-weight-bold text-dark mb-0 text-xs">
+                                        Danh mục Loại đối tượng 
+                                        <span class="badge badge-light border text-muted ml-1">{{ types.length }} loại</span>
+                                    </h6>
+                                    <button 
+                                        v-if="hasPermission('DynamicObjectController.saveType')" 
+                                        @click="openTypeModal()" 
+                                        class="btn btn-primary btn-sm py-1 px-2 text-xs shadow-sm"
+                                    >
+                                        <i class="fas fa-plus mr-1"></i> Thêm Loại đối tượng
+                                    </button>
+                                </div>
+
+                                <AppTable
+                                    :columns="[
+                                        { key: 'idx', label: '#', width: '45px', align: 'center' },
+                                        { key: 'ma_loai', label: 'Mã Loại', width: '15%' },
+                                        { key: 'ten_loai', label: 'Tên Loại Đối Tượng & Mô Tả', width: '40%' },
+                                        { key: 'fields_count', label: 'Thuộc tính', width: '10%', align: 'center' },
+                                        { key: 'records_count', label: 'Bản ghi', width: '10%', align: 'center' },
+                                        { key: 'phan_loai', label: 'Phân loại', width: '10%', align: 'center' }
+                                    ]"
+                                    :items="types"
+                                    actions-width="15%"
+                                    empty-text="Chưa có loại đối tượng nào trong hệ thống."
                                 >
-                                    <option v-for="option in typeSelectOptions" :key="option.value" :value="option.value">
-                                        {{ option.text }}
-                                    </option>
-                                </select>
-                                <span class="text-xs text-slate-500 font-medium whitespace-nowrap">({{ fields.length }} thuộc tính - {{ Object.keys(groupedFields).length }} nhóm)</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button v-if="hasPermission('DynamicObjectController.saveField')" @click="openFieldModal()" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg shadow-2xs transition-all flex items-center gap-1">
-                                    <i class="fas fa-plus text-[9px]"></i> Thêm Thuộc tính
-                                </button>
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs text-slate-700">
-                                <thead class="bg-slate-100 text-slate-600 uppercase text-[11px] font-bold border-b border-slate-200">
-                                    <tr>
-                                        <th class="py-2 px-2.5 w-12 text-center whitespace-nowrap">Kéo / #</th>
-                                        <th class="py-2 px-2.5 whitespace-nowrap">Mã Thuộc Tính</th>
-                                        <th class="py-2 px-2.5 whitespace-nowrap">Tên Thuộc Tính</th>
-                                        <th class="py-2 px-2.5 whitespace-nowrap">Kiểu Dữ Liệu</th>
-                                        <th class="py-2 px-2.5 whitespace-nowrap text-center">Trạng Thái</th>
-                                        <th class="py-2 px-2.5 whitespace-nowrap text-right">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <template v-for="(groupFields, groupName) in groupedFields" :key="groupName">
-                                        <!-- Group Section Header Row -->
-                                        <tr 
-                                            @dragover.prevent="onDragOverGroupHeader($event, groupName)"
-                                            @drop="onDrop($event, null, groupName)"
-                                            :class="['border-y border-slate-200 transition-colors', dragOverGroup === groupName && !dragOverField ? 'bg-blue-100/80 border-blue-400' : 'bg-slate-100/80']"
-                                        >
-                                            <td colspan="6" class="py-1.5 px-3">
-                                                <div class="flex items-center justify-between">
-                                                    <div class="flex items-center gap-2">
-                                                        <i class="fas fa-layer-group text-blue-600 text-xs"></i>
-                                                        <span class="font-bold text-xs text-slate-800 uppercase tracking-tight">{{ groupName }}</span>
-                                                        <span class="text-[11px] font-bold bg-white text-slate-700 border border-slate-200 px-2 py-0.2 rounded-full">
-                                                            {{ groupFields.length }} thuộc tính
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-
-                                        <!-- Group Member Rows (Draggable) -->
-                                        <tr 
-                                            v-for="(f, idx) in groupFields" 
-                                            :key="f.id" 
-                                            draggable="true"
-                                            @dragstart="onDragStart($event, f, groupName)"
-                                            @dragover.prevent="onDragOverField($event, f, groupName)"
-                                            @dragleave="onDragLeave"
-                                            @dragend="onDragEnd"
-                                            @drop="onDrop($event, f, groupName)"
-                                            :class="[
-                                                'hover:bg-slate-50/80 transition-colors cursor-move',
-                                                draggedField && draggedField.id === f.id ? 'opacity-30 bg-blue-50 border-2 border-dashed border-blue-400' : '',
-                                                dragOverField && dragOverField.id === f.id ? 'bg-blue-50 border-t-2 border-blue-500' : ''
-                                            ]"
-                                        >
-                                            <td class="py-1.5 px-2.5 text-center whitespace-nowrap">
-                                                <div class="inline-flex items-center justify-center gap-1.5 text-slate-400 hover:text-blue-600">
-                                                    <i class="fas fa-grip-vertical text-xs cursor-grab active:cursor-grabbing" title="Kéo để di chuyển / đổi nhóm"></i>
-                                                    <span class="font-mono text-xs font-bold text-slate-600">{{ f.thu_tu || (idx + 1) }}</span>
-                                                </div>
-                                            </td>
-                                            <td class="py-1.5 px-2.5 whitespace-nowrap">
-                                                <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50/80 px-2 py-0.5 rounded border border-blue-100">
-                                                    {{ f.ma_truong }}
-                                                </span>
-                                            </td>
-                                            <td class="py-1.5 px-2.5 font-bold text-slate-800 whitespace-nowrap min-w-[140px]">
-                                                <span>{{ f.ten_truong }}</span>
-                                                <span v-if="f.bat_buoc" class="ml-1 text-rose-500 font-bold" title="Bắt buộc nhập">*</span>
-                                            </td>
-                                            <td class="py-1.5 px-2.5 whitespace-nowrap">
-                                                <span class="px-2 py-0.5 text-xs font-semibold rounded bg-slate-50 text-slate-700 border border-slate-200/80 inline-flex items-center gap-1.5 whitespace-nowrap">
-                                                    <i :class="getDataTypeIcon(f.kieu_du_lieu) + ' text-blue-600 text-xs'"></i>
-                                                    <span>{{ getDataTypeLabel(f.kieu_du_lieu) }}</span>
-                                                </span>
-                                            </td>
-                                            <td class="py-1.5 px-2.5 text-center whitespace-nowrap">
-                                                <span :class="['px-2 py-0.5 text-xs font-bold rounded-full border inline-flex items-center gap-1 whitespace-nowrap', f.trang_thai ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200']">
-                                                    <span :class="['w-1.5 h-1.5 rounded-full', f.trang_thai ? 'bg-emerald-500' : 'bg-slate-400']"></span>
-                                                    {{ f.trang_thai ? 'Đang dùng' : 'Tạm ẩn' }}
-                                                </span>
-                                            </td>
-                                            <td class="py-1.5 px-2.5 text-right whitespace-nowrap">
-                                                <div class="inline-flex items-center gap-1 justify-end">
-                                                    <button v-if="hasPermission('DynamicObjectController.saveField')" @click="openFieldModal(f)" class="w-6.5 h-6.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition-colors" title="Chỉnh sửa Thuộc tính">
-                                                        <i class="fas fa-edit text-[11px]"></i>
-                                                    </button>
-                                                    <button v-if="hasPermission('DynamicObjectController.deleteField')" @click="deleteField(f)" class="w-6.5 h-6.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors" title="Xóa Thuộc tính">
-                                                        <i class="fas fa-trash-alt text-[11px]"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                    <template #col-idx="{ index }">
+                                        <span class="text-muted font-mono">{{ index + 1 }}</span>
                                     </template>
-                                    <tr v-if="fields.length === 0">
-                                        <td colspan="6" class="py-4 text-center text-slate-400 italic text-xs">
-                                            Chưa có thuộc tính nào được cấu hình cho loại đối tượng này.
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB 3: DỮ LIỆU ĐỐI TƯỢNG -->
-                <div v-if="activeTab === 'records'" class="space-y-2.5">
-                    <!-- Record Data Table with Contextual Headers -->
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-                        <div class="px-3 py-1.5 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between gap-2">
-                            <div class="flex items-center gap-2">
-                                <label class="text-xs font-bold text-slate-700 whitespace-nowrap mb-0">Loại đối tượng:</label>
-                                <select
-                                    :value="selectedTypeId"
-                                    @change="onTypeSelectChange($event.target.value)"
-                                    class="text-xs font-semibold rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-slate-800 focus:ring-2 focus:ring-blue-500 outline-hidden"
-                                >
-                                    <option v-for="option in typeSelectOptions" :key="option.value" :value="option.value">
-                                        {{ option.text }}
-                                    </option>
-                                </select>
-                                <span class="text-xs text-slate-500 font-medium whitespace-nowrap">({{ records.length }} bản ghi)</span>
+                                    <template #col-ma_loai="{ item }">
+                                        <AppBadge variant="primary">{{ item.ma_loai }}</AppBadge>
+                                    </template>
+                                    <template #col-ten_loai="{ item }">
+                                        <div class="font-weight-bold text-dark text-xs">{{ item.ten_loai }}</div>
+                                        <div v-if="item.mo_ta" class="small text-muted mt-0.5 leading-snug" style="font-size: 0.75rem;">
+                                            {{ item.mo_ta }}
+                                        </div>
+                                    </template>
+                                    <template #col-fields_count="{ item }">
+                                        <AppBadge variant="secondary">{{ item.fields_count || 0 }}</AppBadge>
+                                    </template>
+                                    <template #col-records_count="{ item }">
+                                        <AppBadge variant="secondary">{{ item.records_count || 0 }}</AppBadge>
+                                    </template>
+                                    <template #col-phan_loai="{ item }">
+                                        <AppBadge v-if="['giang_vien', 'sinh_vien'].includes(item.ma_loai)" variant="warning">Mặc định</AppBadge>
+                                        <AppBadge v-else variant="light">Mở rộng</AppBadge>
+                                    </template>
+                                    <template #actions="{ item }">
+                                        <IconButton @click="configureFields(item)" variant="slate" icon="fas fa-sliders-h" title="Cấu hình Thuộc tính" />
+                                        <IconButton @click="viewRecords(item)" variant="blue" icon="fas fa-database" title="Xem Dữ liệu đối tượng" />
+                                        <IconButton v-if="hasPermission('DynamicObjectController.saveType')" @click="openTypeModal(item)" variant="amber" icon="fas fa-edit" title="Chỉnh sửa" />
+                                        <IconButton v-if="hasPermission('DynamicObjectController.deleteType') && !['giang_vien', 'sinh_vien'].includes(item.ma_loai)" @click="deleteType(item)" variant="red" icon="fas fa-trash-alt" title="Xóa" />
+                                    </template>
+                                </AppTable>
                             </div>
-                            <button v-if="hasPermission('DynamicObjectController.saveRecord')" @click="openRecordModal()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs rounded-lg shadow-2xs transition-all flex items-center gap-1">
-                                <i class="fas fa-plus text-[9px]"></i> Thêm Bản ghi
-                            </button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs text-slate-700">
-                                <thead class="bg-slate-100 text-slate-600 uppercase text-[11px] font-bold border-b border-slate-200">
-                                    <tr>
-                                        <th class="py-2 px-2.5 w-8 text-center">#</th>
-                                        <!-- Contextual Code Header (Hidden for giang_vien) -->
-                                        <th v-if="currentRecordType && currentRecordType.ma_loai !== 'giang_vien'" class="py-2 px-2.5 whitespace-nowrap">{{ getCodeHeaderLabel() }}</th>
-                                        <!-- Contextual Name & Email Header -->
-                                        <th class="py-2 px-2.5 whitespace-nowrap">{{ getNameHeaderLabel() }}</th>
-                                        <!-- Dynamic Field Headers -->
-                                        <th v-for="f in recordFields" :key="f.id" class="py-2 px-2.5 text-blue-700 whitespace-nowrap">
-                                            {{ f.ten_truong }}
-                                        </th>
-                                        <th class="py-2 px-2.5 text-right whitespace-nowrap">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <tr v-for="(rec, idx) in records" :key="rec.id" class="hover:bg-slate-50/80 transition-colors">
-                                        <td class="py-1.5 px-2.5 text-center font-mono text-xs text-slate-400">{{ idx + 1 }}</td>
-                                        <td v-if="currentRecordType && currentRecordType.ma_loai !== 'giang_vien'" class="py-1.5 px-2.5 font-mono text-xs font-bold text-blue-700 whitespace-nowrap">
-                                            <span class="bg-blue-50/80 px-1.5 py-0.5 rounded border border-blue-100">{{ rec.ma_doi_tuong }}</span>
-                                        </td>
-                                        <td class="py-1.5 px-2.5 min-w-[160px]">
-                                            <div class="font-bold text-slate-900 text-xs">{{ rec.ten_hien_thi }}</div>
-                                            <div v-if="rec.email" class="text-[11px] text-slate-500 font-mono mt-0.5 leading-none">
-                                                {{ rec.email }}
-                                            </div>
-                                        </td>
-                                        <!-- Dynamic Field Values -->
-                                        <td v-for="f in recordFields" :key="f.id" class="py-1.5 px-2.5 text-slate-700 font-medium whitespace-nowrap">
-                                            <!-- Image preview with lightbox trigger -->
-                                            <template v-if="f.kieu_du_lieu === 'image' && rec.attributes[f.ma_truong]">
-                                                <div @click="previewImage(rec.attributes[f.ma_truong])" class="cursor-pointer group relative inline-block">
-                                                    <img :src="rec.attributes[f.ma_truong]" class="w-7 h-7 object-cover rounded-lg border border-slate-200 shadow-2xs group-hover:opacity-80 transition-opacity" />
-                                                    <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity text-white text-[9px]">
-                                                        <i class="fas fa-search-plus"></i>
+
+                            <!-- TAB 2: THUỘC TÍNH ĐỘNG -->
+                            <div v-if="activeTab === 'fields'">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                    <div class="d-flex align-items-center">
+                                        <label class="small font-weight-bold text-dark mb-0 mr-2 text-xs">Loại đối tượng:</label>
+                                        <select
+                                            :value="selectedTypeId"
+                                            @change="onTypeSelectChange($event.target.value)"
+                                            class="form-control form-control-sm font-weight-bold text-dark py-0"
+                                            style="width: auto; min-width: 180px; font-size: 0.78rem; height: 28px;"
+                                        >
+                                            <option v-for="option in typeSelectOptions" :key="option.value" :value="option.value">
+                                                {{ option.text }}
+                                            </option>
+                                        </select>
+                                        <span class="text-muted small ml-2 font-weight-normal">({{ fields.length }} thuộc tính - {{ Object.keys(groupedFields).length }} nhóm)</span>
+                                    </div>
+                                    <button 
+                                        v-if="hasPermission('DynamicObjectController.saveField')" 
+                                        @click="openFieldModal()" 
+                                        class="btn btn-primary btn-sm py-1 px-2 text-xs shadow-sm"
+                                    >
+                                        <i class="fas fa-plus mr-1"></i> Thêm Thuộc tính
+                                    </button>
+                                </div>
+
+                                <AppTable>
+                                    <template #thead>
+                                        <thead style="background-color: #007bff !important;">
+                                            <tr>
+                                                <th style="width: 52px; min-width: 52px; max-width: 52px;" class="text-center py-1.5 px-2 text-white font-weight-bold text-xs border-0">Kéo / #</th>
+                                                <th style="width: 180px;" class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">Mã Thuộc Tính</th>
+                                                <th class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">Tên Thuộc Tính</th>
+                                                <th style="width: 180px;" class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">Kiểu Dữ Liệu</th>
+                                                <th style="width: 110px;" class="text-center py-1.5 px-2 text-white font-weight-bold text-xs border-0">Trạng Thái</th>
+                                                <th style="width: 90px;" class="text-center py-1.5 px-2 text-white font-weight-bold text-xs border-0">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                    </template>
+                                    <template #tbody>
+                                        <tbody>
+                                            <template v-for="(groupFields, groupName) in groupedFields" :key="groupName">
+                                                <!-- Group Subheader Row matching Permissions.vue subheaders -->
+                                                <tr 
+                                                    @dragover.prevent="onDragOverGroupHeader($event, groupName)"
+                                                    @drop="onDrop($event, null, groupName)"
+                                                    :class="{ 'group-drag-over': dragOverGroup === groupName && !dragOverField }"
+                                                    style="background-color: #eff6ff; border-left: 4px solid #2563eb;"
+                                                >
+                                                    <td colspan="6" class="py-1 px-2.5">
+                                                        <div class="d-flex align-items-center justify-content-between">
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="fas fa-layer-group text-primary mr-1.5 text-xs"></i>
+                                                                <span class="font-weight-bold text-primary text-xs uppercase">{{ groupName }}</span>
+                                                                <span class="badge badge-light border text-dark ml-2 px-2 py-0.5">
+                                                                    {{ groupFields.length }} thuộc tính
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+
+                                                <tr 
+                                                    v-for="(f, idx) in groupFields" 
+                                                    :key="f.id" 
+                                                    draggable="true"
+                                                    @dragstart="onDragStart($event, f, groupName)"
+                                                    @dragover.prevent="onDragOverField($event, f, groupName)"
+                                                    @dragleave="onDragLeave"
+                                                    @dragend="onDragEnd"
+                                                    @drop="onDrop($event, f, groupName)"
+                                                    :class="{
+                                                        'row-dragged': draggedField && draggedField.id === f.id,
+                                                        'row-drag-over-above': dragOverField && dragOverField.id === f.id && dragOverPosition === 'above',
+                                                        'row-drag-over-below': dragOverField && dragOverField.id === f.id && dragOverPosition === 'below'
+                                                    }"
+                                                >
+                                                    <td class="text-center py-1 px-2 text-xs" style="width: 52px; min-width: 52px; max-width: 52px;">
+                                                        <i class="fas fa-grip-vertical text-muted mr-1 cursor-grab" title="Kéo để di chuyển"></i>
+                                                        <span class="font-weight-bold text-dark">{{ f.thu_tu || (idx + 1) }}</span>
+                                                    </td>
+                                                    <td class="py-1 px-2">
+                                                        <code style="font-size: 0.78rem;" class="text-primary font-weight-bold">{{ f.ma_truong }}</code>
+                                                    </td>
+                                                    <td class="font-weight-bold text-dark py-1 px-2 text-xs">
+                                                        <span>{{ f.ten_truong }}</span>
+                                                        <span v-if="f.bat_buoc" class="text-danger ml-1" title="Bắt buộc nhập">*</span>
+                                                    </td>
+                                                    <td class="py-1 px-2 text-xs">
+                                                        <AppBadge variant="light">
+                                                            <i :class="getDataTypeIcon(f.kieu_du_lieu) + ' text-primary mr-1'"></i>
+                                                            {{ getDataTypeLabel(f.kieu_du_lieu) }}
+                                                        </AppBadge>
+                                                    </td>
+                                                    <td class="text-center py-1 px-2">
+                                                        <AppBadge :variant="f.trang_thai ? 'success' : 'secondary'">
+                                                            {{ f.trang_thai ? 'Đang dùng' : 'Tạm ẩn' }}
+                                                        </AppBadge>
+                                                    </td>
+                                                    <td class="text-center py-1 px-2">
+                                                        <div class="d-inline-flex align-items-center gap-1">
+                                                            <IconButton v-if="hasPermission('DynamicObjectController.saveField')" @click="openFieldModal(f)" variant="amber" icon="fas fa-edit" title="Chỉnh sửa Thuộc tính" />
+                                                            <IconButton v-if="hasPermission('DynamicObjectController.deleteField')" @click="deleteField(f)" variant="red" icon="fas fa-trash-alt" title="Xóa Thuộc tính" />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <tr v-if="fields.length === 0">
+                                                <td colspan="6" class="py-3 text-center text-muted italic text-xs">
+                                                    Chưa có thuộc tính nào được cấu hình cho loại đối tượng này.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </template>
+                                </AppTable>
+                            </div>
+
+                            <!-- TAB 3: DỮ LIỆU ĐỐI TƯỢNG -->
+                            <div v-if="activeTab === 'records'">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5">
+                                    <div class="d-flex align-items-center">
+                                        <label class="small font-weight-bold text-dark mb-0 mr-2 text-xs">Loại đối tượng:</label>
+                                        <select
+                                            :value="selectedTypeId"
+                                            @change="onTypeSelectChange($event.target.value)"
+                                            class="form-control form-control-sm font-weight-bold text-dark py-0"
+                                            style="width: auto; min-width: 180px; font-size: 0.78rem; height: 28px;"
+                                        >
+                                            <option v-for="option in typeSelectOptions" :key="option.value" :value="option.value">
+                                                {{ option.text }}
+                                            </option>
+                                        </select>
+                                        <span class="text-muted small ml-2 font-weight-normal">({{ records.length }} bản ghi)</span>
+                                    </div>
+                                    <button 
+                                        v-if="hasPermission('DynamicObjectController.saveRecord')" 
+                                        @click="openRecordModal()" 
+                                        class="btn btn-success btn-sm py-1 px-2 text-xs shadow-sm"
+                                    >
+                                        <i class="fas fa-plus mr-1"></i> Thêm Bản ghi
+                                    </button>
+                                </div>
+
+                                <AppTable>
+                                    <template #thead>
+                                        <thead style="background-color: #007bff !important;">
+                                            <tr>
+                                                <th style="width: 45px;" class="text-center py-1.5 px-2 text-white font-weight-bold text-xs border-0">#</th>
+                                                <th v-if="currentRecordType && currentRecordType.ma_loai !== 'giang_vien'" class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">{{ getCodeHeaderLabel() }}</th>
+                                                <th class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">{{ getNameHeaderLabel() }}</th>
+                                                <th v-for="f in recordFields" :key="f.id" class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">
+                                                    {{ f.ten_truong }}
+                                                </th>
+                                                <th class="text-center py-1.5 px-2 text-white font-weight-bold text-xs border-0" style="width: 10%;">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                    </template>
+                                    <template #tbody>
+                                        <tbody>
+                                            <tr v-for="(rec, idx) in records" :key="rec.id">
+                                                <td class="text-center py-1 px-2 text-xs text-muted">{{ idx + 1 }}</td>
+                                                <td v-if="currentRecordType && currentRecordType.ma_loai !== 'giang_vien'" class="py-1 px-2 font-mono text-xs font-weight-bold">
+                                                    <AppBadge variant="primary">{{ rec.ma_doi_tuong }}</AppBadge>
+                                                </td>
+                                                <td class="py-1 px-2">
+                                                    <div class="font-weight-bold text-dark text-xs">{{ rec.ten_hien_thi }}</div>
+                                                    <div v-if="rec.email" class="small text-muted font-mono mt-0.5">
+                                                        {{ rec.email }}
                                                     </div>
-                                                </div>
-                                            </template>
-                                            <!-- File download badge -->
-                                            <template v-else-if="f.kieu_du_lieu === 'file' && rec.attributes[f.ma_truong]">
-                                                <a :href="rec.attributes[f.ma_truong]" target="_blank" download class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded text-xs font-bold transition-colors border border-blue-100">
-                                                    <i :class="getFileIconClass(rec.attributes[f.ma_truong])"></i>
-                                                    <span>Tải tệp</span>
-                                                </a>
-                                            </template>
-                                            <template v-else-if="f.kieu_du_lieu === 'boolean'">
-                                                <span :class="['px-2 py-0.5 text-xs font-bold rounded-md', rec.attributes[f.ma_truong] ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200']">
-                                                    {{ rec.attributes[f.ma_truong] ? 'Có / Đạt' : 'Không' }}
-                                                </span>
-                                            </template>
-                                            <template v-else-if="f.kieu_du_lieu === 'color' && rec.attributes[f.ma_truong]">
-                                                <div class="flex items-center gap-1.5">
-                                                    <span class="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs" :style="{ backgroundColor: rec.attributes[f.ma_truong] }"></span>
-                                                    <span class="font-mono text-xs">{{ rec.attributes[f.ma_truong] }}</span>
-                                                </div>
-                                            </template>
-                                            <template v-else>
-                                                {{ rec.attributes[f.ma_truong] || '-' }}
-                                            </template>
-                                        </td>
-                                        <td class="py-1.5 px-2.5 text-right whitespace-nowrap">
-                                            <div class="inline-flex items-center gap-1 justify-end">
-                                                <button v-if="hasPermission('DynamicObjectController.saveRecord')" @click="openRecordModal(rec)" class="w-6.5 h-6.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-600 flex items-center justify-center transition-colors" title="Chỉnh sửa Bản ghi">
-                                                    <i class="fas fa-edit text-[11px]"></i>
-                                                </button>
-                                                <button v-if="hasPermission('DynamicObjectController.deleteRecord')" @click="deleteRecord(rec)" class="w-6.5 h-6.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors" title="Xóa Bản ghi">
-                                                    <i class="fas fa-trash-alt text-[11px]"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="records.length === 0">
-                                        <td :colspan="3 + recordFields.length" class="py-4 text-center text-slate-400 italic text-xs">
-                                            Chưa có dữ liệu bản ghi cho loại đối tượng này.
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                                </td>
+                                                <td v-for="f in recordFields" :key="f.id" class="py-1 px-2 text-xs text-dark">
+                                                    <template v-if="f.kieu_du_lieu === 'image' && rec.attributes[f.ma_truong]">
+                                                        <div @click="previewImage(rec.attributes[f.ma_truong])" class="cursor-pointer">
+                                                            <img :src="rec.attributes[f.ma_truong]" class="rounded border" style="width: 32px; height: 32px; object-fit: cover;" />
+                                                        </div>
+                                                    </template>
+                                                    <template v-else-if="f.kieu_du_lieu === 'file' && rec.attributes[f.ma_truong]">
+                                                        <a :href="rec.attributes[f.ma_truong]" target="_blank" download class="btn btn-xs btn-outline-primary font-weight-bold">
+                                                            <i :class="getFileIconClass(rec.attributes[f.ma_truong])"></i> Tải tệp
+                                                        </a>
+                                                    </template>
+                                                    <template v-else-if="f.kieu_du_lieu === 'boolean'">
+                                                        <AppBadge :variant="rec.attributes[f.ma_truong] ? 'success' : 'secondary'">
+                                                            {{ rec.attributes[f.ma_truong] ? 'Có / Đạt' : 'Không' }}
+                                                        </AppBadge>
+                                                    </template>
+                                                    <template v-else-if="f.kieu_du_lieu === 'color' && rec.attributes[f.ma_truong]">
+                                                        <div class="d-flex align-items-center">
+                                                            <span class="rounded-circle border mr-1" :style="{ backgroundColor: rec.attributes[f.ma_truong], width: '14px', height: '14px', display: 'inline-block' }"></span>
+                                                            <span class="font-mono text-xs">{{ rec.attributes[f.ma_truong] }}</span>
+                                                        </div>
+                                                    </template>
+                                                    <template v-else>
+                                                        {{ rec.attributes[f.ma_truong] || '-' }}
+                                                    </template>
+                                                </td>
+                                                <td class="text-center py-1 px-2">
+                                                    <div class="d-inline-flex align-items-center gap-1">
+                                                        <IconButton v-if="hasPermission('DynamicObjectController.saveRecord')" @click="openRecordModal(rec)" variant="amber" icon="fas fa-edit" title="Chỉnh sửa Bản ghi" />
+                                                        <IconButton v-if="hasPermission('DynamicObjectController.deleteRecord')" @click="deleteRecord(rec)" variant="red" icon="fas fa-trash-alt" title="Xóa Bản ghi" />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr v-if="records.length === 0">
+                                                <td :colspan="3 + recordFields.length" class="py-3 text-center text-muted italic text-xs">
+                                                    Chưa có dữ liệu bản ghi cho loại đối tượng này.
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </template>
+                                </AppTable>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
             <Teleport to="body">
                 <!-- MODAL: TYPE FORM -->
@@ -692,7 +668,6 @@
                     </div>
                 </div>
             </Teleport>
-            </div>
         </template>
     </LTEContentWrapper>
 </template>
@@ -718,6 +693,7 @@ export default {
             draggedField: null,
             dragOverField: null,
             dragOverGroup: null,
+            dragOverPosition: 'above',
 
             // Modals
             showTypeModal: false,
@@ -831,23 +807,32 @@ export default {
             event.preventDefault()
             this.dragOverField = targetField
             this.dragOverGroup = groupName
+
+            if (event.currentTarget) {
+                const rect = event.currentTarget.getBoundingClientRect()
+                const offsetY = event.clientY - rect.top
+                this.dragOverPosition = offsetY > rect.height / 2 ? 'below' : 'above'
+            }
         },
 
         onDragOverGroupHeader(event, groupName) {
             event.preventDefault()
             this.dragOverField = null
             this.dragOverGroup = groupName
+            this.dragOverPosition = 'above'
         },
 
         onDragLeave() {
             this.dragOverField = null
             this.dragOverGroup = null
+            this.dragOverPosition = 'above'
         },
 
         onDragEnd() {
             this.draggedField = null
             this.dragOverField = null
             this.dragOverGroup = null
+            this.dragOverPosition = 'above'
         },
 
         // Helper to re-index all fields sequentially (1, 2, 3, 4...) across visual groups
@@ -886,6 +871,7 @@ export default {
 
             const srcField = this.draggedField
             const newGroup = targetGroup || (targetField ? targetField.phan_nhom : srcField.phan_nhom)
+            const insertBelow = this.dragOverPosition === 'below'
 
             // Update group assignment
             srcField.phan_nhom = newGroup
@@ -898,8 +884,11 @@ export default {
 
             // Insert into target position
             if (targetField) {
-                const targetIndex = this.fields.findIndex(f => f.id === targetField.id)
+                let targetIndex = this.fields.findIndex(f => f.id === targetField.id)
                 if (targetIndex !== -1) {
+                    if (insertBelow) {
+                        targetIndex += 1
+                    }
                     this.fields.splice(targetIndex, 0, srcField)
                 } else {
                     this.fields.push(srcField)
@@ -1393,3 +1382,72 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+/* Tabs */
+.custom-tabs {
+    border-bottom: 1px solid #cbd5e1 !important;
+}
+.custom-tabs .nav-link {
+    color: #475569 !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    padding: 0.5rem 1rem !important;
+    background: transparent !important;
+    transition: all 0.2s ease !important;
+    border-radius: 0 !important;
+}
+.custom-tabs .nav-link:hover {
+    color: #1f4068 !important;
+    border-bottom-color: #cbd5e1 !important;
+}
+.custom-tabs .nav-link.active {
+    color: #1f4068 !important;
+    background-color: transparent !important;
+    border-bottom: 2px solid #1f4068 !important;
+}
+
+/* Badges styling */
+.badge {
+    font-size: 0.7rem !important;
+    font-weight: 500 !important;
+    padding: 0.15rem 0.4rem !important;
+    border-radius: 4px !important;
+}
+
+/* Force Blue Background Table Header with White Text */
+.table thead,
+.table thead tr,
+.table thead th,
+.table thead tr th {
+    background-color: #007bff !important;
+    background: #007bff !important;
+    color: #ffffff !important;
+    border-bottom: none !important;
+    border-top: none !important;
+    font-weight: 700 !important;
+}
+
+/* Drag & Drop Visual Effects */
+.row-dragged {
+    opacity: 0.35 !important;
+    background-color: #f1f5f9 !important;
+}
+.row-drag-over-above {
+    background-color: #dbeafe !important;
+    border-top: 3px solid #2563eb !important;
+}
+.row-drag-over-below {
+    background-color: #dbeafe !important;
+    border-bottom: 3px solid #2563eb !important;
+}
+.group-drag-over {
+    background-color: #bfdbfe !important;
+}
+.cursor-grab {
+    cursor: grab;
+}
+.cursor-grab:active {
+    cursor: grabbing;
+}
+</style>

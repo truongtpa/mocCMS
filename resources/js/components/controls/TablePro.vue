@@ -548,7 +548,7 @@ export default {
 .table { margin-bottom: 0rem !important; }
 .table td, .table th { padding: 0.4rem !important; vertical-align: middle; border-top: 1px solid #dee2e6; border-left: 1px solid #e9ecef; font-size: 15px; }
 .table td:last-child, .table th:last-child { border-right: 1px solid #e9ecef; }
-.table thead tr th { border-top: none; background-color: #007bff !important; color: white; border-left: 1px solid rgba(255, 255, 255, 0.2); }
+.tablepro-wrapper .table-responsive > .table thead tr th { border-top: none; background-color: #007bff; color: white; border-left: 1px solid rgba(255, 255, 255, 0.2); }
 .table thead tr th:first-child { border-top-left-radius: 6px; border-left: none; }
 .table thead tr th:last-child { border-top-right-radius: 6px; border-right: 1px solid rgba(255, 255, 255, 0.2); }
 
