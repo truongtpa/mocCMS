@@ -1,0 +1,163 @@
+:root {
+    --primary-color: #007bff;
+    --font-size: 0.9rem;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Khắc phục xung đột giữa Tailwind CSS (.collapse { visibility: collapse; }) và Bootstrap 4 collapse */
+.collapse {
+    visibility: visible;
+}
+
+a {
+    color: var(--primary-color, #007bff);
+    text-decoration: none;
+    background-color: transparent;
+    transition: color 0.15s ease-in-out;
+}
+
+a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+.router-link:hover {
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.router-link {
+    color: var(--primary-color);
+    font-weight: bold;
+    cursor: pointer;
+    user-select: contain;
+    font-size: var(--font-size);
+    font-weight: 600;
+    background-color: transparent;
+}
+
+.router-link-none {
+    color: var(--primary-color);
+    font-weight: bold;
+    font-weight: 600;
+    font-size: var(--font-size);
+    background-color: transparent;
+    text-decoration: none;
+}
+
+.gap-1 {
+    gap: 10px;
+}
+
+.gap-2 {
+    gap: 20px;
+}
+
+.gap-3 {
+    gap: 30px;
+}
+
+@media (max-width: 768px) {
+    .gap-1 {
+        gap: 10px;
+    }
+}
+
+.max-w-1 {
+    width: 80px !important;
+    padding: 0 !important;
+}
+
+.max-w-2 {
+    width: 120px !important;
+    padding: 0 !important;
+}
+
+.accordion-button {
+    width: 28px;
+    height: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' fill='currentColor' class='bi bi-plus' viewBox='0 0 16 16'%3E%3Cpath d='M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: all 0.5s;
+}
+
+.accordion-button:not(.collapsed) {
+    width: 28px;
+    height: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' fill='currentColor' class='bi bi-dash' viewBox='0 0 16 16'%3E%3Cpath d='M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat;
+    background-position: center;
+    transform: rotate(0deg);
+}
+
+.accordion-button.text-white {
+    width: 28px;
+    height: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' fill='%23ffffff' class='bi bi-plus' viewBox='0 0 16 16'%3E%3Cpath d='M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: all 0.5s;
+}
+
+.accordion-button:not(.collapsed).text-white {
+    width: 28px;
+    height: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' fill='%23ffffff' class='bi bi-dash' viewBox='0 0 16 16'%3E%3Cpath d='M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat;
+    background-position: center;
+    transform: rotate(0deg);
+}
+
+.accordion-button.collapsed {
+    transform: rotate(180deg);
+    /* Trạng thái ban đầu */
+}
+
+.form-check-custom:not(:disabled) {
+    cursor: pointer;
+}
+
+.form-check-custom {
+    position: relative;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 1px solid #28a745;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.form-check-custom::before {
+    content: '✔';
+    color: transparent;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-check-custom:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.form-check-custom:checked::before {
+    content: '✓';
+    color: white !important;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lm-min {
+    width: 1%;
+    white-space: nowrap;
+}

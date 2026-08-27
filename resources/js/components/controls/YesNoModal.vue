@@ -12,11 +12,11 @@
           {{ message }}
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-danger float-left" @click="confirm(false)">
+          <button type="button" class="btn btn-danger float-left" @click="confirm(false, $event)">
             <i class="fas fa-times"></i>
             {{ noLabel }}
           </button>
-          <button type="button" class="btn btn-success float-right" @click="confirm(true)">
+          <button type="button" class="btn btn-success float-right" @click="confirm(true, $event)">
             <i class="fas fa-check"></i>
             {{ yesLabel }}
           </button>
@@ -55,10 +55,12 @@ export default {
     openModal(title='Bạn có chắc chắn?', message='Bạn có muốn thực hiện hành động này không?') {
       this.title = title;
       this.message = message;
+
       this.modalInstance = new window.bootstrap.Modal(this.$refs.modal, {
         backdrop: 'static',
         keyboard: false
       });
+
       this.modalInstance.show();
       return new Promise((resolve) => {
         this.resolveModal = resolve;
@@ -67,7 +69,10 @@ export default {
     closeModal() {
       this.modalInstance.hide();
     },
-    confirm(result) {
+    confirm(result, event) {
+      if (event && event.currentTarget) {
+        event.currentTarget.blur();
+      }
       if (this.resolveModal) {
         this.resolveModal(result);
       }
@@ -86,4 +91,11 @@ export default {
   justify-content: space-between;
   align-items: center;
 }
+.modal {
+    z-index: 2000 !important;
+}
+.modal-backdrop {
+    z-index: 1990 !important;
+}
+
 </style>

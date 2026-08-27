@@ -1,14 +1,9 @@
 <template>
   <div class="form-group">
     <label>{{ label }}</label>
-    <textarea
-        :placeholder="placeholder"
-        :class="textareaClass"
-        :id="textareaId"
-        :value="modelValue"
-        :disabled="isDisabled"
-        @input="$emit('update:modelValue', $event.target.value)"
-    ></textarea>
+    <textarea :placeholder="placeholder" :class="textareaClass" :style="textareaStyle" :id="textareaId"
+      :disabled="isDisabled" :value="modelValue" :rows="rows"
+      @input="$emit('update:modelValue', $event.target.value)"></textarea>
   </div>
 </template>
 
@@ -27,6 +22,10 @@ export default {
       type: String,
       default: 'form-control',
     },
+    textareaStyle: {
+      type: String,
+      default: '',
+    },
     textareaId: {
       type: String,
       default: '',
@@ -35,10 +34,14 @@ export default {
       type: String,
       default: '',
     },
+    rows: {
+      type: Number,
+      default: 2,
+    },
     isDisabled: {
       type: Boolean,
       default: false,
-    }
+    },
   },
 };
 </script>

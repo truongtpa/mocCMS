@@ -1,6 +1,8 @@
 /.phpunit.cache
 /node_modules
 /public/build
+/public/asset/admin/build
+/public/asset/build
 /public/hot
 /public/storage
 /storage/*.key
@@ -26,10 +28,3 @@ yarn-error.log
 
 # Sentry Config File
 .env.sentry-build-plugin
-resources/js/pages/admin/pageTKB.vue
-vite.config.js
-vite.config.js
-package.json
-package-lock.json
-composer.lock
-composer.json

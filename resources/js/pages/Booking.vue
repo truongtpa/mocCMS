@@ -1,0 +1,243 @@
+<template>
+    <LTEContentWrapper :header="false">
+        <template #content>
+            <div class="row justify-content-center">
+                <div class="col-12 col-xl-10">
+                    <div class="card border-0" style="border: 1px solid #e9ecef !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important; overflow: hidden; max-width: 1200px; margin: 0 auto;">
+                        <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #2b5876, #4e4376); border-radius: 12px 12px 0 0 !important; border-bottom: none !important;">
+                            <h3 class="card-title float-none font-weight-bold mb-0">
+                                <i class="fas fa-calendar-check mr-2"></i>
+                                ĐẶT LỊCH HẸN GIẢNG VIÊN
+                            </h3>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <!-- Action header -->
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="text-primary font-weight-bold mb-0">Danh sách lịch hẹn của bạn</h5>
+                                <button v-if="authStore.hasPermission('StudentPortalController.createBooking')" class="btn btn-info px-3 shadow-sm text-white" @click="openBookingModal">
+                                    <i class="fas fa-calendar-plus mr-1"></i>
+                                    Đặt lịch hẹn mới
+                                </button>
+                            </div>
+
+                            <!-- Bookings list -->
+                            <div v-if="loading" class="text-center my-5">
+                                <LoadingSpinner />
+                                <p class="mt-2 text-muted">Đang tải danh sách lịch hẹn...</p>
+                            </div>
+
+                            <div v-else-if="list.length === 0" class="text-center py-5 border rounded bg-light">
+                                <i class="far fa-calendar-times fa-3x text-muted mb-3"></i>
+                                <p class="lead text-muted mb-0">Bạn chưa đặt lịch hẹn nào với giảng viên.</p>
+                                <span class="small text-muted">Bấm nút "Đặt lịch hẹn mới" để kết nối với giảng viên.</span>
+                            </div>
+
+                            <div v-else class="table-responsive">
+                                <table class="table table-hover border">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th style="width: 5%;">#</th>
+                                            <th style="width: 25%;">Giảng viên</th>
+                                            <th style="width: 20%;">Thời gian hẹn</th>
+                                            <th style="width: 35%;">Nội dung cuộc gặp</th>
+                                            <th style="width: 15%;" class="text-center">Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(item, idx) in list" :key="item.id">
+                                            <td>{{ idx + 1 }}</td>
+                                            <td class="font-weight-bold text-dark">{{ item.ten_giang_vien }}</td>
+                                            <td>{{ formatDatetime(item.thoi_gian_bat_dau) }}</td>
+                                            <td>{{ item.noi_dung }}</td>
+                                            <td class="text-center">
+                                                <span class="badge" :class="getStatusClass(item.trang_thai)">
+                                                    {{ getStatusLabel(item.trang_thai) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Modal -->
+            <LTEModal ref="bookingModal" @close="resetForm">
+                <form @submit.prevent="submitBooking">
+                    <div class="row">
+                        <!-- Lecturer Select -->
+                        <div class="col-12 mb-3">
+                            <label class="font-weight-bold small text-muted">Chọn Giảng viên <span class="text-danger">*</span></label>
+                            <select v-model="form.giang_vien_id" class="form-control" required>
+                                <option value="" disabled>-- Chọn giảng viên muốn đặt lịch --</option>
+                                <option 
+                                    v-for="gv in lecturers" 
+                                    :key="gv.id_giang_vien" 
+                                    :value="gv.id_giang_vien"
+                                >
+                                    {{ gv.ho_ten }} ({{ gv.email }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Date/Time Select -->
+                        <div class="col-12 mb-3">
+                            <label class="font-weight-bold small text-muted">Thời gian bắt đầu hẹn <span class="text-danger">*</span></label>
+                            <input 
+                                v-model="form.thoi_gian_bat_dau" 
+                                type="datetime-local" 
+                                class="form-control" 
+                                required
+                            />
+                        </div>
+
+                        <!-- Topic / Contents -->
+                        <div class="col-12 mb-3">
+                            <label class="font-weight-bold small text-muted">Nội dung cuộc hẹn / Câu hỏi cần tư vấn <span class="text-danger">*</span></label>
+                            <textarea 
+                                v-model="form.noi_dung" 
+                                class="form-control" 
+                                rows="4" 
+                                placeholder="Ghi rõ nội dung chi tiết cần gặp mặt hoặc trao đổi" 
+                                required
+                            ></textarea>
+                        </div>
+                    </div>
+                </form>
+            </LTEModal>
+        </template>
+    </LTEContentWrapper>
+</template>
+
+<script setup>
+import { ref, reactive, onMounted } from 'vue';
+import { useAuthStore } from '@/store/auth';
+
+const authStore = useAuthStore();
+const loading = ref(true);
+const list = ref([]);
+const lecturers = ref([]);
+const bookingModal = ref(null);
+
+const form = reactive({
+    giang_vien_id: '',
+    thoi_gian_bat_dau: '',
+    noi_dung: ''
+});
+
+// Load student bookings list
+const fetchBookings = async () => {
+    loading.value = true;
+    try {
+        const response = await axios.get(route('StudentPortalController.getBookingsList'));
+        if (response.data.status === 200) {
+            list.value = response.data.data;
+        }
+    } catch (err) {
+        console.error('Error fetching bookings:', err);
+    } finally {
+        loading.value = false;
+    }
+};
+
+// Load lecturers options for booking selection
+const fetchLecturers = async () => {
+    try {
+        const response = await axios.get(route('StudentPortalController.getBookingLecturers'));
+        if (response.data.status === 200) {
+            lecturers.value = response.data.data;
+        }
+    } catch (err) {
+        console.error('Error loading lecturers:', err);
+    }
+};
+
+// Open booking modal
+const openBookingModal = async () => {
+    resetForm();
+    await fetchLecturers();
+    bookingModal.value.$data.title = 'Đăng ký lịch hẹn với Giảng viên';
+    bookingModal.value.$data.save = 'Xác nhận đặt lịch';
+    
+    const result = await bookingModal.value.openModal();
+    if (result) {
+        await submitBooking();
+    }
+};
+
+// Reset form fields
+const resetForm = () => {
+    form.giang_vien_id = '';
+    form.thoi_gian_bat_dau = '';
+    form.noi_dung = '';
+};
+
+// Send booking request to backend
+const submitBooking = async () => {
+    if (!form.giang_vien_id || !form.thoi_gian_bat_dau || !form.noi_dung) {
+        if (window.func && window.func.toastError) {
+            window.func.toastError('Vui lòng nhập đầy đủ các thông tin bắt buộc');
+        }
+        return;
+    }
+
+    try {
+        const response = await axios.post(route('StudentPortalController.createBooking'), form);
+        if (response.data.status === 200) {
+            if (window.func && window.func.toastSuccess) {
+                window.func.toastSuccess('Gửi yêu cầu đặt lịch thành công!');
+            }
+            fetchBookings();
+        }
+    } catch (err) {
+        console.error('Error creating booking:', err);
+        if (window.func && window.func.toastError) {
+            window.func.toastError('Đăng ký đặt lịch thất bại');
+        }
+    }
+};
+
+// Formatting utilities
+const formatDatetime = (dtStr) => {
+    if (!dtStr) return '';
+    const date = new Date(dtStr);
+    return date.toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
+
+const getStatusLabel = (status) => {
+    switch (status) {
+        case 'da_xac_nhan': return 'Đã xác nhận';
+        case 'tu_choi': return 'Từ chối';
+        default: return 'Chờ duyệt';
+    }
+};
+
+const getStatusClass = (status) => {
+    switch (status) {
+        case 'da_xac_nhan': return 'badge-success';
+        case 'tu_choi': return 'badge-danger';
+        default: return 'badge-warning text-dark';
+    }
+};
+
+onMounted(() => {
+    fetchBookings();
+});
+</script>
+
+<style scoped>
+.table th {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+</style>

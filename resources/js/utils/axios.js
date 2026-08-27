@@ -1,36 +1,72 @@
-import axios from 'axios';
+import { useAuthStore } from '@/store/auth'
+import axios from 'axios'
+import func from './func'
+import Cookies from 'js-cookie'
+import { loadingState } from '@/store/loading'
 
-const api = axios.create({
+axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL,
     headers: {
         'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json',
+        Accept: 'application/json',
     },
-});
-window.axios = api;
+})
 
-/**
- * Bắt lỗi HTTP tập trung: mọi request hỏng đều hiện đúng message + errors server trả về.
- * Nhờ vậy từng lời gọi không cần .catch() chỉ để toast một chuỗi chung chung nữa.
- * Vẫn reject lại để nơi gọi tự xử tiếp nếu cần (rollback, đóng modal...).
- */
-function bapLoi(loi) {
-    const duLieu = loi?.response?.data;
-
-    if (duLieu && typeof duLieu === 'object' && ('message' in duLieu || 'errors' in duLieu)) {
-        window.func.toastError(duLieu);
-    } else if (loi?.response) {
-        window.func.toastError('Máy chủ trả về lỗi ' + loi.response.status, loi.response.statusText || '');
-    } else if (loi?.request) {
-        window.func.toastError('Không kết nối được máy chủ', 'Kiểm tra đường truyền rồi thử lại.');
-    } else {
-        window.func.toastError('Có lỗi xảy ra', loi?.message || String(loi ?? ''));
+const encodeContext = (data) => {
+    try {
+        return func.encodeWithKey(JSON.stringify(data), Cookies.get('b'))
+    } catch {
+        return ''
     }
-
-    return Promise.reject(loi);
 }
+axios.interceptors.request.use(
+    (config) => {
+        if (config.showLoading === true) {
+            loadingState.count++
+        }
+        const authStore = useAuthStore()
+        const context = authStore.currentContext
+        if (context && context.path) {
+            const ctime = Date.now()
+            const signature = func.hmacEncrypt(ctime, Cookies.get('b'))
 
-api.interceptors.response.use(r => r, bapLoi);
-axios.interceptors.response.use(r => r, bapLoi);
+            config.headers['X-Client-Context'] = encodeContext({
+                n: context.name,
+                p: context.path,
+                ctime: ctime + 1,
+                signature: signature,
+            })
+        }
 
-export default api;
+        return config
+    },
+    (error) => {
+        if (error.config?.showLoading) {
+            loadingState.count = Math.max(0, loadingState.count - 1)
+        }
+        return Promise.reject(error)
+    },
+)
+
+axios.interceptors.response.use(
+    (response) => {
+        if (response.config?.showLoading) {
+            loadingState.count = Math.max(0, loadingState.count - 1)
+        }
+        return response
+    },
+    (error) => {
+        if (error.config?.showLoading) {
+            loadingState.count = Math.max(0, loadingState.count - 1)
+        }
+        if (error.response && error.response.status === 403) {
+            func.toastError(error.response.data.message ?? 'Lỗi')
+            return ''
+        } else {
+            return Promise.reject(error)
+        }
+    },
+)
+
+window.axios = axios
+export default axios

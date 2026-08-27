@@ -1,24 +1,131 @@
 <template>
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
-        <router-link :to="{ name: 'router-home' }" class="brand-link">
-            <img alt="" src="./images/logo.png" class="brand-image img-circle elevation-3" style="opacity: .8" />
-            <span class="brand-text font-weight-light">   <b>QUẢN LÝ VĂN BẢN</b></span>
-        </router-link>
+        <a href="#" class="brand-link">
+            <img
+                :src="`/asset/admin/themes/images/logo.png`"
+                class="brand-image img-circle elevation-3"
+                style="opacity: 0.8"
+            />
+            <span class="brand-text font-weight-light"> QUẢN LÝ ĐÀO TẠO </span>
+        </a>
 
         <!-- Sidebar -->
         <div class="sidebar">
             <nav class="mt-2">
-                <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="true">
-                    <template v-for="nhom in menuHienThi" :key="nhom.header">
-                        <li class="nav-header">{{ nhom.header }}</li>
+                <ul
+                    class="nav nav-pills nav-sidebar flex-column"
+                    data-widget="treeview"
+                    role="menu"
+                    data-accordion="true"
+                >
+                    <li class="nav-header">CHỨC NĂNG</li>
+                    <li v-if="checkPermission('router-portal-ho-so')" class="nav-item">
+                        <router-link :to="{ name: 'router-portal-ho-so' }" class="nav-link" @click="closeSidebar()">
+                            <i class="nav-icon fas fa-user-cog"></i>
+                            <p>Thông tin cá nhân</p>
+                        </router-link>
+                    </li>
+                    <li v-if="checkPermission('router-portal-thanh-tich')" class="nav-item">
+                        <router-link :to="{ name: 'router-portal-thanh-tich' }" class="nav-link" @click="closeSidebar()">
+                            <i class="nav-icon fas fa-trophy"></i>
+                            <p>Giải thưởng & Thành tích</p>
+                        </router-link>
+                    </li>
+                    <li v-if="checkPermission('router-portal-dat-lich')" class="nav-item">
+                        <router-link :to="{ name: 'router-portal-dat-lich' }" class="nav-link" @click="closeSidebar()">
+                            <i class="nav-icon fas fa-calendar-check"></i>
+                            <p>Đặt lịch Giảng viên</p>
+                        </router-link>
+                    </li>
+                    <!-- <li class="nav-item">
+            <a href="#/s" class="nav-link">
+              <i class=" nav-icon fas fa-search" aria-hidden="true"></i>
+              <p>Tìm kiếm<i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class=" nav nav-treeview">
+              <li class="nav-item ">
+                <router-link :to="{ name: 'router-tim-kiem-sv' }" class="nav-link nav-link-custom">
+                  <i class="nav-icon fas fa-circle-notch"></i>
+                  <p class="nav-item-text">Sinh viên</p>
+                </router-link>
+              </li>
+            </ul>
+          </li> -->
+                    <li v-if="checkPermission('router-tim-kiem-sv')" class="nav-item">
+                        <router-link :to="{ name: 'router-tim-kiem-sv' }" class="nav-link" @click="closeSidebar()">
+                            <i class="nav-icon fas fa-search"></i>
+                            <p>Tìm kiếm sinh viên</p>
+                        </router-link>
+                    </li>
+                    <li v-if="checkPermission('router-danh-sach-chuc-nang')" class="nav-item">
+                        <router-link
+                            :to="{ name: 'router-danh-sach-chuc-nang' }"
+                            class="nav-link"
+                            @click="closeSidebar()"
+                        >
+                            <i class="nav-icon fas fa-cog"></i>
+                            <p>Quản lý thông tin</p>
+                        </router-link>
+                    </li>
+                    <li v-if="checkPermission('router-chuong-trinh-dt')" class="nav-item">
+                        <router-link :to="{ name: 'router-chuong-trinh-dt' }" class="nav-link" @click="closeSidebar()">
+                            <i class="nav-icon fa fa-book"></i>
+                            <p>Chương trình đào tạo</p>
+                        </router-link>
+                    </li>
+                    <li v-if="checkPermission('router-hknh')" class="nav-item">
+                        <router-link :to="{ name: 'router-hknh' }" class="nav-link" @click="closeSidebar()">
+                            <i class="nav-icon fa fa-graduation-cap" aria-hidden="true"></i>
+                            <p>Quản lý học kỳ</p>
+                        </router-link>
+                    </li>
 
-                        <li class="nav-item" v-for="muc in nhom.items" :key="muc.route + muc.view">
-                            <router-link :to="{ name: muc.route }" class="nav-link">
-                                <i class="nav-icon" :class="muc.icon"></i>
-                                <p>{{ muc.label }}</p>
-                            </router-link>
-                        </li>
-                    </template>
+                    <li v-if="checkPermission('router-van-bang-chung-chi-dot')" class="nav-item">
+                        <router-link
+                            :to="{ name: 'router-van-bang-chung-chi-dot' }"
+                            class="nav-link"
+                            @click="closeSidebar()"
+                        >
+                            <i class="nav-icon fa fa-user-graduate" aria-hidden="true"></i>
+                            <p>Văn bằng chứng chỉ</p>
+                        </router-link>
+                    </li>
+
+                    <li class="nav-item">
+                        <router-link
+                            :to="{ name: 'router-template-xuat-bao-cao' }"
+                            class="nav-link"
+                            @click="closeSidebar()"
+                        >
+                            <i class="nav-icon fa fa-chart-pie" aria-hidden="true"></i>
+                            <p>Báo cáo Thống kê</p>
+                        </router-link>
+                    </li>
+                    <li class="nav-header">KHÁC</li>
+                    <li v-if="checkPermission('router-quyen')" class="nav-item">
+                        <router-link :to="{ name: 'router-quyen' }" class="nav-link" @click="closeSidebar()">
+                            <i class="nav-icon fas fa-user-lock"></i>
+                            <p>Phân quyền</p>
+                        </router-link>
+                    </li>
+                    <li v-if="checkPermission('router-tien-trinh-nen')" class="nav-item">
+                        <router-link :to="{ name: 'router-tien-trinh-nen' }" class="nav-link" @click="closeSidebar()">
+                            <i class="nav-icon fas fa-layer-group" aria-hidden="true"></i>
+                            <p>Tiến trình</p>
+                        </router-link>
+                    </li>
+                    <li v-if="checkPermission('router-bao-cao-thong-ke')" class="nav-item">
+                        <a href="https://nb.daotao.vlute.edu.vn/" class="nav-link" target="_blank">
+                            <i class="nav-icon fa fa-brain" aria-hidden="true"></i>
+                            <p>Notebook</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="http://helpdesk.vlute.edu.vn/" class="nav-link" target="_blank">
+                            <i class="nav-icon fa fa-question" aria-hidden="true"></i>
+                            <p>Hướng dẫn</p>
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>
@@ -27,90 +134,51 @@
 
 <style scoped>
 .sidebar {
-    min-height: 100vh;
-    height: auto;
+    min-height: 100vh !important;
+    height: auto !important;
     overflow-y: auto;
-    padding-bottom: 100px;
 }
 </style>
 
 <script>
+import { useAuthStore } from '@/store/auth'
 
 export default {
     data() {
         return {
-            __tttk: __tttk,
-            menu: [
-                {
-                    header: 'TRÌNH KÝ VĂN BẢN',
-                    items: [
-                        { view: 'menuGuiTrinhKy.xem', route: 'router-trinhky-guiyeucau', icon: 'fas fa-paper-plane', label: 'Gửi yêu cầu' },
-                        { view: 'menuDSTrinhKy.xem', route: 'router-trinhky', icon: 'fas fa-file-signature', label: 'Danh sách trình ký' },
-                        { view: 'menuTrinhKyCuaToi.xem', route: 'router-trinhky-cuatoi', icon: 'fas fa-folder-open', label: 'Trình ký của tôi' },
-                        { view: 'menuTrinhKyPheDuyet.xem', route: 'router-trinhky-pheduyet', icon: 'fas fa-stamp', label: 'Phê duyệt' },
-                        { view: 'menuLoaiVB.xem', route: 'router-loaivanban', icon: 'fas fa-file-alt', label: 'Loại văn bản' }
-                    ]
-                },
-                {
-                    header: 'VĂN BẢN',
-                    items: [
-                        { view: 'menuTimKiemVanBan.xem', route: 'router-allvanban', icon: 'fas fa-search', label: 'Tìm kiếm văn bản' },
-                        { view: 'menuQLVanBan.xem', route: 'router-vanban', icon: 'fas fa-folder-open', label: 'Xem văn bản' },
-                        { view: 'menuVanBanCXL.xem', route: 'router-vanbanuser', icon: 'fas fa-file-archive', label: 'Văn bản cần xử lý' },
-                        { view: 'menuPheDuyetVanBan.xem', route: 'router-vanbanxetduyet', icon: 'fas fa-file-signature', label: 'Phê duyệt văn bản' }
-                    ]
-                },
-                {
-                    header: 'THÔNG BÁO',
-                    items: [
-                        { view: 'menuQLThongBao.xem', route: 'router-thongbao', icon: 'fas fa-list-alt', label: 'Quản lý thông báo' },
-                        { view: 'menuDanhMucThongBao.xem', route: 'router-danhmucthongbao', icon: 'fas fa-layer-group', label: 'Danh mục thông báo' }
-                    ]
-                },
-                {
-                    header: 'CÔNG TÁC',
-                    items: [
-                        { view: 'menuQLLichCongTac.xem', route: 'router-adminlichcongtac', icon: 'fas fa-calendar-check', label: 'Quản lý lịch công tác' },
-                        { view: 'menuLichCongTac.xem', route: 'router-userlichcongtac', icon: 'fas fa-calendar', label: 'Lịch công tác' }
-                    ]
-                },
-                {
-                    header: 'BÁO CÁO',
-                    items: [
-                        { view: 'menuBaoCaoThang.xem', route: 'router-danhmucbaocaonoibo', icon: 'fas fa-receipt', label: 'Báo cáo tháng' }
-                    ]
-                },
-                {
-                    header: 'QUYỀN & TÀI KHOẢN',
-                    items: [
-                        { view: 'menuTaiKhoan.xem', route: 'router-taikhoan', icon: 'fas fa-user', label: 'Tài khoản' },
-                        { view: 'menuDinhNghiaQuyen.xem', route: 'router-adminquyen', icon: 'fas fa-users-cog', label: 'Định nghĩa Quyền' },
-                        { view: 'menuNhomQuyenTK.xem', route: 'router-adminquyennhom', icon: 'fas fa-layer-group', label: 'Nhóm Quyền tài khoản' }
-                    ]
-                },
-                {
-                    header: 'HỆ THỐNG',
-                    items: [
-                        { view: 'menuDonVi.xem', route: 'router-donvi', icon: 'fas fa-building', label: 'Đơn vị' },
-                        { view: 'menuChucVu.xem', route: 'router-chucvu', icon: 'fas fa-user-tie', label: 'Chức vụ' },
-                        { view: 'menuLoaiPheDuyet.xem', route: 'router-loaipheduyet', icon: 'fas fa-check-circle', label: 'Loại phê duyệt' },
-                        { view: 'menuLoaiVB.xem', route: 'router-loaivanban', icon: 'fas fa-file-alt', label: 'Loại văn bản' },
-                        { view: 'menuPhong.xem', route: 'router-phong', icon: 'fas fa-door-open', label: 'Phòng' },
-                        { view: 'menuNhatKy.xem', route: 'router-nhatky', icon: 'fas fa-history', label: 'Nhật ký hoạt động' }
-                    ]
-                }
-            ]
-        };
+            authStore: useAuthStore(),
+        }
+    },
+
+    methods: {
+        closeSidebar() {
+            const pushMenu = document.querySelector('[data-widget="pushmenu"]')
+            if (pushMenu && document.body.classList.contains('sidebar-open')) {
+                pushMenu.click()
+            }
+        },
+        checkPermission(routeName) {
+            return this.authStore.permissions.some((p) => p.route === routeName && p.is_read === true)
+        },
+        handleClickOutside(event) {
+            const sidebar = document.querySelector('.main-sidebar')
+            const toggleButton = document.querySelector('[data-widget="pushmenu"]')
+            if (sidebar && !sidebar.contains(event.target) && toggleButton && !toggleButton.contains(event.target)) {
+                this.closeSidebar()
+            }
+        },
+    },
+    mounted() {
+        document.addEventListener('click', this.handleClickOutside)
+        // console.log(this.authStore.permissions);
+    },
+    beforeUnmount() {
+        document.removeEventListener('click', this.handleClickOutside)
     },
     computed: {
-        menuHienThi() {
-            return this.menu
-                .map(nhom => ({
-                    ...nhom,
-                    items: nhom.items.filter(muc => this.$showView(muc.view))
-                }))
-                .filter(nhom => nhom.items.length > 0);
-        }
-    }
-};
+        quyen() {
+            return this.authStore.permissions.find((p) => p.url === this.$route.path) || {}
+        },
+    },
+}
 </script>

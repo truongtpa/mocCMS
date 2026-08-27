@@ -4,16 +4,15 @@
     </div>
 </template>
 
-<script>
-export default {
-    name: 'LoadingOverlay',
-    props: {
-        visible: {
-            type: Boolean,
-            default: false
-        }
-    }
-};
+<script setup>
+import { defineProps } from 'vue'
+
+defineProps({
+    visible: {
+        type: Boolean,
+        default: false,
+    },
+})
 </script>
 
 <style scoped>
@@ -29,7 +28,6 @@ export default {
     justify-content: center;
     z-index: 9999;
 }
-
 .loader {
     position: fixed;
     top: 50%;
@@ -50,11 +48,11 @@ export default {
     animation: layerTr 0.5s linear infinite alternate;
 }
 
+/* Animation */
 @keyframes layers1 {
     0% { box-shadow: 0px 0px 0 0px; }
     90%, 100% { box-shadow: 30px 30px 0 -4px; }
 }
-
 @keyframes layerTr {
     0% { transform: translate(0, 0) scale(1); }
     100% { transform: translate(-35px, -35px) scale(1); }

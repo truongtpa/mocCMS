@@ -1,45 +1,41 @@
 <?php
 
-use App\Http\Controllers\QuyenController;
-use App\Http\Controllers\QuyenNhomController;
-use App\Http\Controllers\NhatKyController;
+use App\Http\Controllers\DynamicObjectController;
+use App\Http\Controllers\StudentPortalController;
+use App\Http\Controllers\PhanQuyenController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => '/admin', 'middleware' => ['isQuyen']], function () {
 
-    Route::group(['prefix' => '/quyen'], function () {
-        Route::get('/', [QuyenController::class, 'getQuyen'])->name('QuyenController.getQuyen');
-        Route::post('/', [QuyenController::class, 'putQuyen'])->name('QuyenController.putQuyen');
-        Route::put('/', [QuyenController::class, 'updateQuyen'])->name('QuyenController.updateQuyen');
-        Route::delete('/', [QuyenController::class, 'deleteQuyen'])->name('QuyenController.deleteQuyen');
+    Route::group(['prefix' => '/doi-tuong-dong'], function () {
+        Route::get('/types', [DynamicObjectController::class, 'getTypes'])->name('DynamicObjectController.getTypes');
+        Route::post('/types', [DynamicObjectController::class, 'saveType'])->name('DynamicObjectController.saveType');
+        Route::delete('/types/{id?}', [DynamicObjectController::class, 'deleteType'])->name('DynamicObjectController.deleteType');
 
-        Route::get('/chi-tiet', [QuyenController::class, 'getQuyenCT'])->name('QuyenController.getQuyenCT');
-        Route::post('/chi-tiet', [QuyenController::class, 'putQuyenCT'])->name('QuyenController.putQuyenCT');
-        Route::put('/chi-tiet', [QuyenController::class, 'updateQuyenCT'])->name('QuyenController.updateQuyenCT');
-        Route::delete('/chi-tiet', [QuyenController::class, 'deleteQuyenCT'])->name('QuyenController.deleteQuyenCT');
+        Route::get('/fields', [DynamicObjectController::class, 'getFields'])->name('DynamicObjectController.getFields');
+        Route::post('/fields', [DynamicObjectController::class, 'saveField'])->name('DynamicObjectController.saveField');
+        Route::post('/fields/reorder', [DynamicObjectController::class, 'reorderFields'])->name('DynamicObjectController.reorderFields');
+        Route::delete('/fields/{id?}', [DynamicObjectController::class, 'deleteField'])->name('DynamicObjectController.deleteField');
+
+        Route::get('/records', [DynamicObjectController::class, 'getRecords'])->name('DynamicObjectController.getRecords');
+        Route::post('/records', [DynamicObjectController::class, 'saveRecord'])->name('DynamicObjectController.saveRecord');
+        Route::delete('/records/{id?}', [DynamicObjectController::class, 'deleteRecord'])->name('DynamicObjectController.deleteRecord');
     });
 
-    Route::group(['prefix' => '/quyen-nhom'], function () {
-        Route::get('/', [QuyenNhomController::class, 'getQuyenNhom'])->name('QuyenNhomController.getQuyenNhom');
-        Route::post('/', [QuyenNhomController::class, 'putQuyenNhom'])->name('QuyenNhomController.putQuyenNhom');
-        Route::put('/', [QuyenNhomController::class, 'updateQuyenNhom'])->name('QuyenNhomController.updateQuyenNhom');
-        Route::delete('/', [QuyenNhomController::class, 'deleteQuyenNhom'])->name('QuyenNhomController.deleteQuyenNhom');
+    Route::group(['prefix' => '/student-portal'], function () {
+        Route::get('/dashboard/stats', [StudentPortalController::class, 'getDashboardStats'])->name('StudentPortalController.getDashboardStats');
+        Route::post('/booking/update-status', [StudentPortalController::class, 'updateBookingStatus'])->name('StudentPortalController.updateBookingStatus');
 
-        Route::get('/ds-quyen-chi-tiet', [QuyenNhomController::class, 'getDsQuyenChiTiet'])->name('QuyenNhomController.getDsQuyenChiTiet');
-        Route::get('/chi-tiet', [QuyenNhomController::class, 'getQuyenNhomCT'])->name('QuyenNhomController.getQuyenNhomCT');
-        Route::post('/chi-tiet/dong-bo', [QuyenNhomController::class, 'dongBoQuyenNhomCT'])->name('QuyenNhomController.dongBoQuyenNhomCT');
-        Route::post('/chi-tiet', [QuyenNhomController::class, 'putQuyenNhomCT'])->name('QuyenNhomController.putQuyenNhomCT');
-        Route::put('/chi-tiet', [QuyenNhomController::class, 'updateQuyenNhomCT'])->name('QuyenNhomController.updateQuyenNhomCT');
-        Route::delete('/chi-tiet', [QuyenNhomController::class, 'deleteQuyenNhomCT'])->name('QuyenNhomController.deleteQuyenNhomCT');
+        Route::get('/profile/data', [StudentPortalController::class, 'getProfileData'])->name('StudentPortalController.getProfileData');
+        Route::post('/profile/update', [StudentPortalController::class, 'updateProfileData'])->name('StudentPortalController.updateProfileData');
+        Route::post('/profile/add-attribute', [StudentPortalController::class, 'addEavAttribute'])->name('StudentPortalController.addEavAttribute');
+        Route::post('/profile/sync-api', [StudentPortalController::class, 'forceSyncStudentApi'])->name('StudentPortalController.forceSyncStudentApi');
 
-        Route::get('/tai-khoan', [QuyenNhomController::class, 'getQuyenNhomTK'])->name('QuyenNhomController.getQuyenNhomTK');
-        Route::get('/tai-khoan/ds-chon', [QuyenNhomController::class, 'getDsTaiKhoanChon'])->name('QuyenNhomController.getDsTaiKhoanChon');
-        Route::post('/tai-khoan', [QuyenNhomController::class, 'putQuyenNhomTK'])->name('QuyenNhomController.putQuyenNhomTK');
-        Route::delete('/tai-khoan', [QuyenNhomController::class, 'deleteQuyenNhomTK'])->name('QuyenNhomController.deleteQuyenNhomTK');
-    });
+        Route::get('/achievements/list', [StudentPortalController::class, 'getAchievementsList'])->name('StudentPortalController.getAchievementsList');
+        Route::post('/achievements/add', [StudentPortalController::class, 'addAchievement'])->name('StudentPortalController.addAchievement');
 
-    Route::group(['prefix' => '/nhat-ky'], function () {
-        Route::get('/', [NhatKyController::class, 'getDanhSach'])->name('NhatKyController.getDanhSach');
-        Route::get('/hanh-dong', [NhatKyController::class, 'getDsHanhDong'])->name('NhatKyController.getDsHanhDong');
+        Route::get('/booking/lecturers', [StudentPortalController::class, 'getBookingLecturers'])->name('StudentPortalController.getBookingLecturers');
+        Route::get('/booking/list', [StudentPortalController::class, 'getBookingsList'])->name('StudentPortalController.getBookingsList');
+        Route::post('/booking/create', [StudentPortalController::class, 'createBooking'])->name('StudentPortalController.createBooking');
     });
 });

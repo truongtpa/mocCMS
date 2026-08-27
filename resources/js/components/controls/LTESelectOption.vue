@@ -2,12 +2,13 @@
   <div class="form-group">
     <label>{{ label }}</label>
     <select
-        :class="selectClass"
-        :id="selectId"
-        :value="modelValue"
-        @change="$emit('update:modelValue', $event.target.value)"
+      :class="selectClass"
+      :id="selectId"
+      :value="modelValue"
+      :disabled="isDisabled"
+      @change="$emit('update:modelValue', $event.target.value)"
     >
-      <option disabled value="">{{ placeholder }}</option>
+      <option v-if="placeholder" value="">{{ placeholder }}</option>
       <option v-for="option in options" :key="option.value" :value="option.value">
         {{ option.text }}
       </option>
@@ -28,7 +29,7 @@ export default {
     },
     selectClass: {
       type: String,
-      default: 'form-control',
+      default: 'form-control form-control-md',
     },
     selectId: {
       type: String,
@@ -42,11 +43,10 @@ export default {
       type: Array,
       default: () => [],
     },
-
-  isDisabled: {
+    isDisabled: {
       type: Boolean,
       default: false,
-  }
+    },
   },
-};
+}
 </script>

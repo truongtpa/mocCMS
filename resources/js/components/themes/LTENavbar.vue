@@ -1,47 +1,43 @@
 <template>
-    <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" data-widget="pushmenu" href="#" role="button">
-                    <i class="fas fa-bars"></i>
-                </a>
-            </li>
-            <li class="nav-item d-none d-sm-inline-block">
-                <a href="#" class="nav-link">Home</a>
-            </li>
-        </ul>
+    <nav class="main-header navbar navbar-expand navbar-light bg-white shadow-sm py-2 px-3 fixed-top" style="height: 64px; z-index: 1040; border-bottom: 1px solid #e2e8f0 !important;">
+        <!-- Hamburger button for toggling sidebar on mobile -->
+        <button 
+            v-if="authStore.user?.email" 
+            class="btn btn-link text-dark p-0 mr-3 d-md-none" 
+            style="font-size: 1.25rem;"
+            @click.prevent="uiStore.toggleSidebar"
+        >
+            <i class="fas fa-bars"></i>
+        </button>
 
+        <!-- Logo / Brand -->
+        <router-link :to="{ name: 'router-admin' }" class="navbar-brand d-flex align-items-center mr-4">
+            <img :src="`/asset/admin/images/logo.png`" alt="VLUTE Logo" style="height: 44px; width: auto;" class="mr-2.5">
+            <div class="d-none d-md-flex flex-column justify-content-center">
+                <span class="brand-title font-weight-bold text-dark mb-0" style="font-size: 1rem; line-height: 1.2;">ĐẠI HỌC SƯ PHẠM KỸ THUẬT VĨNH LONG</span>
+                <span class="brand-subtitle text-primary font-weight-bold" style="font-size: 0.75rem; letter-spacing: 0.5px;">CỔNG THÔNG TIN SINH VIÊN • VLUTE PORTAL</span>
+            </div>
+        </router-link>
+
+        <!-- User Menu Dropdown -->
         <ul class="navbar-nav ml-auto">
-
-            <li class="nav-item">
-                <a class="nav-link" data-widget="fullscreen" href="#" role="button">
-                    <i class="fas fa-expand-arrows-alt"></i>
-                </a>
-            </li>
             <li class="nav-item dropdown user-menu">
-                <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-toggle="dropdown" role="button">
-                    <span class="avatar-tron avatar-sm">{{ chuCaiDau }}</span>
-                    <span class="d-none d-sm-inline ml-2">{{ __tttk.ho_ten }}</span>
+                <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-toggle="dropdown">
+                    <i class="fas fa-user-circle text-secondary mr-md-2" style="font-size: 1.8rem;"></i>
+                    <span class="font-weight-bold text-dark d-none d-md-inline">{{ authStore.user?.ho_ten }}</span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                    <li class="user-header bg-primary">
-                        <span class="avatar-tron avatar-lg mb-2">{{ chuCaiDau }}</span>
-                        <p class="mb-0">
-                            <b>{{ __tttk.ho_ten }}</b>
-                            <small v-if="__tttk.ten_don_vi" class="d-block text-truncate">
-                                <i class="fas fa-building mr-1"></i>{{ __tttk.ten_don_vi }}
-                            </small>
-                            <small v-if="__tttk.email" class="d-block text-truncate">
-                                <i class="fas fa-envelope mr-1"></i>{{ __tttk.email }}
-                            </small>
-                        </p>
+                <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right shadow border-0" style="border-radius: 8px;">
+                    <li class="user-header bg-light d-flex flex-column align-items-center justify-content-center p-3 text-center" style="height: auto;">
+                        <i class="fas fa-user-circle fa-3x text-secondary mb-2"></i>
+                        <h6 class="font-weight-bold text-dark mb-1">{{ authStore.user?.ho_ten }}</h6>
+                        <small class="text-muted">{{ authStore.user?.email }}</small>
                     </li>
-                    <li class="user-footer d-flex justify-content-between">
-                        <a class="btn btn-sm btn-default btn-flat" :href="route('changePassword')">
-                            <i class="fas fa-key mr-1"></i>Đổi mật khẩu
+                    <li class="user-footer bg-white border-top d-flex justify-content-between p-2">
+                        <a class="btn btn-sm btn-outline-danger" :href="route('changePassword')">
+                            <i class="fas fa-key mr-1"></i> Đổi mật khẩu
                         </a>
-                        <a href="#" class="btn btn-sm btn-danger btn-flat" @click.prevent="dangXuat">
-                            <i class="fas fa-sign-out-alt mr-1"></i>Đăng xuất
+                        <a class="btn btn-sm btn-danger px-3" @click.prevent="handleLogout">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Đăng xuất
                         </a>
                     </li>
                 </ul>
@@ -50,85 +46,29 @@
     </nav>
 </template>
 
-<style scoped>
-/* Avatar chữ cái đầu, dùng thay ảnh đại diện */
-.avatar-tron {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-weight: 600;
-    line-height: 1;
-    flex-shrink: 0;
-}
-
-.avatar-sm {
-    width: 32px;
-    height: 32px;
-    font-size: 13px;
-    background-color: #e9ecef;
-    color: #495057;
-}
-
-.avatar-lg {
-    width: 64px;
-    height: 64px;
-    font-size: 24px;
-    background-color: rgba(255, 255, 255, .25);
-    color: #fff;
-}
-
-/* Đủ rộng để hai nút ở đáy nằm cùng một hàng */
-.user-menu .dropdown-menu {
-    min-width: 270px;
-}
-
-.user-menu .dropdown-menu > .user-footer .btn {
-    white-space: nowrap;
-}
-
-/* Bỏ chiều cao cố định để header co theo nội dung */
-.user-menu .dropdown-menu > .user-header {
-    height: auto;
-    padding: 15px;
-}
-
-.user-menu .dropdown-menu > .user-header p {
-    margin-top: 0;
-}
-
-.user-menu .dropdown-menu > .user-header small {
-    font-size: 12px;
-    opacity: .85;
-}
-</style>
-
 <script>
+import { useAuthStore } from '@/store/auth';
+import { useUIManager } from '@/store/ui_manager';
 
 export default {
-    data() {
+    setup() {
+        const authStore = useAuthStore();
+        const uiStore = useUIManager();
         return {
-            __tttk: __tttk
+            authStore,
+            uiStore,
         };
     },
-    computed: {
-        chuCaiDau() {
-            const tu = (this.__tttk?.ho_ten || '').trim().split(/\s+/).filter(Boolean);
-            if (!tu.length) {
-                return '?';
-            }
-
-            return tu[tu.length - 1].charAt(0).toUpperCase();
-        },
-    },
     methods: {
-        async dangXuat() {
-            localStorage.removeItem('quyen');
+        handleLogout() {
             window.location.href = route('dangXuat');
-        },
-    },
-
-
-
+        }
+    }
 };
 </script>
+
+<style scoped>
+.user-menu .dropdown-toggle::after {
+    display: none;
+}
+</style>

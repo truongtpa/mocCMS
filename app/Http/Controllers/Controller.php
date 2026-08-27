@@ -2,102 +2,108 @@
 
 namespace App\Http\Controllers;
 
-use App\QuyenTruyCap;
-use App\Models\NhatKy;
-use App\Models\TaiKhoanChucVu;
-use App\Response;
-use App\VLUTE;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 abstract class Controller
 {
-    protected $boQuaKiemTraQuyen = [];
-
-    protected $boQuaGhiLog = [];
-
+    /**
+     * Intercept and execute an action on the controller with automated RBAC validation.
+     *
+     * @param  string  $method
+     * @param  array  $parameters
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
     public function callAction($method, $parameters)
     {
-        $id_tai_khoan = session(VLUTE::SESSION_IDTaiKhoan);
-        $ten_func = class_basename(static::class).'.'.$method;
+        $controllerClass = get_class($this);
+        $controllerName = class_basename($controllerClass);
+        $permissionKey = "{$controllerName}.{$method}"; // e.g. "TaiKhoanController.danhSach"
 
-        if ($this->canKiemTraQuyen($method) && ! QuyenTruyCap::duocChay($id_tai_khoan, $ten_func)) {
-            return Response::Error('Không có quyền', 'Bạn không được cấp quyền để thực hiện chức năng này. Liên hệ phòng TC-HC để hỗ trợ xử lý.');
+        // 1. Bypass check for authentication controllers
+        if ($this->shouldBypassPermissionCheck($controllerName, $method)) {
+            return $this->executeAction($method, $parameters);
         }
 
-        $ketQua = $this->{$method}(...array_values($parameters));
+        // 2. Retrieve authenticated user info from session
+        $userId = session()->get(\App\VLUTE::SESSION_IDTaiKhoan);
+        $email = session()->get(\App\VLUTE::SESSION_Email);
 
-        if ($this->canGhiLog($method)) {
-            NhatKy::ghi($id_tai_khoan ? (int) $id_tai_khoan : null, $ten_func);
+        if (!$userId || !$email) {
+            abort(401, 'Unauthenticated');
         }
 
-        return $ketQua;
+        // 3. Determine user type (student or lecturer)
+        $maDoiTuong = explode('@', $email)[0];
+        $isStudent = str_contains($email, 'student.vlute.edu.vn') || str_contains($email, 'st.vlute.edu.vn');
+        $userType = $isStudent ? 'sinh_vien' : 'giang_vien';
+
+        // 4. Perform RBAC validation
+        if (!$this->hasPermission($userId, $userType, $permissionKey)) {
+            abort(403, 'Bạn không có quyền thực hiện hành động này.');
+        }
+
+        return $this->executeAction($method, $parameters);
     }
 
-    protected function taiKhoanHienTai(Request $request): object
+    /**
+     * Execute the controller method dynamically.
+     */
+    protected function executeAction($method, $parameters)
     {
-        $id = (int) $request->session()->get(VLUTE::SESSION_IDTaiKhoan);
-        $user = TaiKhoanChucVu::joinChucVuChinh(DB::table('tai_khoan'), 'tai_khoan', 'chuc_vu', 'don_vi')
-            ->where('tai_khoan.id_tai_khoan', $id)
-            ->select(
-                'tai_khoan.*', 'tkcv_chinh.id_don_vi',
-                'don_vi.ten_don_vi', 'chuc_vu.ten_chuc_vu', 'chuc_vu.truong_don_vi'
-            )->first();
-        abort_unless($user, 401);
-
-        return $user;
+        if (method_exists($this, $method)) {
+            return $this->{$method}(...array_values($parameters));
+        }
+        abort(404);
     }
 
-    protected function kiemTraDuLieu(Request $request, array $rules, array $messages = [])
+    /**
+     * Check if the specific controller action is public and should bypass permissions.
+     */
+    protected function shouldBypassPermissionCheck($controllerName, $method)
     {
-        $validator = Validator::make($request->all(), $rules, $messages);
-        if ($validator->fails()) {
-            return Response::Error('Dữ liệu chưa hợp lệ', $validator->errors()->all());
-        }
-
-        return null;
-    }
-
-    private function canGhiLog($method)
-    {
-        if (! env('BAT_GHI_LOG', true)) {
-            return false;
-        }
-
-        if (in_array($method, $this->boQuaGhiLog, true)) {
-            return false;
-        }
-
-        return $this->dungHttpMethod();
-    }
-
-    private function dungHttpMethod()
-    {
-        $cauHinh = trim((string) env('GHI_LOG_HTTP_METHOD', 'POST,PUT,PATCH,DELETE'));
-
-        if ($cauHinh === '*') {
+        // Publicly accessible controllers or system admin controllers
+        if (in_array($controllerName, ['DangNhapController', 'DynamicObjectController', 'PhanQuyenController'])) {
             return true;
         }
 
-        $ds = collect(explode(',', $cauHinh))
-            ->map(fn ($m) => strtoupper(trim($m)))
-            ->filter()
-            ->all();
-
-        return in_array(request()->method(), $ds, true);
+        return false;
     }
 
-    private function canKiemTraQuyen($method)
+    /**
+     * Perform database query validation for the RBAC permissions.
+     */
+    protected function hasPermission($userId, $userType, $permissionKey)
     {
-        if (! env('BAT_KIEM_TRA_FUNCS', true)) {
-            return false;
+        try {
+            // 1. Check if the user is assigned to the "admin" role (admin has full access to all features)
+            $isAdmin = DB::table('vai_tro_nguoi_dung')
+                ->join('vai_tro', 'vai_tro_nguoi_dung.vai_tro_id', '=', 'vai_tro.id')
+                ->where('vai_tro_nguoi_dung.user_id', $userId)
+                ->where('vai_tro_nguoi_dung.user_type', $userType)
+                ->where('vai_tro.ma_vai_tro', 'admin')
+                ->exists();
+
+            if ($isAdmin) {
+                return true;
+            }
+
+            // 2. Query fine-grained permissions for specific features (Controller.function)
+            $hasPermission = DB::table('vai_tro_nguoi_dung')
+                ->join('vai_tro', 'vai_tro_nguoi_dung.vai_tro_id', '=', 'vai_tro.id')
+                ->join('vai_tro_quyen', 'vai_tro_quyen.vai_tro_id', '=', 'vai_tro.id')
+                ->join('quyen_han', 'vai_tro_quyen.quyen_id', '=', 'quyen_han.id')
+                ->where('vai_tro_nguoi_dung.user_id', $userId)
+                ->where('vai_tro_nguoi_dung.user_type', $userType)
+                ->where('quyen_han.ma_quyen', $permissionKey)
+                ->exists();
+
+            return $hasPermission;
+
+        } catch (\Exception $e) {
+            Log::error("RBAC Validation Error (User: {$userId}, Type: {$userType}, Key: {$permissionKey}): " . $e->getMessage());
         }
 
-        if (in_array($method, $this->boQuaKiemTraQuyen, true)) {
-            return false;
-        }
-
-        return true;
+        return false;
     }
 }

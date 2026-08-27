@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import {inject, onMounted} from 'vue'
+import { inject } from 'vue'
 
 const props = defineProps({
     tabkey: {
@@ -21,5 +21,6 @@ const activeTab = inject('activeTab')
     z-index: 3;
     position: relative;
     background-color: white;
+    min-height: 20px;
 }
 </style>

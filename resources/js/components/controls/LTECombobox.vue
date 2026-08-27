@@ -1,6 +1,6 @@
 <template>
     <div class="form-group position-relative">
-        <label>{{ label }}</label>
+        <label v-if="label">{{ label }}</label>
         <div ref="combobox" class="input-group input-group" style="margin-bottom: 12px">
             <input
                 class="form-control float-right border-right-0"
@@ -8,7 +8,8 @@
                 :placeholder="placeholder"
                 :class="inputClass"
                 :disabled="isDisabled"
-                v-model="inputValue"
+                v-model="searchQuery"
+                @input="onInputChange"
                 @focus="showDropdown = true"
                 @keydown.down.prevent="moveDown"
                 @keydown.up.prevent="moveUp"
@@ -17,8 +18,7 @@
                 @blur="$emit('blur', $event)"
             />
             <div class="input-group-append" v-if="showClearButton">
-                <button type="button" class="btn btn-default bg-white border-left-0" :disabled="isDisabled"
-                        @click="clearValue">
+                <button type="button" class="btn btn-default bg-white border-left-0" :disabled="isDisabled" @click="clearValue">
                     <i class="fas fa-backspace text-xs"></i>
                 </button>
             </div>
@@ -49,11 +49,11 @@
 <script>
 export default {
     props: {
-        label: {type: String, default: 'Chưa đặt tên'},
-        placeholder: {type: String, default: 'Chọn một tùy chọn'},
-        inputClass: {type: String, default: 'form-control'},
-        modelValue: {type: [String, Number], default: ''},
-        options: {type: Array, default: () => []},
+        label: { type: String, default: 'Chưa đặt tên' },
+        placeholder: { type: String, default: 'Chọn một tùy chọn' },
+        inputClass: { type: String, default: 'form-control' },
+        modelValue: { type: [String, Number], default: '' },
+        options: { type: Array, default: () => [] },
         isDisabled: {
             type: Boolean,
             default: false,
@@ -74,20 +74,20 @@ export default {
         }
     },
     computed: {
-        inputValue: {
-            get() {
-                return this.modelValue || ''
-            },
-            set(val) {
-                this.$emit('update:modelValue', val)
-                this.showDropdown = true
-                this.highlightedIndex = -1
-            }
+        selectedOption() {
+            return this.options.find((opt) => opt.value === this.modelValue)
         },
-        filteredOptions() {
-            if (!this.options.length) return []
 
-            const keyword = this.removeAccents(this.modelValue || '').replace(/\s/g, '')
+        filteredOptions() {
+            if (!this.options || this.options.length === 0) {
+                return []
+            }
+
+            if (!this.searchQuery) {
+                return this.options.length ? this.options : [{ text: 'Không có dữ liệu', value: null }]
+            }
+
+            const keyword = this.removeAccents(this.searchQuery).replace(/\s/g, '')
 
             const filtered = this.options.filter((option) => {
                 const text = this.removeAccents(option.text).replace(/\s/g, '')
@@ -95,18 +95,11 @@ export default {
                 return text.includes(keyword) || moTa.includes(keyword)
             })
 
-            return filtered.length ? filtered : [{text: 'Không có dữ liệu', value: null}]
+            return filtered.length ? filtered : [{ text: 'Không có dữ liệu', value: null }]
         }
 
     },
     watch: {
-        selectOption(option) {
-            const text = option.mo_ta ? `${option.text} ${option.mo_ta}` : option.text
-            this.$emit('update:modelValue', text)   // store text only
-            this.$emit('change', text)
-            this.showDropdown = false
-            this.isKeyboardNavigating = false
-        },
         modelValue() {
             this.syncSearchQuery()
         },
@@ -200,7 +193,6 @@ export default {
 
         removeAccents(str) {
             return str
-                .toString()
                 .normalize('NFD')                // tách dấu
                 .replace(/[\u0300-\u036f]/g, '') // xoá dấu
                 .replace(/đ/g, 'd')              // xử lý đặc biệt
@@ -234,8 +226,9 @@ export default {
     z-index: 1000;
     visibility: hidden;
     opacity: 0;
-    transition: opacity 0.2s ease,
-    visibility 0.2s ease;
+    transition:
+        opacity 0.2s ease,
+        visibility 0.2s ease;
 }
 
 .dropdown-menu.show {

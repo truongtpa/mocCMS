@@ -1,14 +1,14 @@
 <template>
-    <div class="tab-root rounded" :class="class">
+    <div class="tab-root rounded" :class="props.class">
         <LTETabHeaders :tabs="tabs" :activeTab="activeTab" @select="selectTab" />
-        <div class="tab-content-container rounded-bottom">
+        <div>
             <slot />
         </div>
     </div>
 </template>
 
 <script setup>
-import {ref, provide, onMounted} from 'vue'
+import { ref, provide } from 'vue'
 import LTETabHeaders from './LTETabHeaders.vue'
 
 const props = defineProps({
@@ -27,12 +27,9 @@ const activeTab = ref(props.tabs[0]?.key || '')
 function selectTab(key) {
     activeTab.value = key
 }
+
 // Cung cấp activeTab xuống TabContent
 provide('activeTab', activeTab)
-
-defineExpose({
-    selectTab
-})
 </script>
 
 <style>
