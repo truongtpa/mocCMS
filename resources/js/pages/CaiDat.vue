@@ -308,7 +308,8 @@ const fetchSettings = async () => {
     try {
         const res = await axios.get(route('PhanQuyenController.getCaiDat'));
         if (res.data.status === 200) {
-            settingsList.value = res.data.data || [];
+            const data = res.data.data;
+            settingsList.value = Array.isArray(data) ? data : (data?.cai_dat || []);
         }
     } catch (err) {
         console.error('Error fetching settings:', err);
