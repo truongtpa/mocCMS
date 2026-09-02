@@ -55,7 +55,7 @@
                                         <div 
                                             v-for="attr in groupAttrs" 
                                             :key="attr.id" 
-                                            :class="['textarea', 'file', 'image'].includes(attr.kieu_du_lieu) ? 'col-12 mb-3' : 'col-sm-6 mb-3'"
+                                            :class="[getColClass(attr.col_span || (['textarea', 'file', 'image'].includes(attr.kieu_du_lieu) ? 12 : 6)), 'mb-3']"
                                         >
                                             <label class="font-weight-bold small text-muted mb-1.5">{{ attr.ten_truong }}</label>
                                             
@@ -274,6 +274,15 @@ const isEditable = (attr) => {
            attr.cho_phep_chinh_sua !== 0 && 
            attr.cho_phep_chinh_sua !== '0' && 
            attr.cho_phep_chinh_sua !== 'false';
+};
+
+const getColClass = (colSpan) => {
+    const span = parseInt(colSpan || 6);
+    if (span === 12) return 'col-12';
+    if (span === 6) return 'col-12 col-md-6';
+    if (span === 4) return 'col-12 col-md-4';
+    if (span === 3) return 'col-12 col-md-3';
+    return 'col-12 col-md-6';
 };
 
 const groupedAttributes = computed(() => {

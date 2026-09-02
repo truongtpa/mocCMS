@@ -63,6 +63,16 @@ class StudentPortalController extends Controller
                             ->first();
                         $attr->value = $val ? $val->gia_tri : '';
                         $attr->cho_phep_chinh_sua = (bool)($attr->cho_phep_chinh_sua ?? true);
+                        
+                        $cauHinh = [];
+                        if ($attr->cau_hinh) {
+                            try {
+                                $cauHinh = is_string($attr->cau_hinh) ? json_decode($attr->cau_hinh, true) : (array)$attr->cau_hinh;
+                            } catch (\Exception $e) {}
+                        }
+                        $defaultColSpan = in_array($attr->kieu_du_lieu, ['textarea', 'file', 'image']) ? 12 : 6;
+                        $attr->col_span = intval($cauHinh['col_span'] ?? $defaultColSpan);
+
                         $refOptions = \App\Http\Controllers\DynamicObjectController::resolveAttributeOptions($attr);
                         if ($refOptions !== null) {
                             $attr->ref_options = $refOptions;
@@ -111,6 +121,16 @@ class StudentPortalController extends Controller
                             ->first();
                         $attr->value = $val ? $val->gia_tri : '';
                         $attr->cho_phep_chinh_sua = (bool)($attr->cho_phep_chinh_sua ?? true);
+                        
+                        $cauHinh = [];
+                        if ($attr->cau_hinh) {
+                            try {
+                                $cauHinh = is_string($attr->cau_hinh) ? json_decode($attr->cau_hinh, true) : (array)$attr->cau_hinh;
+                            } catch (\Exception $e) {}
+                        }
+                        $defaultColSpan = in_array($attr->kieu_du_lieu, ['textarea', 'file', 'image']) ? 12 : 6;
+                        $attr->col_span = intval($cauHinh['col_span'] ?? $defaultColSpan);
+
                         $refOptions = \App\Http\Controllers\DynamicObjectController::resolveAttributeOptions($attr);
                         if ($refOptions !== null) {
                             $attr->ref_options = $refOptions;

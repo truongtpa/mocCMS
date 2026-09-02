@@ -107,6 +107,8 @@ Route::group(['middleware' => ['isLogin']], function () {
     Route::get('/admin/dynamic-objects/import/template', [\App\Http\Controllers\DynamicObjectController::class, 'exportImportTemplate'])->name('DynamicObjectController.exportImportTemplate');
     Route::post('/admin/dynamic-objects/import/preview', [\App\Http\Controllers\DynamicObjectController::class, 'putPreviewImport'])->name('DynamicObjectController.putPreviewImport');
     Route::post('/admin/dynamic-objects/import/process', [\App\Http\Controllers\DynamicObjectController::class, 'putProcessImport'])->name('DynamicObjectController.putProcessImport');
+    Route::get('/admin/dynamic-objects/layout-config', [\App\Http\Controllers\DynamicObjectController::class, 'getLayoutConfig'])->name('DynamicObjectController.getLayoutConfig');
+    Route::post('/admin/dynamic-objects/layout-config', [\App\Http\Controllers\DynamicObjectController::class, 'putLayoutConfig'])->name('DynamicObjectController.putLayoutConfig');
     Route::get('/admin/dynamic-objects/export/records', [\App\Http\Controllers\DynamicObjectController::class, 'exportRecords'])->name('DynamicObjectController.exportRecords');
 
     // RBAC Permission Management API Routes

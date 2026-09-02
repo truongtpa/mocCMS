@@ -1244,4 +1244,90 @@ class DynamicObjectController extends Controller
             'Cache-Control' => 'max-age=0',
         ]);
     }
+
+    public function getLayoutConfig(Request $request)
+    {
+        $loaiDoiTuongId = $request->query('loai_doi_tuong_id');
+        if (!$loaiDoiTuongId) {
+            return Response::Error('Thiếu dữ liệu', 'Vui lòng cung cấp loai_doi_tuong_id');
+        }
+
+        $type = DB::table('loai_doi_tuong')->where('id', $loaiDoiTuongId)->first();
+        if (!$type) {
+            return Response::Error('Không tìm thấy', 'Loại đối tượng không tồn tại');
+        }
+
+        $fields = DB::table('danh_muc_truong')
+            ->where('loai_doi_tuong_id', $loaiDoiTuongId)
+            ->where('trang_thai', true)
+            ->orderBy('thu_tu', 'asc')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->map(function ($field) {
+                $cauHinh = [];
+                if ($field->cau_hinh) {
+                    try {
+                        $cauHinh = is_string($field->cau_hinh) ? json_decode($field->cau_hinh, true) : (array)$field->cau_hinh;
+                    } catch (\Exception $e) {}
+                }
+                
+                $defaultColSpan = in_array($field->kieu_du_lieu, ['textarea', 'file', 'image']) ? 12 : 6;
+                $field->col_span = intval($cauHinh['col_span'] ?? $defaultColSpan);
+                $field->cau_hinh = $cauHinh;
+                return $field;
+            });
+
+        return Response::Success([
+            'type' => $type,
+            'fields' => $fields
+        ], 'Lấy cấu hình bố cục thành công');
+    }
+
+    public function putLayoutConfig(Request $request)
+    {
+        $loaiDoiTuongId = $request->input('loai_doi_tuong_id');
+        $layoutItems = $request->input('layout_items', []);
+
+        if (!$loaiDoiTuongId) {
+            return Response::Error('Thiếu dữ liệu', 'Vui lòng cung cấp loai_doi_tuong_id');
+        }
+
+        if (is_string($layoutItems)) {
+            $layoutItems = json_decode($layoutItems, true) ?? [];
+        }
+
+        DB::transaction(function () use ($layoutItems) {
+            foreach ($layoutItems as $index => $item) {
+                $id = $item['id'] ?? null;
+                if (!$id) continue;
+
+                $field = DB::table('danh_muc_truong')->where('id', $id)->first();
+                if (!$field) continue;
+
+                $cauHinh = [];
+                if ($field->cau_hinh) {
+                    try {
+                        $cauHinh = is_string($field->cau_hinh) ? json_decode($field->cau_hinh, true) : (array)$field->cau_hinh;
+                    } catch (\Exception $e) {}
+                }
+
+                if (isset($item['col_span'])) {
+                    $cauHinh['col_span'] = intval($item['col_span']);
+                }
+
+                $updateData = [
+                    'thu_tu' => intval($item['thu_tu'] ?? ($index + 1)),
+                    'cau_hinh' => json_encode($cauHinh, JSON_UNESCAPED_UNICODE)
+                ];
+
+                if (isset($item['phan_nhom']) && !empty($item['phan_nhom'])) {
+                    $updateData['phan_nhom'] = trim($item['phan_nhom']);
+                }
+
+                DB::table('danh_muc_truong')->where('id', $id)->update($updateData);
+            }
+        });
+
+        return Response::Success(null, 'Cập nhật bố cục trang thành công');
+    }
 }

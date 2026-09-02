@@ -42,6 +42,15 @@
                                         <i class="fas fa-database mr-1"></i> Dữ Liệu Đối Tượng
                                     </button>
                                 </li>
+                                <li class="nav-item">
+                                    <button 
+                                        class="nav-link font-weight-bold py-1 px-2.5 text-xs" 
+                                        :class="{ active: activeTab === 'layout' }" 
+                                        @click="switchTab('layout')"
+                                    >
+                                        <i class="fas fa-th-large mr-1 text-primary"></i> Thiết Kế Bố Cục Trang
+                                    </button>
+                                </li>
                             </ul>
 
                             <!-- TAB 1: LOẠI ĐỐI TƯỢNG -->
@@ -357,12 +366,183 @@
                                     </template>
                                 </AppTable>
                             </div>
+
+                            <!-- TAB 4: THIẾT KẾ BỐ CỤC TRANG (VISUAL LAYOUT DESIGNER) -->
+                            <div v-if="activeTab === 'layout'">
+                                <div class="d-flex justify-content-between align-items-center mb-2.5 bg-slate-50 p-2 rounded border border-slate-200">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label class="small font-weight-bold text-dark mb-0 text-xs">Loại đối tượng:</label>
+                                        <LTESelect2Option
+                                            :model-value="selectedTypeId"
+                                            :init-value="selectedTypeId"
+                                            :data="typeSelectOptions"
+                                            :multiple="false"
+                                            :close-on-select="true"
+                                            :allow-clear="false"
+                                            :enable-data-watch="true"
+                                            @update:model-value="onTypeSelectChange"
+                                            style="width: 220px;"
+                                        />
+                                        
+                                        <!-- Device Viewport Switcher -->
+                                        <div class="btn-group btn-group-toggle ml-3" role="group">
+                                            <button 
+                                                type="button" 
+                                                class="btn btn-xs px-2.5 py-1 font-weight-bold"
+                                                :class="previewDevice === 'desktop' ? 'btn-primary' : 'btn-outline-secondary'"
+                                                @click="previewDevice = 'desktop'"
+                                            >
+                                                <i class="fas fa-desktop mr-1"></i> Máy tính (Desktop)
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                class="btn btn-xs px-2.5 py-1 font-weight-bold"
+                                                :class="previewDevice === 'mobile' ? 'btn-primary' : 'btn-outline-secondary'"
+                                                @click="previewDevice = 'mobile'"
+                                            >
+                                                <i class="fas fa-mobile-alt mr-1"></i> Điện thoại (Mobile)
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <LTEButton 
+                                        v-if="hasPermission('DynamicObjectController.putField')"
+                                        variant="success" 
+                                        icon="far fa-save" 
+                                        text="Lưu Bố Cục Trang" 
+                                        class="btn-sm py-1 px-3 text-xs font-weight-bold shadow-sm" 
+                                        @click="saveLayoutConfig()" 
+                                    />
+                                </div>
+
+                                <!-- CANVAS CONTAINER -->
+                                <div class="layout-designer-wrapper p-3 bg-slate-100 rounded-xl border border-slate-200 min-h-[500px]">
+                                    <div :class="previewDevice === 'mobile' ? 'max-w-[400px] mx-auto bg-white p-3 rounded-2xl shadow-xl border-4 border-slate-700' : 'w-full'">
+                                        
+                                        <div v-if="previewDevice === 'mobile'" class="text-center pb-2 border-b mb-3">
+                                            <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-1"></div>
+                                            <span class="text-[10px] text-muted uppercase tracking-wider font-bold">Xem trước Giao diện Mobile</span>
+                                        </div>
+
+                                        <div v-for="(groupFields, groupName) in groupedLayoutFields" :key="groupName" class="mb-4 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+                                            <div class="d-flex align-items-center justify-content-between border-b pb-2 mb-3">
+                                                <h6 class="font-weight-bold text-primary text-xs uppercase mb-0 d-flex align-items-center">
+                                                    <i class="fas fa-layer-group mr-1.5 text-xs"></i>
+                                                    {{ groupName }}
+                                                    <span class="badge badge-light border text-muted ml-2 font-normal">({{ groupFields.length }} thuộc tính)</span>
+                                                </h6>
+                                                <span class="text-[11px] text-muted italic">Kéo icon <i class="fas fa-grip-vertical"></i> để đổi vị trí</span>
+                                            </div>
+
+                                            <div class="row m-0">
+                                                <div 
+                                                    v-for="(field, fIdx) in groupFields" 
+                                                    :key="field.id"
+                                                    :class="[
+                                                        previewDevice === 'mobile' ? 'col-12' : getColClass(field.col_span),
+                                                        'p-1'
+                                                    ]"
+                                                    draggable="true"
+                                                    @dragstart="onDragStart($event, field, groupName)"
+                                                    @dragover.prevent="onDragOverField($event, field, groupName)"
+                                                    @dragleave="onDragLeave"
+                                                    @dragend="onDragEnd"
+                                                    @drop="onDropLayout($event, field, groupName)"
+                                                >
+                                                    <div 
+                                                        class="field-card p-2 bg-slate-50 hover:bg-blue-50/40 rounded-lg border transition-all shadow-2xs group relative"
+                                                        :class="{
+                                                            'border-primary border-2 shadow-md bg-blue-50/90 scale-[1.01]': dragOverField && dragOverField.id === field.id,
+                                                            'opacity-40 border-dashed border-primary': draggedField && draggedField.id === field.id,
+                                                            'border-slate-200': !dragOverField || dragOverField.id !== field.id
+                                                        }"
+                                                    >
+                                                        <!-- Insertion Line Indicator -->
+                                                        <div 
+                                                            v-if="dragOverField && dragOverField.id === field.id"
+                                                            class="absolute left-0 right-0 h-1 bg-primary rounded-full z-10"
+                                                            :class="dragOverPosition === 'below' ? '-bottom-1' : '-top-1'"
+                                                        ></div>
+                                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                            <div class="d-flex align-items-center gap-1">
+                                                                <i class="fas fa-grip-vertical text-slate-400 cursor-grab hover:text-blue-600 mr-1" title="Kéo để di chuyển"></i>
+                                                                <code class="text-primary font-bold text-xs">{{ field.ma_truong }}</code>
+                                                                <span v-if="field.bat_buoc" class="text-danger font-bold ml-0.5">*</span>
+                                                                <span v-if="field.cho_phep_chinh_sua === false || field.cho_phep_chinh_sua === 0 || field.cho_phep_chinh_sua === '0'" class="badge badge-light border text-danger text-[10px] ml-1">Khóa</span>
+                                                            </div>
+
+                                                            <!-- Quick Col Width Buttons -->
+                                                            <div class="btn-group btn-group-toggle" role="group">
+                                                                <button 
+                                                                    type="button" 
+                                                                    title="Độ rộng 100% (1 cột full)" 
+                                                                    class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
+                                                                    :class="field.col_span === 12 ? 'btn-primary' : 'btn-light border'"
+                                                                    @click="setFieldColSpan(field, 12)"
+                                                                >
+                                                                    100%
+                                                                </button>
+                                                                <button 
+                                                                    type="button" 
+                                                                    title="Độ rộng 50% (2 cột)" 
+                                                                    class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
+                                                                    :class="field.col_span === 6 ? 'btn-primary' : 'btn-light border'"
+                                                                    @click="setFieldColSpan(field, 6)"
+                                                                >
+                                                                    50%
+                                                                </button>
+                                                                <button 
+                                                                    type="button" 
+                                                                    title="Độ rộng 33% (3 cột)" 
+                                                                    class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
+                                                                    :class="field.col_span === 4 ? 'btn-primary' : 'btn-light border'"
+                                                                    @click="setFieldColSpan(field, 4)"
+                                                                >
+                                                                    33%
+                                                                </button>
+                                                                <button 
+                                                                    type="button" 
+                                                                    title="Độ rộng 25% (4 cột)" 
+                                                                    class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
+                                                                    :class="field.col_span === 3 ? 'btn-primary' : 'btn-light border'"
+                                                                    @click="setFieldColSpan(field, 3)"
+                                                                >
+                                                                    25%
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="text-xs font-bold text-dark mb-1">{{ field.ten_truong }}</div>
+
+                                                        <!-- Live Component Mockup Preview -->
+                                                        <div class="preview-mockup pointer-events-none opacity-80">
+                                                            <textarea v-if="field.kieu_du_lieu === 'textarea'" rows="2" class="w-full bg-white border rounded px-2 py-1 text-xs" readonly placeholder="Textarea ô nhập nhiều dòng..."></textarea>
+                                                            <div v-else-if="['file', 'image'].includes(field.kieu_du_lieu)" class="p-1.5 bg-white border rounded text-xs text-center text-muted">
+                                                                <i :class="getDataTypeIcon(field.kieu_du_lieu) + ' text-primary mr-1'"></i> {{ getDataTypeLabel(field.kieu_du_lieu) }} (Tệp đính kèm)
+                                                            </div>
+                                                            <div v-else-if="['select', 'multiselect'].includes(field.kieu_du_lieu)" class="w-full bg-white border rounded px-2 py-1 text-xs text-muted d-flex justify-content-between align-items-center">
+                                                                <span>-- Chọn {{ field.ten_truong }} --</span>
+                                                                <i class="fas fa-chevron-down text-[10px]"></i>
+                                                            </div>
+                                                            <input v-else type="text" class="w-full bg-white border rounded px-2 py-1 text-xs" readonly :placeholder="'Nhập ' + field.ten_truong.toLowerCase() + '...'" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div v-if="layoutFields.length === 0" class="text-center py-5 text-muted italic text-xs">
+                                            Chưa có thuộc tính nào để thiết kế bố cục.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <Teleport to="body">
+    <Teleport to="body">
                 <!-- MODAL: TYPE FORM -->
                 <div v-if="showTypeModal" class="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
                     <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100 animate-fadeIn">
@@ -639,7 +819,7 @@
                                     <i class="fas fa-layer-group text-blue-600"></i> {{ groupName }}
                                 </h4>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div v-for="f in groupFields" :key="f.id" :class="['textarea', 'file', 'image'].includes(f.kieu_du_lieu) ? 'md:col-span-2' : ''">
+                                    <div v-for="f in groupFields" :key="f.id" :class="(f.col_span === 12 || ['textarea', 'file', 'image'].includes(f.kieu_du_lieu)) ? 'md:col-span-2' : 'md:col-span-1'">
                                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">{{ f.ten_truong }}</label>
                                         
                                          <!-- Input for Textarea -->
@@ -1078,6 +1258,11 @@ export default {
                 fileObjects: {}
             },
 
+            // Layout Builder State
+            layoutFields: [],
+            previewDevice: 'desktop',
+            savingLayout: false,
+
             // Data type options
             dataTypeOptions: [
                 { value: 'text', text: 'Chuỗi văn bản' },
@@ -1126,11 +1311,23 @@ export default {
                 groups[groupName].push(f)
             })
             return groups
+        },
+
+        groupedLayoutFields() {
+            const groups = {}
+            this.layoutFields.forEach(f => {
+                const groupName = f.phan_nhom || 'Thông tin bổ sung'
+                if (!groups[groupName]) {
+                    groups[groupName] = []
+                }
+                groups[groupName].push(f)
+            })
+            return groups
         }
     },
     watch: {
         '$route.query'(newQuery) {
-            if (newQuery.tab && ['types', 'fields', 'records'].includes(newQuery.tab)) {
+            if (newQuery.tab && ['types', 'fields', 'records', 'layout'].includes(newQuery.tab)) {
                 this.activeTab = newQuery.tab
             }
             if (newQuery.loai_doi_tuong_id && this.types.some(t => t.id == newQuery.loai_doi_tuong_id)) {
@@ -1140,6 +1337,8 @@ export default {
                 this.loadFields()
             } else if (this.activeTab === 'records') {
                 this.loadRecords()
+            } else if (this.activeTab === 'layout') {
+                this.loadLayoutConfig()
             }
         }
     },
@@ -1392,6 +1591,96 @@ export default {
             }
         },
 
+        onDropLayout(event, targetField, targetGroup) {
+            event.preventDefault()
+            if (!this.draggedField) return
+
+            const srcField = this.draggedField
+            const newGroup = targetGroup || (targetField ? targetField.phan_nhom : srcField.phan_nhom)
+            const insertBelow = this.dragOverPosition === 'below'
+
+            srcField.phan_nhom = newGroup
+
+            // Remove dragged item from layoutFields
+            const srcIndex = this.layoutFields.findIndex(f => f.id === srcField.id)
+            if (srcIndex !== -1) {
+                this.layoutFields.splice(srcIndex, 1)
+            }
+
+            // Insert into target position in layoutFields
+            if (targetField) {
+                let targetIndex = this.layoutFields.findIndex(f => f.id === targetField.id)
+                if (targetIndex !== -1) {
+                    if (insertBelow) {
+                        targetIndex += 1
+                    }
+                    this.layoutFields.splice(targetIndex, 0, srcField)
+                } else {
+                    this.layoutFields.push(srcField)
+                }
+            } else {
+                const lastInGroupIndex = this.layoutFields.findLastIndex(f => (f.phan_nhom || 'Thông tin bổ sung') === newGroup)
+                if (lastInGroupIndex !== -1) {
+                    this.layoutFields.splice(lastInGroupIndex + 1, 0, srcField)
+                } else {
+                    this.layoutFields.push(srcField)
+                }
+            }
+
+            this.onDragEnd()
+        },
+
+        getColClass(colSpan) {
+            const span = parseInt(colSpan || 6)
+            if (span === 12) return 'col-12'
+            if (span === 6) return 'col-12 col-md-6'
+            if (span === 4) return 'col-12 col-md-4'
+            if (span === 3) return 'col-12 col-md-3'
+            return 'col-12 col-md-6'
+        },
+
+        setFieldColSpan(field, span) {
+            field.col_span = span
+        },
+
+        async loadLayoutConfig() {
+            if (!this.selectedTypeId) return
+            try {
+                const res = await axios.get(route('DynamicObjectController.getLayoutConfig'), {
+                    params: { loai_doi_tuong_id: this.selectedTypeId }
+                })
+                if (res.data.status === 200) {
+                    this.layoutFields = res.data.data.fields || []
+                }
+            } catch (err) {
+                console.error(err)
+            }
+        },
+
+        async saveLayoutConfig() {
+            if (!this.selectedTypeId) return
+            try {
+                const layoutItems = this.layoutFields.map((f, idx) => ({
+                    id: f.id,
+                    thu_tu: idx + 1,
+                    col_span: f.col_span || 6,
+                    phan_nhom: f.phan_nhom
+                }))
+                const res = await axios.post(route('DynamicObjectController.putLayoutConfig'), {
+                    loai_doi_tuong_id: this.selectedTypeId,
+                    layout_items: layoutItems
+                })
+                if (res.data.status === 200) {
+                    this.loadLayoutConfig()
+                    this.$func.toastSuccess(res.data.message)
+                } else {
+                    this.$func.toastError(res.data)
+                }
+            } catch (err) {
+                console.error(err)
+            }
+        },
+
         switchTab(tabName) {
             this.activeTab = tabName
             if (tabName === 'types') {
@@ -1400,6 +1689,8 @@ export default {
                 this.loadFields()
             } else if (tabName === 'records') {
                 this.loadRecords()
+            } else if (tabName === 'layout') {
+                this.loadLayoutConfig()
             }
         },
 
@@ -1411,7 +1702,7 @@ export default {
                     const queryTab = this.$route?.query?.tab
                     const queryTypeId = this.$route?.query?.loai_doi_tuong_id
 
-                    if (queryTab && ['types', 'fields', 'records'].includes(queryTab)) {
+                    if (queryTab && ['types', 'fields', 'records', 'layout'].includes(queryTab)) {
                         this.activeTab = queryTab
                     }
 
@@ -1425,6 +1716,8 @@ export default {
                         this.loadFields()
                     } else if (this.activeTab === 'records') {
                         this.loadRecords()
+                    } else if (this.activeTab === 'layout') {
+                        this.loadLayoutConfig()
                     }
                 }
             } catch (err) {
@@ -1438,6 +1731,8 @@ export default {
                 this.loadFields()
             } else if (this.activeTab === 'records') {
                 this.loadRecords()
+            } else if (this.activeTab === 'layout') {
+                this.loadLayoutConfig()
             }
         },
 
