@@ -19,9 +19,9 @@ class PhanQuyenController extends Controller
             return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
         }
 
-        $dsVaiTro = DB::table('vai_tro')
-            ->select('id', 'ma_vai_tro', 'ten_vai_tro', 'created_at', 'updated_at')
-            ->orderBy('id', 'asc')
+        $dsVaiTro = DB::table('quyen_nhom')
+            ->select('id_quyen_nhom as id', 'ma_vai_tro', 'tieu_de as ten_vai_tro', 'mac_dinh', 'ngay_tao', 'ngay_cap_nhat')
+            ->orderBy('id_quyen_nhom', 'asc')
             ->get();
 
         return Response::Success($dsVaiTro, 'Lấy danh sách vai trò thành công');
@@ -38,36 +38,24 @@ class PhanQuyenController extends Controller
         $tenVaiTro = trim($request->input('ten_vai_tro', ''));
 
         $errors = [];
-        if (empty($maVaiTro)) $errors[] = 'Mã vai trò không được bỏ trống';
         if (empty($tenVaiTro)) $errors[] = 'Tên vai trò không được bỏ trống';
         if ($errors) {
             return Response::Error('Sai định dạng dữ liệu', $errors);
         }
 
-        if ($id) {
-            $exists = DB::table('vai_tro')->where('ma_vai_tro', $maVaiTro)->where('id', '!=', $id)->exists();
-            if ($exists) {
-                return Response::Error('Trùng dữ liệu', 'Mã vai trò đã tồn tại!');
-            }
+        $data = [
+            'ma_vai_tro' => $maVaiTro ?: null,
+            'tieu_de' => $tenVaiTro,
+            'ngay_cap_nhat' => now(),
+        ];
 
-            DB::table('vai_tro')->where('id', $id)->update([
-                'ma_vai_tro' => $maVaiTro,
-                'ten_vai_tro' => $tenVaiTro,
-                'updated_at' => now(),
-            ]);
+        if ($id) {
+            DB::table('quyen_nhom')->where('id_quyen_nhom', $id)->update($data);
             $msg = 'Cập nhật vai trò thành công!';
         } else {
-            $exists = DB::table('vai_tro')->where('ma_vai_tro', $maVaiTro)->exists();
-            if ($exists) {
-                return Response::Error('Trùng dữ liệu', 'Mã vai trò đã tồn tại!');
-            }
-
-            DB::table('vai_tro')->insert([
-                'ma_vai_tro' => $maVaiTro,
-                'ten_vai_tro' => $tenVaiTro,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            $data['mac_dinh'] = 0;
+            $data['ngay_tao'] = now();
+            DB::table('quyen_nhom')->insert($data);
             $msg = 'Thêm mới vai trò thành công!';
         }
 
@@ -80,16 +68,13 @@ class PhanQuyenController extends Controller
             return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
         }
 
-        $vaiTro = DB::table('vai_tro')->where('id', $id)->first();
-        if (!$vaiTro) {
-            return Response::Error('Không tìm thấy', 'Không tìm thấy vai trò!');
+        if ($id == 1) {
+            return Response::Error('Lỗi thao tác', 'Không thể xóa vai trò Quản trị viên hệ thống!');
         }
 
-        if ($vaiTro->ma_vai_tro === 'admin') {
-            return Response::Error('Lỗi thao tác', 'Không thể xóa vai trò admin hệ thống!');
-        }
-
-        DB::table('vai_tro')->where('id', $id)->delete();
+        DB::table('quyen_nhom')->where('id_quyen_nhom', $id)->delete();
+        DB::table('quyen_nhom_chi_tiet')->where('id_quyen_nhom', $id)->delete();
+        DB::table('quyen_nhom_tai_khoan')->where('id_quyen_nhom', $id)->delete();
 
         return Response::Success([], 'Xóa vai trò thành công!');
     }
@@ -100,10 +85,9 @@ class PhanQuyenController extends Controller
             return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
         }
 
-        $dsQuyen = DB::table('quyen_han')
-            ->where('ma_quyen', 'not like', 'router-%')
-            ->select('id', 'ma_quyen', 'ten_quyen', 'created_at', 'updated_at')
-            ->orderBy('ma_quyen', 'asc')
+        $dsQuyen = DB::table('quyen_chi_tiet')
+            ->select('id_quyen_chi_tiet as id', 'tieu_de as ten_quyen', 'funcs as ma_quyen', 'ngay_tao', 'ngay_cap_nhat')
+            ->orderBy('id_quyen_chi_tiet', 'asc')
             ->get();
 
         return Response::Success($dsQuyen, 'Lấy danh sách quyền hạn thành công');
@@ -127,28 +111,20 @@ class PhanQuyenController extends Controller
         }
 
         if ($id) {
-            $exists = DB::table('quyen_han')->where('ma_quyen', $maQuyen)->where('id', '!=', $id)->exists();
-            if ($exists) {
-                return Response::Error('Trùng dữ liệu', 'Mã quyền đã tồn tại!');
-            }
-
-            DB::table('quyen_han')->where('id', $id)->update([
-                'ma_quyen' => $maQuyen,
-                'ten_quyen' => $tenQuyen,
-                'updated_at' => now(),
+            DB::table('quyen_chi_tiet')->where('id_quyen_chi_tiet', $id)->update([
+                'funcs' => $maQuyen,
+                'tieu_de' => $tenQuyen,
+                'ngay_cap_nhat' => now(),
             ]);
             $msg = 'Cập nhật quyền thành công!';
         } else {
-            $exists = DB::table('quyen_han')->where('ma_quyen', $maQuyen)->exists();
-            if ($exists) {
-                return Response::Error('Trùng dữ liệu', 'Mã quyền đã tồn tại!');
-            }
-
-            DB::table('quyen_han')->insert([
-                'ma_quyen' => $maQuyen,
-                'ten_quyen' => $tenQuyen,
-                'created_at' => now(),
-                'updated_at' => now(),
+            DB::table('quyen_chi_tiet')->insert([
+                'id_quyen' => 1,
+                'tieu_de' => $tenQuyen,
+                'funcs' => $maQuyen,
+                'show_views' => $maQuyen,
+                'ngay_tao' => now(),
+                'ngay_cap_nhat' => now(),
             ]);
             $msg = 'Thêm quyền mới thành công!';
         }
@@ -162,7 +138,7 @@ class PhanQuyenController extends Controller
             return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
         }
 
-        $deleted = DB::table('quyen_han')->where('id', $id)->delete();
+        $deleted = DB::table('quyen_chi_tiet')->where('id_quyen_chi_tiet', $id)->delete();
         if ($deleted === 0) {
             return Response::Error('Không tìm thấy', 'Không tìm thấy quyền hạn để xóa!');
         }
@@ -176,16 +152,24 @@ class PhanQuyenController extends Controller
             return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
         }
 
-        $dsVaiTro = DB::table('vai_tro')->orderBy('id', 'asc')->get();
-        $dsQuyen = DB::table('quyen_han')->where('ma_quyen', 'not like', 'router-%')->orderBy('ma_quyen', 'asc')->get();
-        $vaiTroQuyen = DB::table('vai_tro_quyen')->get();
+        $dsVaiTro = DB::table('quyen_nhom')
+            ->select('id_quyen_nhom as id', 'ma_vai_tro', 'tieu_de as ten_vai_tro')
+            ->orderBy('id_quyen_nhom', 'asc')
+            ->get();
+
+        $dsQuyen = DB::table('quyen_chi_tiet')
+            ->select('id_quyen_chi_tiet as id', 'tieu_de as ten_quyen', 'funcs as ma_quyen')
+            ->orderBy('id_quyen_chi_tiet', 'asc')
+            ->get();
+
+        $vaiTroQuyen = DB::table('quyen_nhom_chi_tiet')->get();
 
         $mapping = [];
         foreach ($vaiTroQuyen as $item) {
-            if (!isset($mapping[$item->vai_tro_id])) {
-                $mapping[$item->vai_tro_id] = [];
+            if (!isset($mapping[$item->id_quyen_nhom])) {
+                $mapping[$item->id_quyen_nhom] = [];
             }
-            $mapping[$item->vai_tro_id][] = $item->quyen_id;
+            $mapping[$item->id_quyen_nhom][] = $item->id_quyen_chi_tiet;
         }
 
         return Response::Success([
@@ -209,17 +193,19 @@ class PhanQuyenController extends Controller
         }
 
         DB::transaction(function () use ($vaiTroId, $quyenIds) {
-            DB::table('vai_tro_quyen')->where('vai_tro_id', $vaiTroId)->delete();
+            DB::table('quyen_nhom_chi_tiet')->where('id_quyen_nhom', $vaiTroId)->delete();
 
             $data = [];
             foreach ($quyenIds as $qId) {
                 $data[] = [
-                    'vai_tro_id' => $vaiTroId,
-                    'quyen_id' => $qId,
+                    'id_quyen_nhom' => $vaiTroId,
+                    'id_quyen_chi_tiet' => $qId,
+                    'ngay_tao' => now(),
+                    'ngay_cap_nhat' => now()
                 ];
             }
             if (!empty($data)) {
-                DB::table('vai_tro_quyen')->insert($data);
+                DB::table('quyen_nhom_chi_tiet')->insert($data);
             }
         });
 
@@ -247,7 +233,7 @@ class PhanQuyenController extends Controller
         } else {
             $userType = 'giang_vien';
             $query = DB::table('giang_vien')
-                ->select('id_giang_vien as user_id', 'ho_ten', 'email');
+                ->select('id as user_id', 'ho_ten', 'email');
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('ho_ten', 'like', "%{$search}%")
@@ -260,22 +246,28 @@ class PhanQuyenController extends Controller
 
         $userEmails = $users->pluck('email')->filter()->toArray();
         $tkList = DB::table('tai_khoan')->whereIn('email', $userEmails)->get()->keyBy('email');
-        $tkIds = $tkList->pluck('id_tai_khoan')->toArray();
+        $tkIds = array_map('strval', $tkList->pluck('id')->toArray());
 
         $userRoles = [];
         if (!empty($tkIds)) {
-            $userRoles = DB::table('quyen_nhom_tai_khoan')
+            $allRoles = DB::table('quyen_nhom_tai_khoan')
                 ->join('quyen_nhom', 'quyen_nhom_tai_khoan.id_quyen_nhom', '=', 'quyen_nhom.id_quyen_nhom')
                 ->whereIn('quyen_nhom_tai_khoan.id_tai_khoan', $tkIds)
                 ->select('quyen_nhom_tai_khoan.id_tai_khoan', 'quyen_nhom.id_quyen_nhom as vai_tro_id', 'quyen_nhom.tieu_de as ten_vai_tro')
-                ->get()
-                ->groupBy('id_tai_khoan');
+                ->get();
+
+            foreach ($allRoles as $r) {
+                $userRoles[(string)$r->id_tai_khoan][] = [
+                    'vai_tro_id' => $r->vai_tro_id,
+                    'ten_vai_tro' => $r->ten_vai_tro
+                ];
+            }
         }
 
         foreach ($users as $u) {
             $tk = $tkList->get($u->email);
-            $tkId = $tk ? $tk->id_tai_khoan : null;
-            $u->roles = ($tkId && isset($userRoles[$tkId])) ? $userRoles[$tkId]->toArray() : [];
+            $tkId = $tk ? (string)$tk->id : null;
+            $u->roles = ($tkId && isset($userRoles[$tkId])) ? $userRoles[$tkId] : [];
         }
 
         return Response::Success($users, 'Lấy danh sách người dùng thành công');
@@ -290,10 +282,21 @@ class PhanQuyenController extends Controller
         $userId = $request->input('user_id');
         $userType = $request->input('user_type');
         $vaiTroIds = $request->input('vai_tro_ids', []);
-        $email = $request->input('email', '');
+        $email = trim($request->input('email', ''));
+
+        if (empty($email) && $userId) {
+            if ($userType === 'sinh_vien') {
+                $email = DB::table('sinh_vien')->where('id', $userId)->value('email');
+            } else {
+                $email = DB::table('giang_vien')->where('id', $userId)->value('email');
+            }
+            if (empty($email)) {
+                $email = DB::table('tai_khoan')->where('id', $userId)->value('email');
+            }
+        }
 
         $errors = [];
-        if (!$userId) $errors[] = 'user_id không được bỏ trống';
+        if (!$userId && empty($email)) $errors[] = 'user_id hoặc email không được bỏ trống';
         if (!is_array($vaiTroIds)) $errors[] = 'vai_tro_ids phải là mảng';
         if ($errors) {
             return Response::Error('Sai định dạng dữ liệu', $errors);
@@ -309,16 +312,18 @@ class PhanQuyenController extends Controller
                         'ngay_tao' => now()
                     ]);
                 } else {
-                    $idTaiKhoan = $tk->id_tai_khoan;
+                    $idTaiKhoan = $tk->id;
                 }
 
-                DB::table('quyen_nhom_tai_khoan')->where('id_tai_khoan', $idTaiKhoan)->delete();
+                DB::table('quyen_nhom_tai_khoan')->where('id_tai_khoan', (string)$idTaiKhoan)->delete();
 
                 $data = [];
                 foreach ($vaiTroIds as $vtId) {
                     $data[] = [
-                        'id_tai_khoan' => $idTaiKhoan,
-                        'id_quyen_nhom' => $vtId
+                        'id_tai_khoan' => (string)$idTaiKhoan,
+                        'id_quyen_nhom' => $vtId,
+                        'ngay_tao' => now(),
+                        'ngay_cap_nhat' => now()
                     ];
                 }
                 if (!empty($data)) {
@@ -327,7 +332,7 @@ class PhanQuyenController extends Controller
             }
         });
 
-        return Response::Success([], 'Cập nhật nhóm quyền người dùng thành công!');
+        return Response::Success([], 'Cập nhật vai trò người dùng thành công!');
     }
 
     public function getCaiDat()
@@ -337,77 +342,11 @@ class PhanQuyenController extends Controller
         }
 
         $caiDatList = DB::table('cai_dat')->orderBy('id', 'asc')->get();
-        $dsVaiTro = DB::table('vai_tro')->select('id', 'ma_vai_tro', 'ten_vai_tro')->orderBy('ten_vai_tro', 'asc')->get();
+        $dsVaiTro = DB::table('quyen_nhom')->select('id_quyen_nhom as id', 'tieu_de as ten_vai_tro')->orderBy('tieu_de', 'asc')->get();
 
         return Response::Success([
             'cai_dat' => $caiDatList,
             'ds_vai_tro' => $dsVaiTro
         ], 'Lấy danh sách cài đặt thành công');
-    }
-
-    public function putCaiDat(Request $request)
-    {
-        if (!$this->checkUserPermission('PhanQuyenController.putCaiDat')) {
-            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
-        }
-
-        $id = $request->input('id');
-        $tieuDe = $request->input('tieu_de');
-        $danhMuc = $request->input('danh_muc');
-        $khoa = trim($request->input('khoa', ''));
-        $kieuDuLieu = $request->input('kieu_du_lieu', 'Text');
-        $giaTri = $request->input('gia_tri');
-        $phamVi = $request->input('pham_vi', 'Cục bộ');
-        $moTa = $request->input('mo_ta');
-
-        if (empty($khoa)) {
-            return Response::Error('Sai định dạng dữ liệu', 'Mã biến cài đặt (khoa) không được bỏ trống!');
-        }
-
-        $saveData = [
-            'tieu_de' => $tieuDe,
-            'danh_muc' => $danhMuc,
-            'khoa' => $khoa,
-            'kieu_du_lieu' => $kieuDuLieu,
-            'gia_tri' => $giaTri,
-            'pham_vi' => $phamVi,
-            'mo_ta' => $moTa,
-            'updated_at' => now(),
-        ];
-
-        if ($id) {
-            $exists = DB::table('cai_dat')->where('khoa', $khoa)->where('id', '!=', $id)->exists();
-            if ($exists) {
-                return Response::Error('Trùng dữ liệu', 'Tên biến cài đặt đã tồn tại!');
-            }
-
-            DB::table('cai_dat')->where('id', $id)->update($saveData);
-            $msg = 'Cập nhật biến cài đặt thành công!';
-        } else {
-            $exists = DB::table('cai_dat')->where('khoa', $khoa)->exists();
-            if ($exists) {
-                return Response::Error('Trùng dữ liệu', 'Tên biến cài đặt đã tồn tại!');
-            }
-
-            $saveData['created_at'] = now();
-            DB::table('cai_dat')->insert($saveData);
-            $msg = 'Thêm mới biến cài đặt thành công!';
-        }
-
-        return Response::Success([], $msg);
-    }
-
-    public function deleteCaiDat($id)
-    {
-        if (!$this->checkUserPermission('PhanQuyenController.deleteCaiDat')) {
-            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
-        }
-
-        $deleted = DB::table('cai_dat')->where('id', $id)->delete();
-        if ($deleted === 0) {
-            return Response::Error('Không tìm thấy', 'Không tìm thấy biến cài đặt để xóa!');
-        }
-
-        return Response::Success([], 'Xóa biến cài đặt thành công!');
     }
 }

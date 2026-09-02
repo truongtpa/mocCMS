@@ -268,7 +268,7 @@ class DynamicObjectController extends Controller
             foreach ($gvList as $gv) {
                 $msgv = (!empty($gv->email) && str_contains($gv->email, '@'))
                     ? explode('@', $gv->email)[0]
-                    : ('GV_' . $gv->id_giang_vien);
+                    : ('GV_' . $gv->id);
 
                 if (isset($existingMasterMap[$msgv])) {
                     $masterDoiTuongId = $existingMasterMap[$msgv];
@@ -278,7 +278,7 @@ class DynamicObjectController extends Controller
                 }
 
                 $masterMapping[$masterDoiTuongId] = [
-                    'id' => $gv->id_giang_vien,
+                    'id' => $gv->id,
                     'ma_doi_tuong' => $msgv,
                     'ten_hien_thi' => $gv->ho_ten,
                     'email' => $gv->email,
@@ -318,10 +318,12 @@ class DynamicObjectController extends Controller
         // Bulk fetch dynamic attribute values to avoid N+1 query bug
         if (!empty($masterMapping) && $fields->isNotEmpty()) {
             $masterIds = array_keys($masterMapping);
+            $altIds = array_column($masterMapping, 'id');
+            $allIds = array_unique(array_merge($masterIds, $altIds));
             $fieldIds = $fields->pluck('id')->toArray();
 
             $valObjects = DB::table('gia_tri_thong_tin')
-                ->whereIn('doi_tuong_id', $masterIds)
+                ->whereIn('doi_tuong_id', $allIds)
                 ->whereIn('truong_id', $fieldIds)
                 ->get();
 
@@ -331,9 +333,11 @@ class DynamicObjectController extends Controller
             }
 
             foreach ($masterMapping as $mId => &$rec) {
+                $altId = $rec['id'];
                 foreach ($fields as $field) {
-                    $key = $mId . '_' . $field->id;
-                    $rec['attributes'][$field->ma_truong] = $valMap[$key] ?? '';
+                    $keyPrimary = $mId . '_' . $field->id;
+                    $keyAlt = $altId . '_' . $field->id;
+                    $rec['attributes'][$field->ma_truong] = $valMap[$keyPrimary] ?? $valMap[$keyAlt] ?? '';
                 }
             }
         }
@@ -376,7 +380,7 @@ class DynamicObjectController extends Controller
                 return Response::Error('Sai định dạng dữ liệu', 'Giảng viên cần thông tin cơ bản là Email (Gmail) và Họ tên!');
             }
             if ($id) {
-                DB::table('giang_vien')->where('id_giang_vien', $id)->update([
+                DB::table('giang_vien')->where('id', $id)->update([
                     'ho_ten' => $tenHienThi,
                     'email' => $email,
                     'updated_at' => now(),
@@ -388,7 +392,7 @@ class DynamicObjectController extends Controller
                     'id_don_vi' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ], 'id_giang_vien');
+                ], 'id');
             }
             $msgv = str_contains($email, '@') ? explode('@', $email)[0] : ('GV_' . time());
             $masterDoiTuongId = $this->getOrCreateMasterDoiTuongId($loaiDoiTuongId, $msgv, $tenHienThi);
@@ -469,7 +473,7 @@ class DynamicObjectController extends Controller
         }
 
         if ($type->ma_loai === 'giang_vien') {
-            DB::table('giang_vien')->where('id_giang_vien', $id)->delete();
+            DB::table('giang_vien')->where('id', $id)->delete();
         } elseif ($type->ma_loai === 'sinh_vien') {
             DB::table('sinh_vien')->where('id', $id)->delete();
         } else {
@@ -1029,7 +1033,7 @@ class DynamicObjectController extends Controller
                 if ($type->ma_loai === 'giang_vien') {
                     $existingGv = DB::table('giang_vien')->where('email', $email)->first();
                     if ($existingGv) {
-                        DB::table('giang_vien')->where('id_giang_vien', $existingGv->id_giang_vien)->update([
+                        DB::table('giang_vien')->where('id', $existingGv->id)->update([
                             'ho_ten' => $tenHienThi,
                             'updated_at' => now(),
                         ]);
@@ -1041,7 +1045,7 @@ class DynamicObjectController extends Controller
                             'id_don_vi' => 1,
                             'created_at' => now(),
                             'updated_at' => now(),
-                        ], 'id_giang_vien');
+                        ]);
                         $inserted++;
                     }
                     $msgv = str_contains($email, '@') ? explode('@', $email)[0] : ('GV_' . time());

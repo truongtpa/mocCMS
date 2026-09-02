@@ -37,28 +37,30 @@ class StudentPortalController extends Controller
                 $sv = DB::table('sinh_vien')->where('mssv', $maDoiTuong)->first();
             }
 
-            // Auto sync from Daotao API if no dynamic values exist yet for student
-            $existingValCount = DB::table('gia_tri_thong_tin')
-                ->where('doi_tuong_id', $sv->id)
-                ->count();
-            if ($existingValCount === 0) {
-                self::syncStudentDataFromApi($maDoiTuong, $email, $sv->id);
-            }
-
-            // Load dynamic attributes from danh_muc_truong & gia_tri_thong_tin
             $loaiDoiTuong = DB::table('loai_doi_tuong')->where('ma_loai', 'sinh_vien')->first();
             $attributes = collect();
 
             if ($loaiDoiTuong) {
+                $masterDoiTuongId = self::getMasterDoiTuongId($loaiDoiTuong->id, $sv->mssv, $sv->ho_ten);
+                $possibleIds = array_unique([$masterDoiTuongId, $sv->id]);
+
+                // Auto sync from Daotao API if no dynamic values exist yet for student
+                $existingValCount = DB::table('gia_tri_thong_tin')
+                    ->whereIn('doi_tuong_id', $possibleIds)
+                    ->count();
+                if ($existingValCount === 0) {
+                    self::syncStudentDataFromApi($maDoiTuong, $email, $masterDoiTuongId);
+                }
+
                 $attributes = DB::table('danh_muc_truong')
                     ->where('loai_doi_tuong_id', $loaiDoiTuong->id)
                     ->where('trang_thai', true)
                     ->orderBy('thu_tu', 'asc')
                     ->orderBy('id', 'asc')
                     ->get()
-                    ->map(function ($attr) use ($sv) {
+                    ->map(function ($attr) use ($possibleIds) {
                         $val = DB::table('gia_tri_thong_tin')
-                            ->where('doi_tuong_id', $sv->id)
+                            ->whereIn('doi_tuong_id', $possibleIds)
                             ->where('truong_id', $attr->id)
                             ->first();
                         $attr->value = $val ? $val->gia_tri : '';
@@ -108,15 +110,19 @@ class StudentPortalController extends Controller
             $attributes = collect();
 
             if ($loaiDoiTuong) {
+                $msgv = explode('@', $gv->email)[0];
+                $masterDoiTuongId = self::getMasterDoiTuongId($loaiDoiTuong->id, $msgv, $gv->ho_ten);
+                $possibleIds = array_unique([$masterDoiTuongId, $gv->id]);
+
                 $attributes = DB::table('danh_muc_truong')
                     ->where('loai_doi_tuong_id', $loaiDoiTuong->id)
                     ->where('trang_thai', true)
                     ->orderBy('thu_tu', 'asc')
                     ->orderBy('id', 'asc')
                     ->get()
-                    ->map(function ($attr) use ($gv) {
+                    ->map(function ($attr) use ($possibleIds) {
                         $val = DB::table('gia_tri_thong_tin')
-                            ->where('doi_tuong_id', $gv->id_giang_vien)
+                            ->whereIn('doi_tuong_id', $possibleIds)
                             ->where('truong_id', $attr->id)
                             ->first();
                         $attr->value = $val ? $val->gia_tri : '';
@@ -143,7 +149,7 @@ class StudentPortalController extends Controller
                 'status' => 200,
                 'data' => [
                     'profile' => [
-                        'id' => $gv->id_giang_vien,
+                        'id' => $gv->id,
                         'ho_ten' => $gv->ho_ten,
                         'email' => $gv->email,
                         'id_don_vi' => $gv->id_don_vi,
@@ -172,14 +178,17 @@ class StudentPortalController extends Controller
             if (!$sv) {
                 return response()->json(['status' => 404, 'message' => 'Student not found'], 404);
             }
-            $doiTuongId = $sv->id;
+            $loaiDoiTuong = DB::table('loai_doi_tuong')->where('ma_loai', 'sinh_vien')->first();
+            $doiTuongId = $loaiDoiTuong ? self::getMasterDoiTuongId($loaiDoiTuong->id, $sv->mssv, $sv->ho_ten) : $sv->id;
             $maLoai = 'sinh_vien';
         } else {
             $gv = DB::table('giang_vien')->where('email', $email)->first();
             if (!$gv) {
                 return response()->json(['status' => 404, 'message' => 'Lecturer not found'], 404);
             }
-            $doiTuongId = $gv->id_giang_vien;
+            $loaiDoiTuong = DB::table('loai_doi_tuong')->where('ma_loai', 'giang_vien')->first();
+            $msgv = explode('@', $gv->email)[0];
+            $doiTuongId = $loaiDoiTuong ? self::getMasterDoiTuongId($loaiDoiTuong->id, $msgv, $gv->ho_ten) : $gv->id;
             $maLoai = 'giang_vien';
         }
 
@@ -369,7 +378,7 @@ class StudentPortalController extends Controller
         }
 
         $data = DB::table('lich_hen')
-            ->join('giang_vien', 'lich_hen.giang_vien_id', '=', 'giang_vien.id_giang_vien')
+            ->join('giang_vien', 'lich_hen.giang_vien_id', '=', 'giang_vien.id')
             ->where('lich_hen.sinh_vien_id', $sv->id)
             ->select('lich_hen.*', 'giang_vien.ho_ten as ten_giang_vien')
             ->orderBy('lich_hen.thoi_gian_bat_dau', 'desc')
@@ -438,7 +447,7 @@ class StudentPortalController extends Controller
             $pendingCount = DB::table('lich_hen')->where('sinh_vien_id', $sv->id)->where('trang_thai', 'cho_duyet')->count();
 
             $recentBookings = DB::table('lich_hen')
-                ->join('giang_vien', 'lich_hen.giang_vien_id', '=', 'giang_vien.id_giang_vien')
+                ->join('giang_vien', 'lich_hen.giang_vien_id', '=', 'giang_vien.id')
                 ->where('lich_hen.sinh_vien_id', $sv->id)
                 ->select('lich_hen.*', 'giang_vien.ho_ten as ten_giang_vien')
                 ->orderBy('lich_hen.thoi_gian_bat_dau', 'desc')
@@ -464,12 +473,12 @@ class StudentPortalController extends Controller
             }
 
             $studentsCount = DB::table('sinh_vien')->count();
-            $pendingCount = DB::table('lich_hen')->where('giang_vien_id', $gv->id_giang_vien)->where('trang_thai', 'cho_duyet')->count();
-            $confirmedCount = DB::table('lich_hen')->where('giang_vien_id', $gv->id_giang_vien)->where('trang_thai', 'da_xac_nhan')->count();
+            $pendingCount = DB::table('lich_hen')->where('giang_vien_id', $gv->id)->where('trang_thai', 'cho_duyet')->count();
+            $confirmedCount = DB::table('lich_hen')->where('giang_vien_id', $gv->id)->where('trang_thai', 'da_xac_nhan')->count();
 
             $bookingRequests = DB::table('lich_hen')
                 ->join('sinh_vien', 'lich_hen.sinh_vien_id', '=', 'sinh_vien.id')
-                ->where('lich_hen.giang_vien_id', $gv->id_giang_vien)
+                ->where('lich_hen.giang_vien_id', $gv->id)
                 ->select('lich_hen.*', 'sinh_vien.ho_ten as ten_sinh_vien', 'sinh_vien.mssv')
                 ->orderBy('lich_hen.thoi_gian_bat_dau', 'desc')
                 ->get();
@@ -636,5 +645,23 @@ class StudentPortalController extends Controller
         } catch (\Exception $e) {
             Log::error("Error syncing student API data for MSSV {$mssv}: " . $e->getMessage());
         }
+    }
+
+    public static function getMasterDoiTuongId($loaiDoiTuongId, $maDoiTuong, $tenHienThi = '')
+    {
+        $dt = DB::table('doi_tuong')
+            ->where('loai_doi_tuong_id', $loaiDoiTuongId)
+            ->where('ma_doi_tuong', $maDoiTuong)
+            ->first();
+        if ($dt) {
+            return $dt->id;
+        }
+        return DB::table('doi_tuong')->insertGetId([
+            'loai_doi_tuong_id' => $loaiDoiTuongId,
+            'ma_doi_tuong' => $maDoiTuong,
+            'ten_hien_thi' => $tenHienThi ?: $maDoiTuong,
+            'ngay_tao' => now(),
+            'ngay_cap_nhat' => now()
+        ]);
     }
 }

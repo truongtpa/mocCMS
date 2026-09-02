@@ -30,11 +30,13 @@ class isQuyen
         if ($routeName) {
             $hasPermission = VLUTE::checkPermission($routeName);
             if (!$hasPermission) {
-                if ($request->expectsJson() || $request->ajax()) {
+                if ($request->expectsJson() || $request->ajax() || $request->wantsJson() || str_contains($request->header('Accept', ''), 'application/json')) {
                     return AppResponse::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
                 }
                 return redirect()->action([DangNhapController::class, 'redirectKhongCoQuyen']);
             }
+        }
+
         if ($request->isMethod('GET')) {
             $request->session()->save();
         }

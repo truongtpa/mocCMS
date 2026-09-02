@@ -146,9 +146,15 @@
                                                 </tr>
                                                 <!-- Permissions in Group -->
                                                 <tr v-for="perm in groupPerms" :key="perm.id">
-                                                    <td class="py-1 px-3">
-                                                        <div class="font-weight-bold text-dark text-xs">{{ perm.ten_quyen }}</div>
-                                                        <code class="small text-primary" style="font-size: 0.75rem;">{{ perm.ma_quyen }}</code>
+                                                    <td class="py-2 px-3 align-middle">
+                                                        <div class="font-weight-bold text-dark text-xs mb-1" style="font-size: 0.85rem;">{{ perm.ten_quyen }}</div>
+                                                        <div class="d-flex flex-column gap-1">
+                                                            <div v-for="(fItem, fIdx) in splitFuncs(perm.ma_quyen)" :key="fIdx" class="my-0.5">
+                                                                <span class="badge border text-primary font-weight-normal text-left px-2 py-1" style="font-size: 11px; font-family: monospace; background-color: #f8fafc; display: inline-block; white-space: normal; word-break: break-all;">
+                                                                    <i class="fas fa-code text-muted mr-1.5" style="font-size: 9.5px;"></i>{{ fItem }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                     </td>
                                                     <td 
                                                         v-for="role in matrixData.ds_vai_tro" 
@@ -159,8 +165,9 @@
                                                             type="checkbox" 
                                                             class="form-check-input position-static m-0"
                                                             style="width: 18px; height: 18px; cursor: pointer;"
-                                                            :checked="isRoleHasPermission(role.id, perm.id)"
-                                                            :disabled="role.ma_vai_tro === 'admin'"
+                                                            :checked="role.id == 1 || role.ma_vai_tro === 'admin' || isRoleHasPermission(role.id, perm.id)"
+                                                            :disabled="role.id == 1 || role.ma_vai_tro === 'admin'"
+                                                            :title="role.id == 1 || role.ma_vai_tro === 'admin' ? 'Quản trị viên hệ thống có tất cả các quyền mặc định' : 'Tích chọn quyền'"
                                                             @change="togglePermission(role.id, perm.id, $event.target.checked)"
                                                         />
                                                     </td>
@@ -269,9 +276,17 @@
                                                     </td>
                                                 </tr>
                                                 <tr v-for="(perm, idx) in groupPerms" :key="perm.id">
-                                                    <td class="py-1 px-2 text-xs text-muted">{{ idx + 1 }}</td>
-                                                    <td class="py-1 px-2"><code style="font-size: 0.78rem; color: #dc2626; font-weight: 500;">{{ perm.ma_quyen }}</code></td>
-                                                    <td class="font-weight-bold text-dark py-1 px-2 text-xs">{{ perm.ten_quyen }}</td>
+                                                    <td class="py-1.5 px-2 text-xs text-muted align-middle">{{ idx + 1 }}</td>
+                                                    <td class="py-1.5 px-2 align-middle">
+                                                        <div class="d-flex flex-column gap-1">
+                                                            <div v-for="(fItem, fIdx) in splitFuncs(perm.ma_quyen)" :key="fIdx" class="my-0.5">
+                                                                <span class="badge border text-danger font-weight-normal text-left px-2 py-1" style="font-size: 11px; font-family: monospace; background-color: #fef2f2; display: inline-block; white-space: normal; word-break: break-all;">
+                                                                    <i class="fas fa-terminal text-muted mr-1.5" style="font-size: 9.5px;"></i>{{ fItem }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="font-weight-bold text-dark py-1.5 px-2 text-xs align-middle">{{ perm.ten_quyen }}</td>
                                                     <td class="text-center py-1 px-2">
                                                         <div class="d-inline-flex align-items-center gap-1">
                                                             <IconButton 
@@ -400,13 +415,12 @@
             <LTEModal ref="roleModal" @close="resetRoleForm">
                 <form @submit.prevent="submitRoleForm">
                     <div class="form-group mb-2">
-                        <label class="font-weight-bold small text-muted text-xs">Mã Vai trò <span class="text-danger">*</span></label>
+                        <label class="font-weight-bold small text-muted text-xs">Mã Vai trò (Mã nhóm)</label>
                         <input 
                             v-model="roleForm.ma_vai_tro" 
                             type="text" 
                             class="form-control form-control-sm" 
-                            placeholder="Ví dụ: quan_tri_vien" 
-                            required
+                            placeholder="Ví dụ: giang_vien (tùy chọn)" 
                         />
                     </div>
                     <div class="form-group mb-2">
@@ -541,6 +555,11 @@ try {
     console.error('Error loading custom group labels:', e);
 }
 
+const splitFuncs = (str) => {
+    if (!str) return [];
+    return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+};
+
 const getControllerLabel = (name) => {
     return customGroupLabels[name] || name;
 };
@@ -630,7 +649,7 @@ const togglePermission = async (roleId, permId, isChecked) => {
     matrixData.value.mapping[roleId] = currentPerms;
 
     try {
-        const res = await axios.post(route('PhanQuyenController.capNhatQuyenVaiTro'), {
+        const res = await axios.post(route('PhanQuyenController.updateQuyenVaiTro'), {
             vai_tro_id: roleId,
             quyen_ids: currentPerms
         });
@@ -663,7 +682,7 @@ const toggleAllRolePermission = async (roleId, isChecked) => {
     matrixData.value.mapping[roleId] = newPerms;
 
     try {
-        const res = await axios.post(route('PhanQuyenController.capNhatQuyenVaiTro'), {
+        const res = await axios.post(route('PhanQuyenController.updateQuyenVaiTro'), {
             vai_tro_id: roleId,
             quyen_ids: newPerms
         });
@@ -704,7 +723,7 @@ const toggleGroupPermission = async (ctrlName, roleId, isChecked) => {
     matrixData.value.mapping[roleId] = currentPerms;
 
     try {
-        const res = await axios.post(route('PhanQuyenController.capNhatQuyenVaiTro'), {
+        const res = await axios.post(route('PhanQuyenController.updateQuyenVaiTro'), {
             vai_tro_id: roleId,
             quyen_ids: currentPerms
         });
@@ -759,7 +778,7 @@ const resetRoleForm = () => {
 };
 
 const submitRoleForm = async () => {
-    if (!roleForm.ma_vai_tro || !roleForm.ten_vai_tro) return;
+    if (!roleForm.ten_vai_tro) return;
     try {
         const res = await axios.post(route('PhanQuyenController.putVaiTro'), roleForm);
         if (res.data.status === 200) {
@@ -889,6 +908,7 @@ const submitAssignForm = async () => {
         const res = await axios.post(route('PhanQuyenController.putVaiTroNguoiDung'), {
             user_id: currentUserObj.value.user_id,
             user_type: userType.value,
+            email: currentUserObj.value.email,
             vai_tro_ids: selectedUserRoleIds.value
         });
         if (res.data.status === 200) {

@@ -59,26 +59,33 @@ class DangNhapController extends Controller
                         ]
                     );
                     $tk = DB::table('tai_khoan')->where('email', $email)->first();
-
-                    // Tự động gán nhóm quyền mặc định nếu chưa gán
-                    $defaultGroup = DB::table('quyen_nhom')->where('mac_dinh', 1)->first();
-                    if ($defaultGroup && $tk) {
-                        $hasGroup = DB::table('quyen_nhom_tai_khoan')
-                            ->where('id_tai_khoan', (string)$tk->id_tai_khoan)
-                            ->where('id_quyen_nhom', $defaultGroup->id_quyen_nhom)
+                    if ($tk) {
+                        $hasRole = DB::table('quyen_nhom_tai_khoan')
+                            ->where('id_tai_khoan', (string)$tk->id)
                             ->exists();
-                        if (!$hasGroup) {
-                            DB::table('quyen_nhom_tai_khoan')->insert([
-                                'id_tai_khoan' => (string)$tk->id_tai_khoan,
-                                'id_quyen_nhom' => $defaultGroup->id_quyen_nhom,
-                                'ngay_tao' => now(),
-                                'ngay_cap_nhat' => now()
-                            ]);
+                        if (!$hasRole) {
+                            $setting = DB::table('cai_dat')->where('khoa', 'DEFAULT_PERMISSION_GIANG_VIEN')->first();
+                            if ($setting && !empty($setting->gia_tri)) {
+                                $val = trim($setting->gia_tri);
+                                $defRole = DB::table('quyen_nhom')
+                                    ->where('id_quyen_nhom', $val)
+                                    ->orWhere('ma_vai_tro', $val)
+                                    ->orWhere('tieu_de', 'like', "%{$val}%")
+                                    ->first();
+                                if ($defRole) {
+                                    DB::table('quyen_nhom_tai_khoan')->insert([
+                                        'id_tai_khoan' => (string)$tk->id,
+                                        'id_quyen_nhom' => $defRole->id_quyen_nhom,
+                                        'ngay_tao' => now(),
+                                        'ngay_cap_nhat' => now()
+                                    ]);
+                                }
+                            }
                         }
                     }
 
                     $taiKhoan = (object)[
-                        'id_tai_khoan' => $tk ? $tk->id_tai_khoan : $gv->id_giang_vien,
+                        'id_tai_khoan' => $tk ? $tk->id : $gv->id,
                         'ho_ten' => $name,
                         'email' => $email,
                         'id_don_vi' => $gv->id_don_vi
@@ -136,21 +143,33 @@ class DangNhapController extends Controller
                         ]
                     );
                     $tk = DB::table('tai_khoan')->where('email', $email)->first();
-
-                    // Tự động gán nhóm quyền mặc định nếu chưa gán
-                    $defaultGroup = DB::table('quyen_nhom')->where('mac_dinh', 1)->first();
-                    if ($defaultGroup && $tk) {
-                        $hasGroup = DB::table('quyen_nhom_tai_khoan')
-                            ->where('id_tai_khoan', (string)$tk->id_tai_khoan)
-                            ->where('id_quyen_nhom', $defaultGroup->id_quyen_nhom)
+                    if ($tk) {
+                        $hasRole = DB::table('quyen_nhom_tai_khoan')
+                            ->where('id_tai_khoan', (string)$tk->id)
                             ->exists();
-                        if (!$hasGroup) {
-                            DB::table('quyen_nhom_tai_khoan')->insert([
-                                'id_tai_khoan' => (string)$tk->id_tai_khoan,
-                                'id_quyen_nhom' => $defaultGroup->id_quyen_nhom,
-                                'ngay_tao' => now(),
-                                'ngay_cap_nhat' => now()
-                            ]);
+                        if (!$hasRole) {
+                            $setting = DB::table('cai_dat')->where('khoa', 'DEFAULT_PERMISSION_SINH_VIEN')->first();
+                            if ($setting && !empty($setting->gia_tri)) {
+                                $val = trim($setting->gia_tri);
+                                $hasMaVaiTro = Schema::hasColumn('quyen_nhom', 'ma_vai_tro');
+                                $defRole = DB::table('quyen_nhom')
+                                    ->where(function($q) use ($val, $hasMaVaiTro) {
+                                        $q->where('id_quyen_nhom', $val);
+                                        if ($hasMaVaiTro) {
+                                            $q->orWhere('ma_vai_tro', $val);
+                                        }
+                                        $q->orWhere('tieu_de', 'like', "%{$val}%");
+                                    })
+                                    ->first();
+                                if ($defRole) {
+                                    DB::table('quyen_nhom_tai_khoan')->insert([
+                                        'id_tai_khoan' => (string)$tk->id,
+                                        'id_quyen_nhom' => $defRole->id_quyen_nhom,
+                                        'ngay_tao' => now(),
+                                        'ngay_cap_nhat' => now()
+                                    ]);
+                                }
+                            }
                         }
                     }
 
@@ -158,7 +177,7 @@ class DangNhapController extends Controller
                     \App\Http\Controllers\StudentPortalController::syncStudentDataFromApi($maDoiTuong, $email, $sv->id);
 
                     $taiKhoan = (object)[
-                        'id_tai_khoan' => $tk ? $tk->id_tai_khoan : $sv->id,
+                        'id_tai_khoan' => $tk ? $tk->id : $sv->id,
                         'ho_ten' => $hoTen,
                         'email' => $email
                     ];

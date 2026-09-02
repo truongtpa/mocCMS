@@ -83,7 +83,7 @@
                                 :init-value="form.giang_vien_id"
                                 label="Chọn Giảng viên *" 
                                 placeholder="-- Chọn giảng viên muốn đặt lịch --" 
-                                :data="lecturers.map(gv => ({ value: gv.id_giang_vien, text: `${gv.ho_ten} (${gv.email})` }))" 
+                                :data="lecturers.map(gv => ({ value: gv.id, text: `${gv.ho_ten} (${gv.email})` }))" 
                                 :multiple="false" 
                                 :close-on-select="true" 
                                 :allow-clear="false" 

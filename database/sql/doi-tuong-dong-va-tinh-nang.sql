@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS sinh_vien (
 );
 
 CREATE TABLE IF NOT EXISTS giang_vien (
-    id_giang_vien SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     ma_gv VARCHAR(50) UNIQUE NOT NULL,
     ho_ten VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE,
