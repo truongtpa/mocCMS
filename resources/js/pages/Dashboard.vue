@@ -199,18 +199,20 @@
                                         </template>
                                         <template #actions="{ item }">
                                             <div v-if="item.trang_thai === 'cho_duyet'" class="d-inline-flex gap-1">
-                                                <button 
-                                                    class="btn btn-xs btn-success shadow-sm font-weight-bold"
-                                                    @click="updateStatus(item.id, 'da_xac_nhan')"
-                                                >
-                                                    <i class="fas fa-check mr-1"></i> Đồng ý
-                                                </button>
-                                                <button 
-                                                    class="btn btn-xs btn-danger shadow-sm font-weight-bold ml-1"
-                                                    @click="updateStatus(item.id, 'tu_choi')"
-                                                >
-                                                    <i class="fas fa-times mr-1"></i> Từ chối
-                                                </button>
+                                                <LTEButton 
+                                                    variant="success" 
+                                                    icon="fas fa-check" 
+                                                    text="Đồng ý" 
+                                                    class="btn-sm text-xs font-weight-bold" 
+                                                    @click="updateStatus(item.id, 'da_xac_nhan')" 
+                                                />
+                                                <LTEButton 
+                                                    variant="danger" 
+                                                    icon="fas fa-times" 
+                                                    text="Từ chối" 
+                                                    class="btn-sm text-xs font-weight-bold ml-1" 
+                                                    @click="updateStatus(item.id, 'tu_choi')" 
+                                                />
                                             </div>
                                             <AppBadge v-else :variant="getStatusVariant(item.trang_thai)">
                                                 {{ getStatusLabel(item.trang_thai) }}
@@ -230,6 +232,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '@/store/auth';
+import LTEButton from '@/components/controls/LTEButton.vue';
 
 const authStore = useAuthStore();
 const loading = ref(true);

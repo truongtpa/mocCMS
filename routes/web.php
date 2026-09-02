@@ -27,32 +27,9 @@ Route::group(['middleware' => ['isLogin']], function () {
         $isStudent = str_contains($email, 'student.vlute.edu.vn') || str_contains($email, 'st.vlute.edu.vn');
         $userType = $isStudent ? 'sinh_vien' : 'giang_vien';
 
-        // 1. Fetch user permissions dynamically from DB
-        // Check if user is admin
-        $isAdmin = DB::table('vai_tro_nguoi_dung')
-            ->join('vai_tro', 'vai_tro_nguoi_dung.vai_tro_id', '=', 'vai_tro.id')
-            ->where('vai_tro_nguoi_dung.user_id', $userId)
-            ->where('vai_tro_nguoi_dung.user_type', $userType)
-            ->where('vai_tro.ma_vai_tro', 'admin')
-            ->exists();
-
-        if ($isAdmin) {
-            // Admin gets all permissions
-            $permissions = DB::table('quyen_han')->get();
-        } else {
-            // Normal user gets mapped permissions
-            $permissions = DB::table('vai_tro_nguoi_dung')
-                ->join('vai_tro_quyen', 'vai_tro_nguoi_dung.vai_tro_id', '=', 'vai_tro_quyen.vai_tro_id')
-                ->join('quyen_han', 'vai_tro_quyen.quyen_id', '=', 'quyen_han.id')
-                ->where('vai_tro_nguoi_dung.user_id', $userId)
-                ->where('vai_tro_nguoi_dung.user_type', $userType)
-                ->select('quyen_han.*')
-                ->distinct()
-                ->get();
-        }
-
-        // Format list of permissions (Controller.method)
-        $ds_quyen = $permissions->pluck('ma_quyen')->toArray();
+        $permData = \App\VLUTE::getUserPermissions($userId);
+        $ds_quyen = $permData['show_views'];
+        $isAdmin = $permData['is_admin'];
 
         // 2. Fetch user profile info
         if ($isStudent) {
@@ -115,32 +92,41 @@ Route::group(['middleware' => ['isLogin']], function () {
 
     // Dynamic Objects API Routes
     Route::get('/admin/dynamic-objects/types', [\App\Http\Controllers\DynamicObjectController::class, 'getTypes'])->name('DynamicObjectController.getTypes');
-    Route::post('/admin/dynamic-objects/types', [\App\Http\Controllers\DynamicObjectController::class, 'saveType'])->name('DynamicObjectController.saveType');
+    Route::post('/admin/dynamic-objects/types', [\App\Http\Controllers\DynamicObjectController::class, 'putType'])->name('DynamicObjectController.putType');
     Route::delete('/admin/dynamic-objects/types/{id}', [\App\Http\Controllers\DynamicObjectController::class, 'deleteType'])->name('DynamicObjectController.deleteType');
 
     Route::get('/admin/dynamic-objects/fields', [\App\Http\Controllers\DynamicObjectController::class, 'getFields'])->name('DynamicObjectController.getFields');
-    Route::post('/admin/dynamic-objects/fields', [\App\Http\Controllers\DynamicObjectController::class, 'saveField'])->name('DynamicObjectController.saveField');
-    Route::post('/admin/dynamic-objects/fields/reorder', [\App\Http\Controllers\DynamicObjectController::class, 'reorderFields'])->name('DynamicObjectController.reorderFields');
+    Route::post('/admin/dynamic-objects/fields', [\App\Http\Controllers\DynamicObjectController::class, 'putField'])->name('DynamicObjectController.putField');
+    Route::post('/admin/dynamic-objects/fields/reorder', [\App\Http\Controllers\DynamicObjectController::class, 'updateFieldOrders'])->name('DynamicObjectController.updateFieldOrders');
     Route::delete('/admin/dynamic-objects/fields/{id}', [\App\Http\Controllers\DynamicObjectController::class, 'deleteField'])->name('DynamicObjectController.deleteField');
 
     Route::get('/admin/dynamic-objects/records', [\App\Http\Controllers\DynamicObjectController::class, 'getRecords'])->name('DynamicObjectController.getRecords');
-    Route::post('/admin/dynamic-objects/records', [\App\Http\Controllers\DynamicObjectController::class, 'saveRecord'])->name('DynamicObjectController.saveRecord');
+    Route::post('/admin/dynamic-objects/records', [\App\Http\Controllers\DynamicObjectController::class, 'putRecord'])->name('DynamicObjectController.putRecord');
     Route::delete('/admin/dynamic-objects/records/{id}', [\App\Http\Controllers\DynamicObjectController::class, 'deleteRecord'])->name('DynamicObjectController.deleteRecord');
+
+    Route::get('/admin/dynamic-objects/import/template', [\App\Http\Controllers\DynamicObjectController::class, 'exportImportTemplate'])->name('DynamicObjectController.exportImportTemplate');
+    Route::post('/admin/dynamic-objects/import/preview', [\App\Http\Controllers\DynamicObjectController::class, 'putPreviewImport'])->name('DynamicObjectController.putPreviewImport');
+    Route::post('/admin/dynamic-objects/import/process', [\App\Http\Controllers\DynamicObjectController::class, 'putProcessImport'])->name('DynamicObjectController.putProcessImport');
+    Route::get('/admin/dynamic-objects/export/records', [\App\Http\Controllers\DynamicObjectController::class, 'exportRecords'])->name('DynamicObjectController.exportRecords');
 
     // RBAC Permission Management API Routes
     Route::get('/admin/phan-quyen/vai-tro', [\App\Http\Controllers\PhanQuyenController::class, 'getDanhSachVaiTro'])->name('PhanQuyenController.getDanhSachVaiTro');
-    Route::post('/admin/phan-quyen/vai-tro', [\App\Http\Controllers\PhanQuyenController::class, 'luuVaiTro'])->name('PhanQuyenController.luuVaiTro');
-    Route::delete('/admin/phan-quyen/vai-tro/{id}', [\App\Http\Controllers\PhanQuyenController::class, 'xoaVaiTro'])->name('PhanQuyenController.xoaVaiTro');
+    Route::post('/admin/phan-quyen/vai-tro', [\App\Http\Controllers\PhanQuyenController::class, 'putVaiTro'])->name('PhanQuyenController.putVaiTro');
+    Route::delete('/admin/phan-quyen/vai-tro/{id}', [\App\Http\Controllers\PhanQuyenController::class, 'deleteVaiTro'])->name('PhanQuyenController.deleteVaiTro');
 
     Route::get('/admin/phan-quyen/quyen-han', [\App\Http\Controllers\PhanQuyenController::class, 'getDanhSachQuyen'])->name('PhanQuyenController.getDanhSachQuyen');
-    Route::post('/admin/phan-quyen/quyen-han', [\App\Http\Controllers\PhanQuyenController::class, 'luuQuyen'])->name('PhanQuyenController.luuQuyen');
-    Route::delete('/admin/phan-quyen/quyen-han/{id}', [\App\Http\Controllers\PhanQuyenController::class, 'xoaQuyen'])->name('PhanQuyenController.xoaQuyen');
+    Route::post('/admin/phan-quyen/quyen-han', [\App\Http\Controllers\PhanQuyenController::class, 'putQuyen'])->name('PhanQuyenController.putQuyen');
+    Route::delete('/admin/phan-quyen/quyen-han/{id}', [\App\Http\Controllers\PhanQuyenController::class, 'deleteQuyen'])->name('PhanQuyenController.deleteQuyen');
 
     Route::get('/admin/phan-quyen/ma-tran', [\App\Http\Controllers\PhanQuyenController::class, 'getMaTranQuyen'])->name('PhanQuyenController.getMaTranQuyen');
-    Route::post('/admin/phan-quyen/cap-nhat-quyen-vai-tro', [\App\Http\Controllers\PhanQuyenController::class, 'capNhatQuyenVaiTro'])->name('PhanQuyenController.capNhatQuyenVaiTro');
+    Route::post('/admin/phan-quyen/cap-nhat-quyen-vai-tro', [\App\Http\Controllers\PhanQuyenController::class, 'updateQuyenVaiTro'])->name('PhanQuyenController.updateQuyenVaiTro');
 
     Route::get('/admin/phan-quyen/nguoi-dung', [\App\Http\Controllers\PhanQuyenController::class, 'getDanhSachNguoiDung'])->name('PhanQuyenController.getDanhSachNguoiDung');
-    Route::post('/admin/phan-quyen/gan-vai-tro-nguoi-dung', [\App\Http\Controllers\PhanQuyenController::class, 'ganVaiTroNguoiDung'])->name('PhanQuyenController.ganVaiTroNguoiDung');
+    Route::post('/admin/phan-quyen/gan-vai-tro-nguoi-dung', [\App\Http\Controllers\PhanQuyenController::class, 'putVaiTroNguoiDung'])->name('PhanQuyenController.putVaiTroNguoiDung');
+
+    Route::get('/admin/phan-quyen/cai-dat', [\App\Http\Controllers\PhanQuyenController::class, 'getCaiDat'])->name('PhanQuyenController.getCaiDat');
+    Route::post('/admin/phan-quyen/cai-dat', [\App\Http\Controllers\PhanQuyenController::class, 'putCaiDat'])->name('PhanQuyenController.putCaiDat');
+    Route::delete('/admin/phan-quyen/cai-dat/{id}', [\App\Http\Controllers\PhanQuyenController::class, 'deleteCaiDat'])->name('PhanQuyenController.deleteCaiDat');
 });
 
 // Root route redirect to /admin

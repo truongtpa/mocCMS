@@ -15,14 +15,14 @@
                             <!-- Action buttons -->
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <h5 class="text-primary font-weight-bold mb-0">Danh sách thành tích của bạn</h5>
-                                <button 
+                                <LTEButton 
                                     v-if="authStore.hasPermission('StudentPortalController.addAchievement')"
-                                    class="btn btn-success px-3 shadow-sm" 
+                                    variant="success"
+                                    icon="fas fa-plus"
+                                    text="Khai báo thành tích mới"
+                                    class="btn-sm text-xs font-weight-bold px-3 shadow-sm"
                                     @click="openAddModal"
-                                >
-                                    <i class="fas fa-plus mr-1"></i>
-                                    Khai báo thành tích mới
-                                </button>
+                                />
                             </div>
 
                             <!-- Achievements Table -->
@@ -106,15 +106,23 @@
                             />
                         </div>
                         <div class="col-sm-6 mb-3">
-                            <label class="font-weight-bold small text-muted">Cấp khen thưởng <span class="text-danger">*</span></label>
-                            <select v-model="form.cap_khen_thuong" class="form-control" required>
-                                <option value="" disabled>-- Chọn cấp khen thưởng --</option>
-                                <option value="Cấp lớp/Khoa">Cấp lớp/Khoa</option>
-                                <option value="Cấp trường">Cấp trường</option>
-                                <option value="Cấp Tỉnh/Thành phố">Cấp Tỉnh/Thành phố</option>
-                                <option value="Cấp Quốc gia">Cấp Quốc gia</option>
-                                <option value="Cấp Quốc tế">Cấp Quốc tế</option>
-                            </select>
+                            <LTESelect2Option 
+                                v-model="form.cap_khen_thuong" 
+                                :init-value="form.cap_khen_thuong"
+                                label="Cấp khen thưởng *" 
+                                placeholder="-- Chọn cấp khen thưởng --" 
+                                :data="[
+                                    { value: 'Cấp lớp/Khoa', text: 'Cấp lớp/Khoa' },
+                                    { value: 'Cấp trường', text: 'Cấp trường' },
+                                    { value: 'Cấp Tỉnh/Thành phố', text: 'Cấp Tỉnh/Thành phố' },
+                                    { value: 'Cấp Quốc gia', text: 'Cấp Quốc gia' },
+                                    { value: 'Cấp Quốc tế', text: 'Cấp Quốc tế' }
+                                ]" 
+                                :multiple="false" 
+                                :close-on-select="true" 
+                                :allow-clear="false" 
+                                :enable-data-watch="true" 
+                            />
                         </div>
                         <div class="col-12 mb-3">
                             <label class="font-weight-bold small text-muted">Link file minh chứng (hoặc upload)</label>
@@ -135,6 +143,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useAuthStore } from '@/store/auth';
+import LTESelect2Option from '@/components/controls/LTESelect2Option.vue';
+import LTEButton from '@/components/controls/LTEButton.vue';
+import IconButton from '@/components/controls/IconButton.vue';
 
 const authStore = useAuthStore();
 const loading = ref(true);

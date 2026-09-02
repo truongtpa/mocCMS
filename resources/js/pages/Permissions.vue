@@ -59,9 +59,13 @@
                                     <h6 class="font-weight-bold text-dark mb-0 text-sm">
                                         <!-- <i class="fas fa-sliders-h text-primary mr-1"></i> Ma trận Phân quyền theo Nhóm Controller -->
                                     </h6>
-                                    <button class="btn btn-outline-primary btn-sm px-2.5 shadow-sm" @click="fetchMatrix">
-                                        <i class="fas fa-sync-alt mr-1"></i> Tải lại ma trận
-                                    </button>
+                                    <LTEButton 
+                                        variant="outline-primary" 
+                                        icon="fas fa-sync-alt" 
+                                        text="Tải lại ma trận" 
+                                        class="btn-sm text-xs font-weight-bold px-2.5 shadow-sm" 
+                                        @click="fetchMatrix" 
+                                    />
                                 </div>
 
                                 <div v-if="loadingMatrix" class="text-center py-4">
@@ -171,13 +175,14 @@
                             <div v-if="activeTab === 'roles'">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h6 class="font-weight-bold text-dark mb-0 text-sm">Danh sách Vai trò Hệ thống</h6>
-                                    <button 
-                                        v-if="authStore.hasPermission('PhanQuyenController.luuVaiTro')"
-                                        class="btn btn-success btn-sm px-2.5 shadow-sm" 
+                                    <LTEButton 
+                                        v-if="authStore.hasPermission('PhanQuyenController.putVaiTro')"
+                                        variant="success" 
+                                        icon="fas fa-plus" 
+                                        text="Thêm Vai trò mới" 
+                                        class="btn-sm text-xs font-weight-bold px-2.5 shadow-sm" 
                                         @click="openAddRoleModal"
-                                    >
-                                        <i class="fas fa-plus mr-1"></i> Thêm Vai trò mới
-                                    </button>
+                                    />
                                 </div>
 
                                 <div v-if="loadingRoles" class="text-center py-4">
@@ -207,14 +212,14 @@
                                     </template>
                                     <template #actions="{ item }">
                                         <IconButton 
-                                            v-if="authStore.hasPermission('PhanQuyenController.luuVaiTro')"
+                                            v-if="authStore.hasPermission('PhanQuyenController.putVaiTro')"
                                             variant="amber"
                                             icon="fas fa-edit"
                                             title="Sửa Vai trò"
                                             @click="openEditRoleModal(item)"
                                         />
                                         <IconButton 
-                                            v-if="authStore.hasPermission('PhanQuyenController.xoaVaiTro')"
+                                            v-if="authStore.hasPermission('PhanQuyenController.deleteVaiTro')"
                                             variant="red"
                                             icon="fas fa-trash-alt"
                                             title="Xóa Vai trò"
@@ -229,13 +234,14 @@
                             <div v-if="activeTab === 'permissions'">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h6 class="font-weight-bold text-dark mb-0 text-sm">Danh sách Quyền hạn theo Controller</h6>
-                                    <button 
-                                        v-if="authStore.hasPermission('PhanQuyenController.luuQuyen')"
-                                        class="btn btn-success btn-sm px-2.5 shadow-sm" 
+                                    <LTEButton 
+                                        v-if="authStore.hasPermission('PhanQuyenController.putQuyen')"
+                                        variant="success" 
+                                        icon="fas fa-plus" 
+                                        text="Thêm Quyền hạn mới" 
+                                        class="btn-sm text-xs font-weight-bold px-2.5 shadow-sm" 
                                         @click="openAddPermissionModal"
-                                    >
-                                        <i class="fas fa-plus mr-1"></i> Thêm Quyền hạn mới
-                                    </button>
+                                    />
                                 </div>
 
                                 <div v-if="loadingPermissions" class="text-center py-4">
@@ -269,14 +275,14 @@
                                                     <td class="text-center py-1 px-2">
                                                         <div class="d-inline-flex align-items-center gap-1">
                                                             <IconButton 
-                                                                v-if="authStore.hasPermission('PhanQuyenController.luuQuyen')"
+                                                                v-if="authStore.hasPermission('PhanQuyenController.putQuyen')"
                                                                 variant="amber"
                                                                 icon="fas fa-edit"
                                                                 title="Sửa Quyền"
                                                                 @click="openEditPermissionModal(perm)"
                                                             />
                                                             <IconButton 
-                                                                v-if="authStore.hasPermission('PhanQuyenController.xoaQuyen')"
+                                                                v-if="authStore.hasPermission('PhanQuyenController.deleteQuyen')"
                                                                 variant="red"
                                                                 icon="fas fa-trash-alt"
                                                                 title="Xóa Quyền"
@@ -296,10 +302,19 @@
                                 <div class="row align-items-center mb-2">
                                     <div class="col-md-3 mb-2 mb-md-0">
                                         <label class="small font-weight-bold text-muted mb-0.5 text-xs">Loại đối tượng</label>
-                                        <select v-model="userType" class="form-control form-control-sm" @change="fetchUsers">
-                                            <option value="giang_vien">Giảng viên (Cán bộ)</option>
-                                            <option value="sinh_vien">Sinh viên</option>
-                                        </select>
+                                        <LTESelect2Option 
+                                             v-model="userType" 
+                                             :init-value="userType"
+                                             :data="[
+                                                 { value: 'giang_vien', text: 'Giảng viên (Cán bộ)' },
+                                                 { value: 'sinh_vien', text: 'Sinh viên' }
+                                             ]"
+                                             :multiple="false"
+                                             :close-on-select="true"
+                                             :allow-clear="false"
+                                             :enable-data-watch="true"
+                                             @update:model-value="fetchUsers"
+                                         />
                                     </div>
                                     <div class="col-md-6 mb-2 mb-md-0">
                                         <label class="small font-weight-bold text-muted mb-0.5 text-xs">Tìm kiếm theo tên / email</label>
@@ -312,9 +327,13 @@
                                                 @keyup.enter="fetchUsers"
                                             />
                                             <div class="input-group-append">
-                                                <button class="btn btn-primary" @click="fetchUsers">
-                                                    <i class="fas fa-search"></i> Tìm
-                                                </button>
+                                                <LTEButton 
+                                                    variant="primary" 
+                                                    icon="fas fa-search" 
+                                                    text="Tìm" 
+                                                    class="btn-sm text-xs font-weight-bold" 
+                                                    @click="fetchUsers" 
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -362,7 +381,7 @@
                                     </template>
                                     <template #actions="{ item }">
                                         <IconButton 
-                                            v-if="authStore.hasPermission('PhanQuyenController.ganVaiTroNguoiDung')"
+                                            v-if="authStore.hasPermission('PhanQuyenController.putVaiTroNguoiDung')"
                                             variant="blue"
                                             icon="fas fa-user-tag"
                                             title="Gán vai trò"
@@ -461,6 +480,9 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useAuthStore } from '@/store/auth';
+import LTESelect2Option from '@/components/controls/LTESelect2Option.vue';
+import LTEButton from '@/components/controls/LTEButton.vue';
+import IconButton from '@/components/controls/IconButton.vue';
 
 const authStore = useAuthStore();
 const activeTab = ref('matrix');
@@ -470,12 +492,19 @@ const loadingMatrix = ref(false);
 const loadingRoles = ref(false);
 const loadingPermissions = ref(false);
 const loadingUsers = ref(false);
+const loadingSettings = ref(false);
+const savingSettings = ref(false);
 
 // Data lists
 const matrixData = ref({ ds_vai_tro: [], ds_quyen: [], mapping: {} });
 const rolesList = ref([]);
 const permissionsList = ref([]);
 const usersList = ref([]);
+const defaultGiangVienPerms = ref([]);
+const defaultSinhVienPerms = ref([]);
+const allSettingsPermissions = ref([]);
+const searchGiangVienPerm = ref('');
+const searchSinhVienPerm = ref('');
 
 // User filter
 const userType = ref('giang_vien');
@@ -487,10 +516,13 @@ const selectedUserRoleIds = ref([]);
 const roleModal = ref(null);
 const permissionModal = ref(null);
 const assignUserModal = ref(null);
+const settingModal = ref(null);
 
 // Forms
 const roleForm = reactive({ id: null, ma_vai_tro: '', ten_vai_tro: '' });
 const permissionForm = reactive({ id: null, ma_quyen: '', ten_quyen: '' });
+const settingForm = reactive({ id: null, khoa: '', gia_tri: '', mo_ta: '' });
+const settingsList = ref([]);
 
 // Custom Group Labels (editable by user)
 const customGroupLabels = reactive({
@@ -565,6 +597,7 @@ const switchTab = (tabName) => {
     else if (tabName === 'roles') fetchRoles();
     else if (tabName === 'permissions') fetchPermissions();
     else if (tabName === 'users') fetchUsers();
+    else if (tabName === 'settings') fetchSettings();
 };
 
 // 1. Matrix logic
@@ -728,7 +761,7 @@ const resetRoleForm = () => {
 const submitRoleForm = async () => {
     if (!roleForm.ma_vai_tro || !roleForm.ten_vai_tro) return;
     try {
-        const res = await axios.post(route('PhanQuyenController.luuVaiTro'), roleForm);
+        const res = await axios.post(route('PhanQuyenController.putVaiTro'), roleForm);
         if (res.data.status === 200) {
             if (window.func && window.func.toastSuccess) window.func.toastSuccess(res.data.message);
             fetchRoles();
@@ -742,7 +775,7 @@ const submitRoleForm = async () => {
 const deleteRole = async (role) => {
     if (!confirm(`Bạn có chắc chắn muốn xóa vai trò "${role.ten_vai_tro}"?`)) return;
     try {
-        const res = await axios.delete(route('PhanQuyenController.xoaVaiTro', { id: role.id }));
+        const res = await axios.delete(route('PhanQuyenController.deleteVaiTro', { id: role.id }));
         if (res.data.status === 200) {
             if (window.func && window.func.toastSuccess) window.func.toastSuccess('Xóa vai trò thành công!');
             fetchRoles();
@@ -793,7 +826,7 @@ const resetPermissionForm = () => {
 const submitPermissionForm = async () => {
     if (!permissionForm.ma_quyen || !permissionForm.ten_quyen) return;
     try {
-        const res = await axios.post(route('PhanQuyenController.luuQuyen'), permissionForm);
+        const res = await axios.post(route('PhanQuyenController.putQuyen'), permissionForm);
         if (res.data.status === 200) {
             if (window.func && window.func.toastSuccess) window.func.toastSuccess(res.data.message);
             fetchPermissions();
@@ -807,7 +840,7 @@ const submitPermissionForm = async () => {
 const deletePermission = async (perm) => {
     if (!confirm(`Bạn có chắc chắn muốn xóa quyền "${perm.ten_quyen}"?`)) return;
     try {
-        const res = await axios.delete(route('PhanQuyenController.xoaQuyen', { id: perm.id }));
+        const res = await axios.delete(route('PhanQuyenController.deleteQuyen', { id: perm.id }));
         if (res.data.status === 200) {
             if (window.func && window.func.toastSuccess) window.func.toastSuccess('Xóa quyền thành công!');
             fetchPermissions();
@@ -853,7 +886,7 @@ const resetAssignForm = () => {
 const submitAssignForm = async () => {
     if (!currentUserObj.value) return;
     try {
-        const res = await axios.post(route('PhanQuyenController.ganVaiTroNguoiDung'), {
+        const res = await axios.post(route('PhanQuyenController.putVaiTroNguoiDung'), {
             user_id: currentUserObj.value.user_id,
             user_type: userType.value,
             vai_tro_ids: selectedUserRoleIds.value

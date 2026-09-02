@@ -1,65 +1,56 @@
 <template>
     <button
-        class="btn btn-primary btn text-nowrap"
-        :class="extraClasses"
+        type="button"
+        class="btn text-nowrap"
+        :class="[
+            variant ? `btn-${variant}` : 'btn-primary',
+            extraClasses
+        ]"
+        :disabled="isDisabled"
         :style="[isDisabled ? 'pointer-events: none; opacity: 0.5;' : '', { fontSize: textSize }]"
         @click="handleAction"
     >
-        <slot></slot>
-        <i v-if="icon" :class="icon"></i>{{ icon && text ? '&nbsp;&nbsp;' : '' }}{{ text }}
+        <i v-if="icon" :class="[icon, text || $slots.default ? 'mr-1.5' : '']"></i>
+        <slot>{{ text }}</slot>
     </button>
 </template>
 
 <script>
 export default {
-    name: 'IconTextButton',
+    name: 'LTEButton',
     props: {
+        variant: {
+            type: String,
+            default: 'primary',
+        },
         icon: {
             type: String,
-            required: false,
+            default: '',
         },
         text: {
             type: String,
-            required: false,
             default: '',
         },
         textSize: {
             type: String,
-            required: false,
             default: '',
         },
         action: {
             type: Function,
-            required: true,
+            default: null,
         },
         class: {
             type: [String, Array, Object],
-            required: false,
+            default: '',
         },
         isDisabled: {
             type: [Boolean, Number],
-            required: false,
             default: false,
         },
     },
-    data() {
-        return {
-            windowWidth: window.innerWidth,
-        }
-    },
     computed: {
         extraClasses() {
-            const classes = []
-
-            if (this.class) {
-                classes.push(this.class)
-            }
-
-            if (this.windowWidth < 768) {
-                classes.push('btn-sm')
-            }
-
-            return classes
+            return this.class ? this.class : ''
         },
     },
     methods: {
@@ -69,28 +60,11 @@ export default {
                     event.preventDefault()
                     event.stopPropagation()
                 }
-
                 return
             }
+            this.$emit('click', event)
             if (this.action) this.action(event)
         },
-        updateWindowWidth() {
-            this.windowWidth = window.innerWidth
-        },
-    },
-    mounted() {
-        window.addEventListener('resize', this.updateWindowWidth)
-    },
-    beforeUnmount() {
-        window.removeEventListener('resize', this.updateWindowWidth)
     },
 }
 </script>
-
-<style scoped>
-.btn-custom {
-    font-size: var(--font-size);
-    background-color: var(--primary-color);
-    color: white;
-}
-</style>

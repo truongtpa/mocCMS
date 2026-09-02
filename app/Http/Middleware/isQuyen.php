@@ -3,10 +3,10 @@
 namespace App\Http\Middleware;
 
 use App\Http\Controllers\DangNhapController;
+use App\Response as AppResponse;
 use App\VLUTE;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 class isQuyen
@@ -19,12 +19,25 @@ class isQuyen
     public function handle(Request $request, Closure $next): Response
     {
         if (!$request->session()->exists(VLUTE::SESSION_IDTaiKhoan)) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return AppResponse::Error('Chưa đăng nhập', 'Vui lòng đăng nhập để tiếp tục!');
+            }
             return redirect()->action([DangNhapController::class, 'dangNhapKeycloak']);
         }
 
-        $id_tai_khoan = $request->session()->get(VLUTE::SESSION_IDTaiKhoan);
+        $routeName = $request->route() ? $request->route()->getName() : null;
 
-
+        if ($routeName) {
+            $hasPermission = VLUTE::checkPermission($routeName);
+            if (!$hasPermission) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return AppResponse::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+                }
+                return redirect()->action([DangNhapController::class, 'redirectKhongCoQuyen']);
+            }
+        if ($request->isMethod('GET')) {
+            $request->session()->save();
+        }
 
         return $next($request);
     }

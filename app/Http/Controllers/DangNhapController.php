@@ -37,7 +37,8 @@ class DangNhapController extends Controller
             try {
                 if (!$isStudent) {
                     // ----------------------------------------------------
-                    // LUỒNG GIẢNG VIÊN (Lưu thông tin vào bảng giang_vien)
+                    // ----------------------------------------------------
+                    // LUỒNG GIẢNG VIÊN (Lưu thông tin vào bảng giang_vien & tai_khoan)
                     // ----------------------------------------------------
                     $name = $tttk->name ?? 'Giảng viên (' . $maDoiTuong . ')';
                     DB::table('giang_vien')->updateOrInsert(
@@ -50,31 +51,36 @@ class DangNhapController extends Controller
                     );
                     $gv = DB::table('giang_vien')->where('email', $email)->first();
 
-                    // Tự động gán vai trò 'giang_vien'
-                    $role = DB::table('vai_tro')->where('ma_vai_tro', 'giang_vien')->first();
-                    if (!$role) {
-                        DB::table('vai_tro')->insert([
-                            'ma_vai_tro' => 'giang_vien',
-                            'ten_vai_tro' => 'Giảng viên',
-                            'created_at' => now(),
-                            'updated_at' => now()
-                        ]);
-                        $role = DB::table('vai_tro')->where('ma_vai_tro', 'giang_vien')->first();
+                    DB::table('tai_khoan')->updateOrInsert(
+                        ['email' => $email],
+                        [
+                            'ho_ten' => $name,
+                            'ngay_tao' => now()
+                        ]
+                    );
+                    $tk = DB::table('tai_khoan')->where('email', $email)->first();
+
+                    // Tự động gán nhóm quyền mặc định nếu chưa gán
+                    $defaultGroup = DB::table('quyen_nhom')->where('mac_dinh', 1)->first();
+                    if ($defaultGroup && $tk) {
+                        $hasGroup = DB::table('quyen_nhom_tai_khoan')
+                            ->where('id_tai_khoan', (string)$tk->id_tai_khoan)
+                            ->where('id_quyen_nhom', $defaultGroup->id_quyen_nhom)
+                            ->exists();
+                        if (!$hasGroup) {
+                            DB::table('quyen_nhom_tai_khoan')->insert([
+                                'id_tai_khoan' => (string)$tk->id_tai_khoan,
+                                'id_quyen_nhom' => $defaultGroup->id_quyen_nhom,
+                                'ngay_tao' => now(),
+                                'ngay_cap_nhat' => now()
+                            ]);
+                        }
                     }
 
-                    DB::table('vai_tro_nguoi_dung')->updateOrInsert(
-                        [
-                            'user_id' => $gv->id_giang_vien,
-                            'user_type' => 'giang_vien',
-                            'vai_tro_id' => $role->id
-                        ],
-                        ['updated_at' => now()]
-                    );
-
                     $taiKhoan = (object)[
-                        'id_tai_khoan' => $gv->id_giang_vien,
-                        'ho_ten' => $gv->ho_ten,
-                        'email' => $gv->email,
+                        'id_tai_khoan' => $tk ? $tk->id_tai_khoan : $gv->id_giang_vien,
+                        'ho_ten' => $name,
+                        'email' => $email,
                         'id_don_vi' => $gv->id_don_vi
                     ];
                 } else {
@@ -104,7 +110,7 @@ class DangNhapController extends Controller
                         $svInfo = $svInfo['data'];
                     }
 
-                    // 1. Lưu thông tin cơ bản vào bảng sinh_vien
+                    // 1. Lưu thông tin cơ bản vào bảng sinh_vien & tai_khoan
                     $hoTen = $svInfo['ho_ten'] ?? $svInfo['ten_sinh_vien'] ?? null;
                     if (!$hoTen && isset($svInfo['ho'], $svInfo['ten'])) {
                         $hoTen = trim($svInfo['ho'] . ' ' . $svInfo['ten']);
@@ -122,32 +128,37 @@ class DangNhapController extends Controller
                     );
                     $sv = DB::table('sinh_vien')->where('mssv', $maDoiTuong)->first();
 
-                    // Tự động gán vai trò 'sinh_vien'
-                    $role = DB::table('vai_tro')->where('ma_vai_tro', 'sinh_vien')->first();
-                    if (!$role) {
-                        DB::table('vai_tro')->insert([
-                            'ma_vai_tro' => 'sinh_vien',
-                            'ten_vai_tro' => 'Sinh viên',
-                            'created_at' => now(),
-                            'updated_at' => now()
-                        ]);
-                        $role = DB::table('vai_tro')->where('ma_vai_tro', 'sinh_vien')->first();
-                    }
-
-                    DB::table('vai_tro_nguoi_dung')->updateOrInsert(
+                    DB::table('tai_khoan')->updateOrInsert(
+                        ['email' => $email],
                         [
-                            'user_id' => $sv->id,
-                            'user_type' => 'sinh_vien',
-                            'vai_tro_id' => $role->id
-                        ],
-                        ['updated_at' => now()]
+                            'ho_ten' => $hoTen,
+                            'ngay_tao' => now()
+                        ]
                     );
+                    $tk = DB::table('tai_khoan')->where('email', $email)->first();
+
+                    // Tự động gán nhóm quyền mặc định nếu chưa gán
+                    $defaultGroup = DB::table('quyen_nhom')->where('mac_dinh', 1)->first();
+                    if ($defaultGroup && $tk) {
+                        $hasGroup = DB::table('quyen_nhom_tai_khoan')
+                            ->where('id_tai_khoan', (string)$tk->id_tai_khoan)
+                            ->where('id_quyen_nhom', $defaultGroup->id_quyen_nhom)
+                            ->exists();
+                        if (!$hasGroup) {
+                            DB::table('quyen_nhom_tai_khoan')->insert([
+                                'id_tai_khoan' => (string)$tk->id_tai_khoan,
+                                'id_quyen_nhom' => $defaultGroup->id_quyen_nhom,
+                                'ngay_tao' => now(),
+                                'ngay_cap_nhat' => now()
+                            ]);
+                        }
+                    }
 
                     // 2. Lưu các trường động vào EAV mở rộng sinh viên
                     \App\Http\Controllers\StudentPortalController::syncStudentDataFromApi($maDoiTuong, $email, $sv->id);
 
                     $taiKhoan = (object)[
-                        'id_tai_khoan' => $sv->id,
+                        'id_tai_khoan' => $tk ? $tk->id_tai_khoan : $sv->id,
                         'ho_ten' => $hoTen,
                         'email' => $email
                     ];

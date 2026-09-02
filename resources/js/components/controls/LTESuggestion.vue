@@ -1,13 +1,25 @@
 <template>
-    <label v-if="label">{{ label }}</label>
+    <label v-if="label" class="font-weight-bold small text-muted text-xs mb-1">{{ label }}</label>
     <div class="flex-grow-1 search-group" @click="onOutsideClick">
-        <input type="text" class="form-control" v-model="searchQuery" @input="handleFind"
-            @focusin="() => { searchFocus = true; handleFind() }" @blur="searchFocusOut" :placeholder="placeholder"
-            :disabled="disabled" />
+        <input 
+            type="text" 
+            :class="inputClass" 
+            v-model="searchQuery" 
+            @input="handleFind"
+            @focusin="() => { searchFocus = true; handleFind() }" 
+            @blur="searchFocusOut" 
+            :placeholder="placeholder"
+            :disabled="disabled" 
+        />
 
         <div v-if="suggestList.length && searchFocus" class="suggest">
-            <div v-for="(item, index) in suggestList" :key="index" @mousedown="onSuggestMouseDown"
-                @click="handleSuggestClick(item, index)" class="suggest-item">
+            <div 
+                v-for="(item, index) in suggestList" 
+                :key="index" 
+                @mousedown="onSuggestMouseDown"
+                @click="handleSuggestClick(item, index)" 
+                class="suggest-item"
+            >
                 <div class="w-100 h-100 d-flex align-items-center"
                     v-html="template?.(item) ?? 'Hãy nhập template cho item'">
                 </div>
@@ -37,6 +49,10 @@ const props = defineProps({
     label: {
         type: String,
         default: ""
+    },
+    inputClass: {
+        type: String,
+        default: "form-control form-control-sm text-xs"
     },
     disabled: Boolean,
     template: Function, // Template hiển thị trong danh sách
@@ -135,26 +151,28 @@ watch(modelValue, async (val) => {
 
 .suggest {
     position: absolute;
-    min-height: 40px;
-    max-height: 460px;
-    top: calc(100% + 4px);
+    max-height: 220px;
+    top: calc(100% + 2px);
     width: 100%;
-    background-color: white;
+    background-color: #ffffff;
     z-index: 1060;
-    border-radius: 8px;
-    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
     scrollbar-width: thin;
-    padding: 10px 0;
+    padding: 3px 0;
 }
 
 .suggest-item {
     display: flex;
     align-items: center;
-    min-height: 40px;
-    padding: 8px 12px;
+    min-height: 28px;
+    padding: 4px 10px;
     cursor: pointer;
-    border-bottom: 1px solid #f4f6f9;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.75rem;
+    color: #334155;
 }
 
 .suggest-item:last-child {
@@ -162,6 +180,7 @@ watch(modelValue, async (val) => {
 }
 
 .suggest-item:hover {
-    background-color: #eee;
+    background-color: #f1f5f9;
+    color: #0f172a;
 }
 </style>

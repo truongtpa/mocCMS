@@ -33,10 +33,22 @@ const routes = [
         component: () => import('@/pages/DynamicObjects.vue')
     },
     {
+        path: '/admin/doi-tuong-dong/import',
+        name: 'router-portal-doi-tuong-dong-import',
+        meta: { title: 'Import Dữ liệu Đối tượng', permission: 'DynamicObjectController.saveRecord' },
+        component: () => import('@/pages/DynamicObjectImport.vue')
+    },
+    {
         path: '/admin/phan-quyen',
         name: 'router-portal-phan-quyen',
         meta: { title: 'Quản lý Phân quyền (RBAC)', permission: 'PhanQuyenController.getMaTranQuyen' },
         component: () => import('@/pages/Permissions.vue')
+    },
+    {
+        path: '/admin/cai-dat',
+        name: 'router-portal-cai-dat',
+        meta: { title: 'Cài đặt hệ thống', permission: 'PhanQuyenController.getCaiDat' },
+        component: () => import('@/pages/CaiDat.vue')
     }
 ]
 

@@ -20,10 +20,13 @@
                     </div>
                     <div class="modal-footer" v-if="showSaveButton">
                         <slot name="action"></slot>
-                        <button type="button" class="btn btn-primary text-bold" @click="confirm(true)">
-                            <i class="far fa-save"></i>&nbsp;
-                            {{ save }}
-                        </button>
+                        <LTEButton 
+                            variant="primary" 
+                            icon="far fa-save" 
+                            :text="save" 
+                            class="btn-sm text-xs font-weight-bold px-3 shadow-sm" 
+                            @click="confirm(true)" 
+                        />
                     </div>
                 </div>
             </div>
@@ -32,7 +35,10 @@
 </template>
 
 <script>
+import LTEButton from './LTEButton.vue';
+
 export default {
+    components: { LTEButton },
     data() {
         return {
             title: 'Không tiêu đề',

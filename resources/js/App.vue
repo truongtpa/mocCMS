@@ -1,7 +1,5 @@
 <template>
     <LTENavbar />
-    <FetchLoading></FetchLoading>
-    <Toast />
 
     <!-- Sidebar Overlay (Mobile only) -->
     <div 
@@ -92,6 +90,16 @@
                     <i class="fas fa-user-shield mr-2.5" style="width: 20px; font-size: 0.95rem;"></i>
                     <span class="text-xs font-weight-bold">Quản lý Phân quyền</span>
                 </router-link>
+
+                <router-link 
+                    v-if="checkPermission('PhanQuyenController.getCaiDat')"
+                    :to="{ name: 'router-portal-cai-dat' }" 
+                    class="sidebar-link d-flex align-items-center px-3 py-2 mb-1 rounded hover-link"
+                    active-class="active-link"
+                >
+                    <i class="fas fa-cog mr-2.5" style="width: 20px; font-size: 0.95rem;"></i>
+                    <span class="text-xs font-weight-bold">Cài đặt</span>
+                </router-link>
             </div>
         </div>
     </div>
@@ -118,8 +126,6 @@
 <script>
 import LTEFooter from '@/components/themes/LTEFooter.vue';
 import LTENavbar from '@/components/themes/LTENavbar.vue';
-import FetchLoading from './components/controls/FetchLoading.vue';
-import Toast from './components/controls/Toast.vue';
 import { useAuthStore } from '@/store/auth';
 import { useUIManager } from '@/store/ui_manager';
 import { computed, watch } from 'vue';
@@ -130,8 +136,6 @@ export default {
     components: {
         LTENavbar,
         LTEFooter,
-        FetchLoading,
-        Toast,
     },
     setup() {
         const authStore = useAuthStore();
@@ -222,7 +226,7 @@ export default {
     background-color: #f8fafc !important;
     margin-top: 64px !important;
     min-height: calc(100vh - 64px) !important;
-    padding: 1.25rem !important;
+    padding: 1rem 0.25rem !important;
 }
 
 /* Sidebar navigation links */

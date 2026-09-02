@@ -2,22 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DynamicObjectController extends Controller
 {
-    /**
-     * Get list of all entity types (Loại đối tượng)
-     */
+    private function checkUserPermission($permissionKey)
+    {
+        return \App\VLUTE::checkPermission($permissionKey);
+    }
+
     public function getTypes()
     {
-        // Seed default types if missing
-        $this->ensureDefaultTypesSeeded();
+        if (!$this->checkUserPermission('DynamicObjectController.getTypes')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
 
-        $types = DB::table('loai_doi_tuong')
-            ->select('loai_doi_tuong.*')
-            ->get();
+        $types = DB::table('loai_doi_tuong')->select('loai_doi_tuong.*')->get();
 
         foreach ($types as $type) {
             $type->fields_count = DB::table('danh_muc_truong')
@@ -35,24 +37,25 @@ class DynamicObjectController extends Controller
             }
         }
 
-        return response()->json([
-            'status' => 200,
-            'data' => $types
-        ]);
+        return Response::Success($types, 'Lấy danh sách loại đối tượng thành công');
     }
 
-    /**
-     * Create or update entity type
-     */
-    public function saveType(Request $request)
+    public function putType(Request $request)
     {
+        if (!$this->checkUserPermission('DynamicObjectController.putType')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
         $id = $request->input('id');
-        $maLoai = trim($request->input('ma_loai'));
-        $tenLoai = trim($request->input('ten_loai'));
+        $maLoai = trim($request->input('ma_loai', ''));
+        $tenLoai = trim($request->input('ten_loai', ''));
         $moTa = trim($request->input('mo_ta', ''));
 
-        if (empty($maLoai) || empty($tenLoai)) {
-            return response()->json(['status' => 400, 'message' => 'Vui lòng nhập Mã loại và Tên loại đối tượng!'], 400);
+        $errors = [];
+        if (empty($maLoai)) $errors[] = 'Mã loại đối tượng không được bỏ trống';
+        if (empty($tenLoai)) $errors[] = 'Tên loại đối tượng không được bỏ trống';
+        if ($errors) {
+            return Response::Error('Sai định dạng dữ liệu', $errors);
         }
 
         if ($id) {
@@ -61,11 +64,11 @@ class DynamicObjectController extends Controller
                 'ten_loai' => $tenLoai,
                 'mo_ta' => $moTa,
             ]);
+            $msg = 'Cập nhật loại đối tượng thành công!';
         } else {
-            // Check unique code
             $exists = DB::table('loai_doi_tuong')->where('ma_loai', $maLoai)->exists();
             if ($exists) {
-                return response()->json(['status' => 400, 'message' => 'Mã loại đối tượng này đã tồn tại!'], 400);
+                return Response::Error('Trùng dữ liệu', 'Mã loại đối tượng này đã tồn tại!');
             }
 
             DB::table('loai_doi_tuong')->insert([
@@ -74,38 +77,41 @@ class DynamicObjectController extends Controller
                 'mo_ta' => $moTa,
                 'ngay_tao' => now(),
             ]);
+            $msg = 'Thêm loại đối tượng thành công!';
         }
 
-        return response()->json(['status' => 200, 'message' => 'Lưu thông tin loại đối tượng thành công!']);
+        return Response::Success([], $msg);
     }
 
-    /**
-     * Delete entity type
-     */
     public function deleteType($id)
     {
+        if (!$this->checkUserPermission('DynamicObjectController.deleteType')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
         $type = DB::table('loai_doi_tuong')->where('id', $id)->first();
         if (!$type) {
-            return response()->json(['status' => 404, 'message' => 'Không tìm thấy loại đối tượng!'], 404);
+            return Response::Error('Không tìm thấy', 'Không tìm thấy loại đối tượng!');
         }
 
         if (in_array($type->ma_loai, ['giang_vien', 'sinh_vien'])) {
-            return response()->json(['status' => 400, 'message' => 'Không thể xóa loại đối tượng mặc định của hệ thống!'], 400);
+            return Response::Error('Lỗi thao tác', 'Không thể xóa loại đối tượng mặc định của hệ thống!');
         }
 
         DB::table('loai_doi_tuong')->where('id', $id)->delete();
 
-        return response()->json(['status' => 200, 'message' => 'Xóa loại đối tượng thành công!']);
+        return Response::Success([], 'Xóa loại đối tượng thành công!');
     }
 
-    /**
-     * Get fields (Thuộc tính) for a specific entity type
-     */
     public function getFields(Request $request)
     {
+        if (!$this->checkUserPermission('DynamicObjectController.getFields')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
         $loaiDoiTuongId = $request->query('loai_doi_tuong_id');
         if (!$loaiDoiTuongId) {
-            return response()->json(['status' => 400, 'message' => 'Thiếu loai_doi_tuong_id!'], 400);
+            return Response::Error('Thiếu dữ liệu', 'Thiếu loai_doi_tuong_id!');
         }
 
         $fields = DB::table('danh_muc_truong')
@@ -118,28 +124,30 @@ class DynamicObjectController extends Controller
                 return $f;
             });
 
-        return response()->json([
-            'status' => 200,
-            'data' => $fields
-        ]);
+        return Response::Success($fields, 'Lấy danh sách thuộc tính thành công');
     }
 
-    /**
-     * Create or update field (Thuộc tính động)
-     */
-    public function saveField(Request $request)
+    public function putField(Request $request)
     {
+        if (!$this->checkUserPermission('DynamicObjectController.putField')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
         $id = $request->input('id');
         $loaiDoiTuongId = $request->input('loai_doi_tuong_id');
-        $maTruong = trim($request->input('ma_truong'));
-        $tenTruong = trim($request->input('ten_truong'));
+        $maTruong = trim($request->input('ma_truong', ''));
+        $tenTruong = trim($request->input('ten_truong', ''));
         $phanNhom = trim($request->input('phan_nhom', 'Thông tin bổ sung'));
         $kieuDuLieu = $request->input('kieu_du_lieu', 'text');
         $trangThai = $request->input('trang_thai', true);
         $thuTu = intval($request->input('thu_tu', 0));
 
-        if (!$loaiDoiTuongId || empty($maTruong) || empty($tenTruong)) {
-            return response()->json(['status' => 400, 'message' => 'Vui lòng điền đầy đủ các thông tin bắt buộc!'], 400);
+        $errors = [];
+        if (!$loaiDoiTuongId) $errors[] = 'Loại đối tượng không được bỏ trống';
+        if (empty($maTruong)) $errors[] = 'Mã thuộc tính không được bỏ trống';
+        if (empty($tenTruong)) $errors[] = 'Tên thuộc tính không được bỏ trống';
+        if ($errors) {
+            return Response::Error('Sai định dạng dữ liệu', $errors);
         }
 
         $lienKetLoaiDoiTuongId = $request->input('lien_ket_loai_doi_tuong_id');
@@ -169,7 +177,7 @@ class DynamicObjectController extends Controller
                 ->exists();
 
             if ($exists) {
-                return response()->json(['status' => 400, 'message' => 'Mã thuộc tính đã tồn tại trong loại đối tượng này!'], 400);
+                return Response::Error('Trùng dữ liệu', 'Mã thuộc tính đã tồn tại trong loại đối tượng này!');
             }
 
             $data['loai_doi_tuong_id'] = $loaiDoiTuongId;
@@ -177,15 +185,20 @@ class DynamicObjectController extends Controller
             DB::table('danh_muc_truong')->insert($data);
         }
 
-        return response()->json(['status' => 200, 'message' => 'Lưu thuộc tính thành công!']);
+        return Response::Success([], 'Lưu thuộc tính thành công!');
     }
 
-    /**
-     * Batch reorder fields and update group assignment (Sắp xếp thứ tự & chuyển nhóm thuộc tính)
-     */
-    public function reorderFields(Request $request)
+    public function updateFieldOrders(Request $request)
     {
+        if (!$this->checkUserPermission('DynamicObjectController.updateFieldOrders')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
         $orders = $request->input('orders', []);
+        if (!is_array($orders)) {
+            return Response::Error('Sai định dạng dữ liệu', 'orders phải là mảng!');
+        }
+
         foreach ($orders as $item) {
             if (isset($item['id'])) {
                 $updateData = [];
@@ -200,31 +213,37 @@ class DynamicObjectController extends Controller
                 }
             }
         }
-        return response()->json(['status' => 200, 'message' => 'Cập nhật thứ tự sắp xếp và phân nhóm thành công!']);
+        return Response::Success([], 'Cập nhật thứ tự sắp xếp và phân nhóm thành công!');
     }
 
-    /**
-     * Delete field
-     */
     public function deleteField($id)
     {
-        DB::table('danh_muc_truong')->where('id', $id)->delete();
-        return response()->json(['status' => 200, 'message' => 'Xóa thuộc tính thành công!']);
+        if (!$this->checkUserPermission('DynamicObjectController.deleteField')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
+        $deleted = DB::table('danh_muc_truong')->where('id', $id)->delete();
+        if ($deleted === 0) {
+            return Response::Error('Không tìm thấy', 'Không tìm thấy thuộc tính!');
+        }
+
+        return Response::Success([], 'Xóa thuộc tính thành công!');
     }
 
-    /**
-     * Get object records & dynamic values for an entity type
-     */
     public function getRecords(Request $request)
     {
+        if (!$this->checkUserPermission('DynamicObjectController.getRecords')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
         $loaiDoiTuongId = $request->query('loai_doi_tuong_id');
         if (!$loaiDoiTuongId) {
-            return response()->json(['status' => 400, 'message' => 'Thiếu loai_doi_tuong_id!'], 400);
+            return Response::Error('Thiếu dữ liệu', 'Thiếu loai_doi_tuong_id!');
         }
 
         $type = DB::table('loai_doi_tuong')->where('id', $loaiDoiTuongId)->first();
         if (!$type) {
-            return response()->json(['status' => 404, 'message' => 'Không tìm thấy loại đối tượng!'], 404);
+            return Response::Error('Không tìm thấy', 'Không tìm thấy loại đối tượng!');
         }
 
         $fields = DB::table('danh_muc_truong')
@@ -235,6 +254,12 @@ class DynamicObjectController extends Controller
             ->get();
 
         $records = [];
+        $masterMapping = [];
+
+        $existingMasterMap = DB::table('doi_tuong')
+            ->where('loai_doi_tuong_id', $loaiDoiTuongId)
+            ->pluck('id', 'ma_doi_tuong')
+            ->toArray();
 
         if ($type->ma_loai === 'giang_vien') {
             $gvList = DB::table('giang_vien')->get();
@@ -242,98 +267,111 @@ class DynamicObjectController extends Controller
                 $msgv = (!empty($gv->email) && str_contains($gv->email, '@'))
                     ? explode('@', $gv->email)[0]
                     : ('GV_' . $gv->id_giang_vien);
-                $rec = [
+
+                if (isset($existingMasterMap[$msgv])) {
+                    $masterDoiTuongId = $existingMasterMap[$msgv];
+                } else {
+                    $masterDoiTuongId = $this->getOrCreateMasterDoiTuongId($loaiDoiTuongId, $msgv, $gv->ho_ten);
+                    $existingMasterMap[$msgv] = $masterDoiTuongId;
+                }
+
+                $masterMapping[$masterDoiTuongId] = [
                     'id' => $gv->id_giang_vien,
                     'ma_doi_tuong' => $msgv,
                     'ten_hien_thi' => $gv->ho_ten,
                     'email' => $gv->email,
                     'attributes' => []
                 ];
-                // Fetch extended dynamic values
-                foreach ($fields as $field) {
-                    $valObj = DB::table('gia_tri_thong_tin')
-                        ->where('doi_tuong_id', $gv->id_giang_vien)
-                        ->where('truong_id', $field->id)
-                        ->first();
-                    $rec['attributes'][$field->ma_truong] = $valObj ? $valObj->gia_tri : '';
-                }
-                $records[] = $rec;
             }
         } elseif ($type->ma_loai === 'sinh_vien') {
             $svList = DB::table('sinh_vien')->get();
             foreach ($svList as $sv) {
-                $rec = [
+                if (isset($existingMasterMap[$sv->mssv])) {
+                    $masterDoiTuongId = $existingMasterMap[$sv->mssv];
+                } else {
+                    $masterDoiTuongId = $this->getOrCreateMasterDoiTuongId($loaiDoiTuongId, $sv->mssv, $sv->ho_ten);
+                    $existingMasterMap[$sv->mssv] = $masterDoiTuongId;
+                }
+
+                $masterMapping[$masterDoiTuongId] = [
                     'id' => $sv->id,
                     'ma_doi_tuong' => $sv->mssv,
                     'ten_hien_thi' => $sv->ho_ten,
                     'email' => $sv->email,
                     'attributes' => []
                 ];
-                foreach ($fields as $field) {
-                    $valObj = DB::table('gia_tri_thong_tin')
-                        ->where('doi_tuong_id', $sv->id)
-                        ->where('truong_id', $field->id)
-                        ->first();
-                    $rec['attributes'][$field->ma_truong] = $valObj ? $valObj->gia_tri : '';
-                }
-                $records[] = $rec;
             }
         } else {
             $dtList = DB::table('doi_tuong')->where('loai_doi_tuong_id', $loaiDoiTuongId)->get();
             foreach ($dtList as $dt) {
-                $rec = [
+                $masterMapping[$dt->id] = [
                     'id' => $dt->id,
                     'ma_doi_tuong' => $dt->ma_doi_tuong,
                     'ten_hien_thi' => $dt->ten_hien_thi,
                     'attributes' => []
                 ];
-                foreach ($fields as $field) {
-                    $valObj = DB::table('gia_tri_thong_tin')
-                        ->where('doi_tuong_id', $dt->id)
-                        ->where('truong_id', $field->id)
-                        ->first();
-                    $rec['attributes'][$field->ma_truong] = $valObj ? $valObj->gia_tri : '';
-                }
-                $records[] = $rec;
             }
         }
 
-        return response()->json([
-            'status' => 200,
-            'data' => [
-                'type' => $type,
-                'fields' => $fields,
-                'records' => $records
-            ]
-        ]);
+        // Bulk fetch dynamic attribute values to avoid N+1 query bug
+        if (!empty($masterMapping) && $fields->isNotEmpty()) {
+            $masterIds = array_keys($masterMapping);
+            $fieldIds = $fields->pluck('id')->toArray();
+
+            $valObjects = DB::table('gia_tri_thong_tin')
+                ->whereIn('doi_tuong_id', $masterIds)
+                ->whereIn('truong_id', $fieldIds)
+                ->get();
+
+            $valMap = [];
+            foreach ($valObjects as $vo) {
+                $valMap[$vo->doi_tuong_id . '_' . $vo->truong_id] = $vo->gia_tri;
+            }
+
+            foreach ($masterMapping as $mId => &$rec) {
+                foreach ($fields as $field) {
+                    $key = $mId . '_' . $field->id;
+                    $rec['attributes'][$field->ma_truong] = $valMap[$key] ?? '';
+                }
+            }
+        }
+
+        $records = array_values($masterMapping);
+
+        return Response::Success([
+            'type' => $type,
+            'fields' => $fields,
+            'records' => $records
+        ], 'Lấy danh sách bản ghi thành công');
     }
 
-    /**
-     * Create/Update Record and its Dynamic Attribute Values
-     */
-    public function saveRecord(Request $request)
+    public function putRecord(Request $request)
     {
+        if (!$this->checkUserPermission('DynamicObjectController.putRecord')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
         $id = $request->input('id');
         $loaiDoiTuongId = $request->input('loai_doi_tuong_id');
-        $maDoiTuong = trim($request->input('ma_doi_tuong'));
-        $tenHienThi = trim($request->input('ten_hien_thi'));
+        $maDoiTuong = trim($request->input('ma_doi_tuong', ''));
+        $tenHienThi = trim($request->input('ten_hien_thi', ''));
         $email = trim($request->input('email', ''));
         $attributes = $request->input('attributes', []);
 
         $type = DB::table('loai_doi_tuong')->where('id', $loaiDoiTuongId)->first();
         if (!$type) {
-            return response()->json(['status' => 404, 'message' => 'Không tìm thấy loại đối tượng!'], 404);
+            return Response::Error('Không tìm thấy', 'Không tìm thấy loại đối tượng!');
         }
 
         if (empty($tenHienThi)) {
-            return response()->json(['status' => 400, 'message' => 'Vui lòng nhập tên hiển thị!'], 400);
+            return Response::Error('Sai định dạng dữ liệu', 'Vui lòng nhập tên hiển thị!');
         }
 
-        $recordId = null;
+        $masterDoiTuongId = null;
 
         if ($type->ma_loai === 'giang_vien') {
             if (empty($email)) {
-                return response()->json(['status' => 400, 'message' => 'Giảng viên cần thông tin cơ bản là Email (Gmail) và Họ tên!'], 400);
+                return Response::Error('Sai định dạng dữ liệu', 'Giảng viên cần thông tin cơ bản là Email (Gmail) và Họ tên!');
             }
             if ($id) {
                 DB::table('giang_vien')->where('id_giang_vien', $id)->update([
@@ -341,19 +379,20 @@ class DynamicObjectController extends Controller
                     'email' => $email,
                     'updated_at' => now(),
                 ]);
-                $recordId = $id;
             } else {
-                $recordId = DB::table('giang_vien')->insertGetId([
+                DB::table('giang_vien')->insertGetId([
                     'ho_ten' => $tenHienThi,
                     'email' => $email,
                     'id_don_vi' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ]);
+                ], 'id_giang_vien');
             }
+            $msgv = str_contains($email, '@') ? explode('@', $email)[0] : ('GV_' . time());
+            $masterDoiTuongId = $this->getOrCreateMasterDoiTuongId($loaiDoiTuongId, $msgv, $tenHienThi);
         } elseif ($type->ma_loai === 'sinh_vien') {
             if (empty($maDoiTuong) || empty($email)) {
-                return response()->json(['status' => 400, 'message' => 'Sinh viên cần MSSV, Email và Họ tên!'], 400);
+                return Response::Error('Sai định dạng dữ liệu', 'Sinh viên cần MSSV, Email và Họ tên!');
             }
             if ($id) {
                 DB::table('sinh_vien')->where('id', $id)->update([
@@ -362,9 +401,8 @@ class DynamicObjectController extends Controller
                     'email' => $email,
                     'updated_at' => now(),
                 ]);
-                $recordId = $id;
             } else {
-                $recordId = DB::table('sinh_vien')->insertGetId([
+                DB::table('sinh_vien')->insertGetId([
                     'mssv' => $maDoiTuong,
                     'ho_ten' => $tenHienThi,
                     'email' => $email,
@@ -372,27 +410,14 @@ class DynamicObjectController extends Controller
                     'updated_at' => now(),
                 ]);
             }
+            $masterDoiTuongId = $this->getOrCreateMasterDoiTuongId($loaiDoiTuongId, $maDoiTuong, $tenHienThi);
         } else {
             if (empty($maDoiTuong)) {
-                return response()->json(['status' => 400, 'message' => 'Vui lòng nhập Mã đối tượng!'], 400);
+                return Response::Error('Sai định dạng dữ liệu', 'Vui lòng nhập Mã đối tượng!');
             }
-            if ($id) {
-                DB::table('doi_tuong')->where('id', $id)->update([
-                    'ma_doi_tuong' => $maDoiTuong,
-                    'ten_hien_thi' => $tenHienThi,
-                ]);
-                $recordId = $id;
-            } else {
-                $recordId = DB::table('doi_tuong')->insertGetId([
-                    'loai_doi_tuong_id' => $loaiDoiTuongId,
-                    'ma_doi_tuong' => $maDoiTuong,
-                    'ten_hien_thi' => $tenHienThi,
-                    'ngay_tao' => now(),
-                ]);
-            }
+            $masterDoiTuongId = $this->getOrCreateMasterDoiTuongId($loaiDoiTuongId, $maDoiTuong, $tenHienThi);
         }
 
-        // Save dynamic attribute values (handling text, multiselect, S3 file uploads, etc.)
         $fields = DB::table('danh_muc_truong')->where('loai_doi_tuong_id', $loaiDoiTuongId)->get();
         foreach ($fields as $field) {
             $val = null;
@@ -411,7 +436,7 @@ class DynamicObjectController extends Controller
             if ($val !== null) {
                 DB::table('gia_tri_thong_tin')->updateOrInsert(
                     [
-                        'doi_tuong_id' => $recordId,
+                        'doi_tuong_id' => $masterDoiTuongId,
                         'truong_id' => $field->id,
                     ],
                     [
@@ -422,19 +447,20 @@ class DynamicObjectController extends Controller
             }
         }
 
-        return response()->json(['status' => 200, 'message' => 'Lưu thông tin thành công!']);
+        return Response::Success([], 'Lưu thông tin thành công!');
     }
 
-    /**
-     * Delete Record
-     */
     public function deleteRecord(Request $request, $id)
     {
+        if (!$this->checkUserPermission('DynamicObjectController.deleteRecord')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
         $loaiDoiTuongId = $request->query('loai_doi_tuong_id');
         $type = DB::table('loai_doi_tuong')->where('id', $loaiDoiTuongId)->first();
 
         if (!$type) {
-            return response()->json(['status' => 404, 'message' => 'Không tìm thấy loại đối tượng!'], 404);
+            return Response::Error('Không tìm thấy', 'Không tìm thấy loại đối tượng!');
         }
 
         if ($type->ma_loai === 'giang_vien') {
@@ -447,261 +473,101 @@ class DynamicObjectController extends Controller
 
         DB::table('gia_tri_thong_tin')->where('doi_tuong_id', $id)->delete();
 
-        return response()->json(['status' => 200, 'message' => 'Xóa bản ghi thành công!']);
+        return Response::Success([], 'Xóa bản ghi thành công!');
     }
 
-    /**
-     * Internal helper to ensure standard entity types exist
-     */
-    private function ensureDefaultTypesSeeded()
+    private static $doiTuongColumns = null;
+
+    private function getDoiTuongColumns()
     {
-        // Add phan_nhom column to danh_muc_truong if not exists
-        if (!\Illuminate\Support\Facades\Schema::hasColumn('danh_muc_truong', 'phan_nhom')) {
-            \Illuminate\Support\Facades\Schema::table('danh_muc_truong', function ($table) {
-                $table->string('phan_nhom', 100)->nullable()->default('Thông tin bổ sung');
-            });
+        if (self::$doiTuongColumns === null) {
+            self::$doiTuongColumns = DB::getSchemaBuilder()->getColumnListing('doi_tuong');
+        }
+        return self::$doiTuongColumns;
+    }
+
+    private function getOrCreateMasterDoiTuongId($loaiDoiTuongId, $maDoiTuong, $tenHienThi)
+    {
+        $dtMaster = DB::table('doi_tuong')
+            ->where('loai_doi_tuong_id', $loaiDoiTuongId)
+            ->where('ma_doi_tuong', $maDoiTuong)
+            ->first();
+
+        $cols = $this->getDoiTuongColumns();
+        $updateData = [];
+        if (in_array('ten_hien_thi', $cols)) {
+            $updateData['ten_hien_thi'] = $tenHienThi;
+        } elseif (in_array('ten_doi_tuong', $cols)) {
+            $updateData['ten_doi_tuong'] = $tenHienThi;
         }
 
-        // Add thu_tu column to danh_muc_truong if not exists
-        if (!\Illuminate\Support\Facades\Schema::hasColumn('danh_muc_truong', 'thu_tu')) {
-            \Illuminate\Support\Facades\Schema::table('danh_muc_truong', function ($table) {
-                $table->integer('thu_tu')->default(0);
-            });
+        if (in_array('ngay_cap_nhat', $cols)) {
+            $updateData['ngay_cap_nhat'] = now();
         }
 
-        // Add lien_ket_loai_doi_tuong_id column to danh_muc_truong if not exists
-        if (!\Illuminate\Support\Facades\Schema::hasColumn('danh_muc_truong', 'lien_ket_loai_doi_tuong_id')) {
-            \Illuminate\Support\Facades\Schema::table('danh_muc_truong', function ($table) {
-                $table->unsignedBigInteger('lien_ket_loai_doi_tuong_id')->nullable();
-            });
-        }
+        if ($dtMaster) {
+            $currentName = $dtMaster->ten_hien_thi ?? $dtMaster->ten_doi_tuong ?? '';
+            if ($currentName !== $tenHienThi && !empty($updateData)) {
+                DB::table('doi_tuong')->where('id', $dtMaster->id)->update($updateData);
+            }
+            return $dtMaster->id;
+        } else {
+            $insertData = array_merge([
+                'loai_doi_tuong_id' => $loaiDoiTuongId,
+                'ma_doi_tuong' => $maDoiTuong,
+            ], $updateData);
 
-        // Add lua_chon column to danh_muc_truong if not exists
-        if (!\Illuminate\Support\Facades\Schema::hasColumn('danh_muc_truong', 'lua_chon')) {
-            \Illuminate\Support\Facades\Schema::table('danh_muc_truong', function ($table) {
-                $table->text('lua_chon')->nullable();
-            });
-        }
-
-        // Add bat_buoc column to danh_muc_truong if not exists
-        if (!\Illuminate\Support\Facades\Schema::hasColumn('danh_muc_truong', 'bat_buoc')) {
-            \Illuminate\Support\Facades\Schema::table('danh_muc_truong', function ($table) {
-                $table->boolean('bat_buoc')->default(false);
-            });
-        }
-
-        // Add cau_hinh column to danh_muc_truong if not exists
-        if (!\Illuminate\Support\Facades\Schema::hasColumn('danh_muc_truong', 'cau_hinh')) {
-            \Illuminate\Support\Facades\Schema::table('danh_muc_truong', function ($table) {
-                $table->text('cau_hinh')->nullable();
-            });
-        }
-
-        $defaults = [
-            [
-                'ma_loai' => 'giang_vien',
-                'ten_loai' => 'Giảng viên',
-                'mo_ta' => 'Quản lý thông tin giảng viên (Email Gmail & Họ tên cơ bản + các thuộc tính bổ sung)'
-            ],
-            [
-                'ma_loai' => 'sinh_vien',
-                'ten_loai' => 'Sinh viên',
-                'mo_ta' => 'Quản lý thông tin sinh viên cơ bản & thuộc tính học tập mở rộng'
-            ],
-            [
-                'ma_loai' => 'phong_hoc',
-                'ten_loai' => 'Phòng học & Hội trường',
-                'mo_ta' => 'Quản lý phòng học, giảng đường, sức chứa và thiết bị giảng dạy'
-            ],
-            [
-                'ma_loai' => 'thiet_bi',
-                'ten_loai' => 'Thiết bị & Tài sản',
-                'mo_ta' => 'Quản lý máy chiếu, máy tính, thiết bị thí nghiệm...'
-            ]
-        ];
-
-        foreach ($defaults as $item) {
-            $type = DB::table('loai_doi_tuong')->where('ma_loai', $item['ma_loai'])->first();
-            if (!$type) {
-                $typeId = DB::table('loai_doi_tuong')->insertGetId([
-                    'ma_loai' => $item['ma_loai'],
-                    'ten_loai' => $item['ten_loai'],
-                    'mo_ta' => $item['mo_ta'],
-                    'ngay_tao' => now(),
-                ]);
-            } else {
-                $typeId = $type->id;
+            if (in_array('ngay_tao', $cols)) {
+                $insertData['ngay_tao'] = now();
             }
 
-            // Seed default grouped dynamic attributes for Giang vien if none exists
-            if ($item['ma_loai'] === 'giang_vien') {
-                $count = DB::table('danh_muc_truong')->where('loai_doi_tuong_id', $typeId)->count();
-                if ($count === 0) {
-                    DB::table('danh_muc_truong')->insert([
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'hoc_vi',
-                            'ten_truong' => 'Học vị / Học hàm',
-                            'phan_nhom' => 'Lý lịch & Chức danh',
-                            'kieu_du_lieu' => 'select',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ],
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'chuc_danh',
-                            'ten_truong' => 'Chức danh công tác',
-                            'phan_nhom' => 'Lý lịch & Chức danh',
-                            'kieu_du_lieu' => 'text',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ],
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'so_dien_thoai',
-                            'ten_truong' => 'Số điện thoại liên hệ',
-                            'phan_nhom' => 'Thông tin Liên hệ',
-                            'kieu_du_lieu' => 'text',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ],
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'hinh_anh_the',
-                            'ten_truong' => 'Hình ảnh chân dung',
-                            'phan_nhom' => 'Hồ sơ & Minh chứng',
-                            'kieu_du_lieu' => 'image',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ],
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'ly_lich_khoa_hoc',
-                            'ten_truong' => 'Tệp CV / Lý lịch khoa học',
-                            'phan_nhom' => 'Hồ sơ & Minh chứng',
-                            'kieu_du_lieu' => 'file',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ]
-                    ]);
-                }
-            }
-
-            // Seed default grouped dynamic attributes for Sinh vien if none exists
-            if ($item['ma_loai'] === 'sinh_vien') {
-                $count = DB::table('danh_muc_truong')->where('loai_doi_tuong_id', $typeId)->count();
-                if ($count === 0) {
-                    DB::table('danh_muc_truong')->insert([
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'ngay_sinh',
-                            'ten_truong' => 'Ngày sinh',
-                            'phan_nhom' => 'Thông tin Lý lịch & Cá nhân',
-                            'kieu_du_lieu' => 'date',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ],
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'gioi_tinh',
-                            'ten_truong' => 'Giới tính',
-                            'phan_nhom' => 'Thông tin Lý lịch & Cá nhân',
-                            'kieu_du_lieu' => 'select',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ],
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'so_dien_thoai_sv',
-                            'ten_truong' => 'Số điện thoại',
-                            'phan_nhom' => 'Thông tin Lý lịch & Cá nhân',
-                            'kieu_du_lieu' => 'text',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ],
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'nganh_hoc',
-                            'ten_truong' => 'Ngành đào tạo',
-                            'phan_nhom' => 'Thông tin Đào tạo & Lớp học',
-                            'kieu_du_lieu' => 'text',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ],
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'lop_sinh_hoat',
-                            'ten_truong' => 'Lớp sinh hoạt',
-                            'phan_nhom' => 'Thông tin Đào tạo & Lớp học',
-                            'kieu_du_lieu' => 'text',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ],
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'anh_the_3x4',
-                            'ten_truong' => 'Ảnh thẻ 3x4',
-                            'phan_nhom' => 'Hồ sơ đính kèm',
-                            'kieu_du_lieu' => 'image',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ],
-                        [
-                            'loai_doi_tuong_id' => $typeId,
-                            'ma_truong' => 'tep_minh_chung',
-                            'ten_truong' => 'Tệp Bằng cấp / Minh chứng',
-                            'phan_nhom' => 'Hồ sơ đính kèm',
-                            'kieu_du_lieu' => 'file',
-                            'trang_thai' => true,
-                            'ngay_tao' => now(),
-                        ]
-                    ]);
-                }
-            }
+            return DB::table('doi_tuong')->insertGetId($insertData);
         }
     }
 
-    /**
-     * Upload file to S3 / MinIO storage
-     */
     private function uploadFileToS3($uploadedFile)
     {
-        try {
-            // Attempt upload to S3 / MinIO disk
-            $disk = env('FILESYSTEM_DISK', 's3');
-            $targetDisk = in_array($disk, ['s3', 'minio']) ? $disk : 's3';
-
-            $path = $uploadedFile->store('dynamic_uploads', $targetDisk);
-            if ($path) {
-                // Build public S3 / MinIO URL based on env configuration
-                $s3Endpoint = env('AWS_PUBLIC_ENDPOINT', env('AWS_ENDPOINT', 'http://localhost:9000'));
-                $bucket = env('AWS_BUCKET', 'daotao-vlute-edu-vn');
-                
-                return rtrim($s3Endpoint, '/') . '/' . $bucket . '/' . $path;
-            }
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("S3 Storage Upload Error: " . $e->getMessage());
+        if (!$uploadedFile || !$uploadedFile->isValid()) {
+            return '';
         }
 
-        // Fallback to public storage if S3 fails or is not reachable
+        // Security check: validate size (max 20MB) and allowed extensions
+        $maxSizeBytes = 20 * 1024 * 1024;
+        if ($uploadedFile->getSize() > $maxSizeBytes) {
+            return '';
+        }
+
+        $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'zip', 'rar'];
+        $ext = strtolower($uploadedFile->getClientOriginalExtension());
+        if (!in_array($ext, $allowedExts)) {
+            return '';
+        }
+
+        $disk = env('FILESYSTEM_DISK', 's3');
+        $targetDisk = in_array($disk, ['s3', 'minio']) ? $disk : 's3';
+
+        $path = $uploadedFile->store('dynamic_uploads', $targetDisk);
+        if ($path) {
+            $s3Endpoint = env('AWS_PUBLIC_ENDPOINT', env('AWS_ENDPOINT', 'http://localhost:9000'));
+            $bucket = env('AWS_BUCKET', 'daotao-vlute-edu-vn');
+            
+            return rtrim($s3Endpoint, '/') . '/' . $bucket . '/' . $path;
+        }
+
         $path = $uploadedFile->store('public/uploads');
         return '/storage/' . str_replace('public/', '', $path);
     }
 
-    /**
-     * Helper to resolve dynamic option choices for select fields (from target entity type or custom list)
-     */
     public static function resolveAttributeOptions($attr)
     {
         if ($attr->lien_ket_loai_doi_tuong_id) {
             $targetType = DB::table('loai_doi_tuong')->where('id', $attr->lien_ket_loai_doi_tuong_id)->first();
             if ($targetType) {
-                // Check value binding rule (ma vs ten)
                 $cauHinh = [];
                 if (!empty($attr->cau_hinh)) {
                     $cauHinh = is_string($attr->cau_hinh) ? json_decode($attr->cau_hinh, true) : $attr->cau_hinh;
                 }
-                $bindMode = $cauHinh['tieu_chuan_gia_tri'] ?? 'ma'; // ma | ten
+                $bindMode = $cauHinh['tieu_chuan_gia_tri'] ?? 'ma';
 
                 if ($targetType->ma_loai === 'giang_vien') {
                     $valCol = ($bindMode === 'ten') ? 'ho_ten' : 'email';
@@ -723,5 +589,654 @@ class DynamicObjectController extends Controller
             }
         }
         return null;
+    }
+
+    public function exportImportTemplate(Request $request)
+    {
+        if (!$this->checkUserPermission('DynamicObjectController.exportImportTemplate')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
+        $loaiDoiTuongId = $request->query('loai_doi_tuong_id');
+        $type = DB::table('loai_doi_tuong')->where('id', $loaiDoiTuongId)->first();
+        if (!$type) {
+            return Response::Error('Không tìm thấy', 'Không tìm thấy loại đối tượng!');
+        }
+
+        $fields = DB::table('danh_muc_truong')
+            ->where('loai_doi_tuong_id', $loaiDoiTuongId)
+            ->where('trang_thai', true)
+            ->orderBy('thu_tu', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template Import');
+
+        $headers = [];
+        if ($type->ma_loai === 'giang_vien') {
+            $headers[] = ['key' => 'email', 'label' => 'Email (*)', 'required' => true];
+            $headers[] = ['key' => 'ten_hien_thi', 'label' => 'Họ và tên (*)', 'required' => true];
+        } elseif ($type->ma_loai === 'sinh_vien') {
+            $headers[] = ['key' => 'ma_doi_tuong', 'label' => 'MSHV/MSSV (*)', 'required' => true];
+            $headers[] = ['key' => 'ten_hien_thi', 'label' => 'Họ và tên (*)', 'required' => true];
+            $headers[] = ['key' => 'email', 'label' => 'Email (*)', 'required' => true];
+        } else {
+            $headers[] = ['key' => 'ma_doi_tuong', 'label' => 'Mã đối tượng (*)', 'required' => true];
+            $headers[] = ['key' => 'ten_hien_thi', 'label' => 'Tên hiển thị (*)', 'required' => true];
+        }
+
+        foreach ($fields as $field) {
+            $reqText = $field->bat_buoc ? ' (*)' : '';
+            $headers[] = [
+                'key' => $field->ma_truong,
+                'label' => $field->ten_truong . ' [' . $field->ma_truong . ']' . $reqText,
+                'required' => (bool)$field->bat_buoc
+            ];
+        }
+
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Times New Roman');
+        $spreadsheet->getDefaultStyle()->getFont()->setSize(11);
+
+        $colIndex = 1;
+        foreach ($headers as $h) {
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->setCellValue("{$colLetter}1", $h['label']);
+            $colIndex++;
+        }
+
+        $lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+        $headerRange = "A1:{$lastColLetter}1";
+        $sheet->getStyle($headerRange)->applyFromArray([
+            'font' => [
+                'name' => 'Times New Roman',
+                'bold' => true,
+                'color' => ['rgb' => '1E293B'],
+                'size' => 11
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'E2E8F0']
+            ],
+            'alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+            ]
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(28);
+
+        $colIndex = 1;
+        if ($type->ma_loai === 'giang_vien') {
+            $sheet->setCellValue('A2', 'nguyenvana@vlute.edu.vn');
+            $sheet->setCellValue('B2', 'Nguyễn Văn A');
+            $colIndex = 3;
+        } elseif ($type->ma_loai === 'sinh_vien') {
+            $sheet->setCellValue('A2', '21001001');
+            $sheet->setCellValue('B2', 'Trần Thị B');
+            $sheet->setCellValue('C2', '21001001@st.vlute.edu.vn');
+            $colIndex = 4;
+        } else {
+            $sheet->setCellValue('A2', 'MA_001');
+            $sheet->setCellValue('B2', 'Đối tượng mẫu A');
+            $colIndex = 3;
+        }
+        foreach ($fields as $field) {
+            $sampleVal = 'Dữ liệu mẫu';
+            if ($field->kieu_du_lieu === 'date') $sampleVal = '2026-01-01';
+            elseif ($field->kieu_du_lieu === 'number') $sampleVal = '100';
+            elseif ($field->kieu_du_lieu === 'boolean') $sampleVal = 'Có';
+            elseif (in_array($field->kieu_du_lieu, ['file', 'image', 'tep_tin', 'tep_hinh_anh', 'file_url', 'image_url'])) $sampleVal = 'https://example.com/sample_file.pdf';
+
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->setCellValue("{$colLetter}2", $sampleVal);
+            $colIndex++;
+        }
+        $sheet->getRowDimension(2)->setRowHeight(22);
+
+        $sheet->getStyle("A1:{$lastColLetter}2")->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '475569'],
+                ],
+            ],
+            'alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ]
+        ]);
+
+        for ($i = 1; $i <= count($headers); $i++) {
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $fileName = 'Template_Import_' . $type->ma_loai . '_' . date('Ymd_His') . '.xlsx';
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    public function putPreviewImport(Request $request)
+    {
+        if (!$this->checkUserPermission('DynamicObjectController.putPreviewImport')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
+        $file = $request->file('file');
+        $loaiDoiTuongId = $request->input('loai_doi_tuong_id');
+
+        if (!$file || !$loaiDoiTuongId) {
+            return Response::Error('Sai định dạng dữ liệu', 'Vui lòng cung cấp tệp và loai_doi_tuong_id!');
+        }
+
+        $type = DB::table('loai_doi_tuong')->where('id', $loaiDoiTuongId)->first();
+        if (!$type) {
+            return Response::Error('Không tìm thấy', 'Không tìm thấy loại đối tượng!');
+        }
+
+        $fields = DB::table('danh_muc_truong')
+            ->where('loai_doi_tuong_id', $loaiDoiTuongId)
+            ->where('trang_thai', true)
+            ->get();
+
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+        $sheet = $spreadsheet->getActiveSheet();
+        $rows = $sheet->toArray(null, true, true, true);
+
+        if (empty($rows) || count($rows) < 2) {
+            return Response::Error('Sai dữ liệu', 'File không chứa dữ liệu hoặc thiếu hàng tiêu đề!');
+        }
+
+        $headerRow = array_shift($rows);
+        $columnMap = [];
+
+        foreach ($headerRow as $colLetter => $headerText) {
+            if (empty($headerText)) continue;
+            $cleanHeader = strtolower(trim($headerText));
+            
+            if (str_contains($cleanHeader, 'mã đối tượng') || str_contains($cleanHeader, 'mã số sinh viên') || str_contains($cleanHeader, 'mssv')) {
+                $columnMap[$colLetter] = 'ma_doi_tuong';
+            } elseif (str_contains($cleanHeader, 'tên hiển thị') || str_contains($cleanHeader, 'họ và tên') || str_contains($cleanHeader, 'ho ten')) {
+                $columnMap[$colLetter] = 'ten_hien_thi';
+            } elseif (str_contains($cleanHeader, 'email')) {
+                $columnMap[$colLetter] = 'email';
+            } else {
+                foreach ($fields as $field) {
+                    if (str_contains($cleanHeader, '[' . strtolower($field->ma_truong) . ']') || str_contains($cleanHeader, strtolower($field->ma_truong)) || str_contains($cleanHeader, strtolower($field->ten_truong))) {
+                        $columnMap[$colLetter] = 'field_' . $field->ma_truong;
+                        break;
+                    }
+                }
+            }
+        }
+
+        $existingCodes = [];
+        if ($type->ma_loai === 'giang_vien') {
+            $existingCodes = DB::table('giang_vien')->pluck('email')->toArray();
+        } elseif ($type->ma_loai === 'sinh_vien') {
+            $existingCodes = DB::table('sinh_vien')->pluck('mssv')->toArray();
+        } else {
+            $existingCodes = DB::table('doi_tuong')->where('loai_doi_tuong_id', $loaiDoiTuongId)->pluck('ma_doi_tuong')->toArray();
+        }
+
+        $mode = $request->input('mode', 'upsert');
+
+        $parsedRows = [];
+        $newCount = 0;
+        $updateCount = 0;
+        $skipCount = 0;
+        $errorCount = 0;
+        $seenCodes = [];
+
+        foreach ($rows as $rowIndex => $row) {
+            $isEmptyRow = true;
+            foreach ($row as $val) {
+                if (!empty(trim((string)$val))) {
+                    $isEmptyRow = false;
+                    break;
+                }
+            }
+            if ($isEmptyRow) continue;
+
+            $rowData = [
+                'row_index' => $rowIndex + 1,
+                'ma_doi_tuong' => '',
+                'ten_hien_thi' => '',
+                'email' => '',
+                'attributes' => [],
+                'errors' => [],
+                'exists_in_db' => false,
+                'action_type' => 'new'
+            ];
+
+            foreach ($columnMap as $colLetter => $key) {
+                $cellVal = trim((string)($row[$colLetter] ?? ''));
+                if ($key === 'ma_doi_tuong') {
+                    $rowData['ma_doi_tuong'] = $cellVal;
+                } elseif ($key === 'ten_hien_thi') {
+                    $rowData['ten_hien_thi'] = $cellVal;
+                } elseif ($key === 'email') {
+                    $rowData['email'] = $cellVal;
+                } elseif (str_starts_with($key, 'field_')) {
+                    $maTruong = substr($key, 6);
+                    $rowData['attributes'][$maTruong] = $cellVal;
+                }
+            }
+
+            $keyVal = ($type->ma_loai === 'giang_vien') ? $rowData['email'] : $rowData['ma_doi_tuong'];
+
+            if (empty($keyVal)) {
+                $rowData['errors'][] = ($type->ma_loai === 'giang_vien') ? 'Thiếu Email giảng viên' : 'Thiếu Mã đối tượng / MSSV';
+            }
+            if (empty($rowData['ten_hien_thi'])) {
+                $rowData['errors'][] = 'Thiếu Tên hiển thị / Họ tên';
+            }
+
+            foreach ($fields as $field) {
+                $val = trim((string)($rowData['attributes'][$field->ma_truong] ?? ''));
+
+                if ($field->bat_buoc && $val === '') {
+                    $rowData['errors'][] = 'Thiếu thuộc tính bắt buộc: ' . $field->ten_truong;
+                    continue;
+                }
+
+                if ($val === '') continue;
+
+                $kieu = $field->kieu_du_lieu ?? 'text';
+
+                if ($kieu === 'number') {
+                    $rawNum = $val;
+                    if (substr_count($rawNum, ',') === 1 && !str_contains($rawNum, '.')) {
+                        $rawNum = str_replace(',', '.', $rawNum);
+                    }
+                    $cleanNum = str_replace([' ', ' '], '', $rawNum);
+                    if (!is_numeric($cleanNum)) {
+                        $rowData['errors'][] = "Thuộc tính '{$field->ten_truong}' phải là số hợp lệ (giá trị nhập: '{$val}')";
+                    } else {
+                        $rowData['attributes'][$field->ma_truong] = (string)(0 + $cleanNum);
+                    }
+                } elseif (in_array($kieu, ['date', 'datetime'])) {
+                    $timestamp = strtotime($val);
+                    if (!$timestamp && is_numeric($val)) {
+                        try {
+                            $dtObj = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($val);
+                            $rowData['attributes'][$field->ma_truong] = ($kieu === 'date') ? $dtObj->format('Y-m-d') : $dtObj->format('Y-m-d H:i:s');
+                            $timestamp = true;
+                        } catch (\Exception $e) {
+                            $timestamp = false;
+                        }
+                    }
+                    if (!$timestamp) {
+                        $rowData['errors'][] = "Thuộc tính '{$field->ten_truong}' sai định dạng ngày tháng, giá trị: '{$val}'";
+                    }
+                } elseif ($kieu === 'email') {
+                    if (!filter_var($val, FILTER_VALIDATE_EMAIL)) {
+                        $rowData['errors'][] = "Thuộc tính '{$field->ten_truong}' sai định dạng Email, giá trị: '{$val}'";
+                    }
+                } elseif ($kieu === 'boolean') {
+                    $lowerVal = strtolower($val);
+                    if (in_array($lowerVal, ['1', 'true', 'có', 'co', 'yes', 'kích hoạt'])) {
+                        $rowData['attributes'][$field->ma_truong] = '1';
+                    } elseif (in_array($lowerVal, ['0', 'false', 'không', 'khong', 'no', 'tắt'])) {
+                        $rowData['attributes'][$field->ma_truong] = '0';
+                    } else {
+                        $rowData['errors'][] = "Thuộc tính '{$field->ten_truong}' kiểu Đúng/Sai chỉ nhận: Có/Không, True/False, 1/0";
+                    }
+                } elseif (in_array($kieu, ['file', 'image', 'tep_tin', 'tep_hinh_anh', 'file_url', 'image_url'])) {
+                    $isLink = (
+                        str_starts_with($val, 'http://') || 
+                        str_starts_with($val, 'https://') || 
+                        str_starts_with($val, 's3://') || 
+                        str_starts_with($val, '/') ||
+                        filter_var($val, FILTER_VALIDATE_URL)
+                    );
+                    if (!$isLink) {
+                        if ($field->bat_buoc) {
+                            $rowData['errors'][] = "Thuộc tính '{$field->ten_truong}' bắt buộc phải là đường dẫn tệp (URL hợp lệ, VD: https://...)";
+                        } else {
+                            $rowData['attributes'][$field->ma_truong] = '';
+                        }
+                    }
+                }
+            }
+
+            if (!empty($keyVal)) {
+                if (in_array($keyVal, $seenCodes)) {
+                    $rowData['errors'][] = 'Trùng lặp mã "' . $keyVal . '" trong tệp import';
+                } else {
+                    $seenCodes[] = $keyVal;
+                }
+            }
+
+            if (!empty($rowData['errors'])) {
+                $rowData['action_type'] = 'error';
+                $errorCount++;
+            } else {
+                $rowData['exists_in_db'] = in_array($keyVal, $existingCodes);
+                if ($mode === 'insert_new') {
+                    if ($rowData['exists_in_db']) {
+                        $rowData['action_type'] = 'skip';
+                        $rowData['errors'][] = 'Đã bỏ qua: Mã đối tượng đã tồn tại trong DB (Chế độ: Chỉ thêm mới)';
+                        $skipCount++;
+                    } else {
+                        $rowData['action_type'] = 'new';
+                        $newCount++;
+                    }
+                } elseif ($mode === 'update_existing') {
+                    if ($rowData['exists_in_db']) {
+                        $rowData['action_type'] = 'update';
+                        $updateCount++;
+                    } else {
+                        $rowData['action_type'] = 'skip';
+                        $rowData['errors'][] = 'Đã bỏ qua: Mã đối tượng chưa có trong DB (Chế độ: Chỉ cập nhật)';
+                        $skipCount++;
+                    }
+                } else {
+                    if ($rowData['exists_in_db']) {
+                        $rowData['action_type'] = 'update';
+                        $updateCount++;
+                    } else {
+                        $rowData['action_type'] = 'new';
+                        $newCount++;
+                    }
+                }
+            }
+
+            $parsedRows[] = $rowData;
+        }
+
+        return Response::Success([
+            'total_rows' => count($parsedRows),
+            'new_count' => $newCount,
+            'update_count' => $updateCount,
+            'skip_count' => $skipCount,
+            'error_count' => $errorCount,
+            'fields' => $fields,
+            'rows' => $parsedRows
+        ], 'Xem trước dữ liệu import thành công');
+    }
+
+    public function putProcessImport(Request $request)
+    {
+        if (!$this->checkUserPermission('DynamicObjectController.putProcessImport')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
+        $loaiDoiTuongId = $request->input('loai_doi_tuong_id');
+        $mode = $request->input('mode', 'upsert');
+        $rows = $request->input('rows', []);
+
+        $type = DB::table('loai_doi_tuong')->where('id', $loaiDoiTuongId)->first();
+        if (!$type) {
+            return Response::Error('Không tìm thấy', 'Không tìm thấy loại đối tượng!');
+        }
+
+        if (empty($rows)) {
+            return Response::Error('Thiếu dữ liệu', 'Không có hàng dữ liệu nào để import!');
+        }
+
+        $fields = DB::table('danh_muc_truong')->where('loai_doi_tuong_id', $loaiDoiTuongId)->get();
+        $autoClearErrors = (bool)($request->input('auto_clear_errors', false));
+
+        $inserted = 0;
+        $updated = 0;
+        $skipped = 0;
+
+        DB::transaction(function () use ($rows, $type, $loaiDoiTuongId, $mode, $fields, $autoClearErrors, &$inserted, &$updated, &$skipped) {
+            foreach ($rows as $row) {
+                $maDoiTuong = trim($row['ma_doi_tuong'] ?? '');
+                $tenHienThi = trim($row['ten_hien_thi'] ?? '');
+                $email = trim($row['email'] ?? '');
+                $attributes = $row['attributes'] ?? [];
+
+                $keyVal = ($type->ma_loai === 'giang_vien') ? $email : $maDoiTuong;
+                if (empty($keyVal) || empty($tenHienThi)) {
+                    $skipped++;
+                    continue;
+                }
+
+                if (!empty($row['errors']) || $row['action_type'] === 'error') {
+                    if (!$autoClearErrors) {
+                        $skipped++;
+                        continue;
+                    }
+                }
+
+                $exists = (bool)($row['exists_in_db'] ?? false);
+
+                if ($mode === 'insert_new' && $exists) {
+                    $skipped++;
+                    continue;
+                }
+                if ($mode === 'update_existing' && !$exists) {
+                    $skipped++;
+                    continue;
+                }
+
+                $masterDoiTuongId = null;
+
+                if ($type->ma_loai === 'giang_vien') {
+                    $existingGv = DB::table('giang_vien')->where('email', $email)->first();
+                    if ($existingGv) {
+                        DB::table('giang_vien')->where('id_giang_vien', $existingGv->id_giang_vien)->update([
+                            'ho_ten' => $tenHienThi,
+                            'updated_at' => now(),
+                        ]);
+                        $updated++;
+                    } else {
+                        DB::table('giang_vien')->insertGetId([
+                            'ho_ten' => $tenHienThi,
+                            'email' => $email,
+                            'id_don_vi' => 1,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ], 'id_giang_vien');
+                        $inserted++;
+                    }
+                    $msgv = str_contains($email, '@') ? explode('@', $email)[0] : ('GV_' . time());
+                    $masterDoiTuongId = $this->getOrCreateMasterDoiTuongId($loaiDoiTuongId, $msgv, $tenHienThi);
+                } elseif ($type->ma_loai === 'sinh_vien') {
+                    $existingSv = DB::table('sinh_vien')->where('mssv', $maDoiTuong)->first();
+                    if ($existingSv) {
+                        DB::table('sinh_vien')->where('id', $existingSv->id)->update([
+                            'ho_ten' => $tenHienThi,
+                            'email' => empty($email) ? $existingSv->email : $email,
+                            'updated_at' => now(),
+                        ]);
+                        $updated++;
+                    } else {
+                        DB::table('sinh_vien')->insertGetId([
+                            'mssv' => $maDoiTuong,
+                            'ho_ten' => $tenHienThi,
+                            'email' => empty($email) ? ($maDoiTuong . '@st.vlute.edu.vn') : $email,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                        $inserted++;
+                    }
+                    $masterDoiTuongId = $this->getOrCreateMasterDoiTuongId($loaiDoiTuongId, $maDoiTuong, $tenHienThi);
+                } else {
+                    $existingDt = DB::table('doi_tuong')
+                        ->where('loai_doi_tuong_id', $loaiDoiTuongId)
+                        ->where('ma_doi_tuong', $maDoiTuong)
+                        ->first();
+                    if ($existingDt) {
+                        $updated++;
+                    } else {
+                        $inserted++;
+                    }
+                    $masterDoiTuongId = $this->getOrCreateMasterDoiTuongId($loaiDoiTuongId, $maDoiTuong, $tenHienThi);
+                }
+
+                foreach ($fields as $field) {
+                    if (isset($attributes[$field->ma_truong])) {
+                        $val = (string)$attributes[$field->ma_truong];
+                        DB::table('gia_tri_thong_tin')->updateOrInsert(
+                            [
+                                'doi_tuong_id' => $masterDoiTuongId,
+                                'truong_id' => $field->id,
+                            ],
+                            [
+                                'gia_tri' => $val,
+                                'ngay_tao' => now(),
+                            ]
+                        );
+                    }
+                }
+            }
+        });
+
+        return Response::Success([
+            'inserted' => $inserted,
+            'updated' => $updated,
+            'skipped' => $skipped
+        ], "Import dữ liệu hoàn tất! Thêm mới: {$inserted}, Cập nhật: {$updated}, Bỏ qua: {$skipped}.");
+    }
+
+    public function exportRecords(Request $request)
+    {
+        if (!$this->checkUserPermission('DynamicObjectController.exportRecords')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
+        $loaiDoiTuongId = $request->query('loai_doi_tuong_id');
+        $type = DB::table('loai_doi_tuong')->where('id', $loaiDoiTuongId)->first();
+        if (!$type) {
+            return Response::Error('Không tìm thấy', 'Không tìm thấy loại đối tượng!');
+        }
+
+        $fields = DB::table('danh_muc_truong')
+            ->where('loai_doi_tuong_id', $loaiDoiTuongId)
+            ->where('trang_thai', true)
+            ->orderBy('thu_tu', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+
+        $recordsRes = $this->getRecords($request);
+        $recordsData = json_decode($recordsRes->getContent(), true)['data'] ?? [];
+        $records = $recordsData['records'] ?? [];
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Times New Roman');
+        $spreadsheet->getDefaultStyle()->getFont()->setSize(11);
+
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Dữ liệu ' . mb_substr($type->ten_loai, 0, 20));
+
+        $headers = [];
+        if ($type->ma_loai === 'giang_vien') {
+            $headers[] = ['key' => 'email', 'label' => 'Email'];
+            $headers[] = ['key' => 'ten_hien_thi', 'label' => 'Họ và tên'];
+        } elseif ($type->ma_loai === 'sinh_vien') {
+            $headers[] = ['key' => 'ma_doi_tuong', 'label' => 'MSHV/MSSV'];
+            $headers[] = ['key' => 'ten_hien_thi', 'label' => 'Họ và tên'];
+            $headers[] = ['key' => 'email', 'label' => 'Email'];
+        } else {
+            $headers[] = ['key' => 'ma_doi_tuong', 'label' => 'Mã đối tượng'];
+            $headers[] = ['key' => 'ten_hien_thi', 'label' => 'Tên hiển thị'];
+        }
+
+        foreach ($fields as $field) {
+            $headers[] = [
+                'key' => $field->ma_truong,
+                'label' => $field->ten_truong
+            ];
+        }
+
+        $colIndex = 1;
+        foreach ($headers as $h) {
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->setCellValue("{$colLetter}1", $h['label']);
+            $colIndex++;
+        }
+
+        $lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+        $sheet->getStyle("A1:{$lastColLetter}1")->applyFromArray([
+            'font' => [
+                'name' => 'Times New Roman',
+                'bold' => true,
+                'color' => ['rgb' => '1E293B'],
+                'size' => 11
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'E2E8F0']
+            ],
+            'alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+            ]
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(28);
+
+        $rowIndex = 2;
+        foreach ($records as $rec) {
+            $colIndex = 1;
+            if ($type->ma_loai === 'giang_vien') {
+                $sheet->setCellValue("A{$rowIndex}", $rec['email'] ?? '');
+                $sheet->setCellValue("B{$rowIndex}", $rec['ten_hien_thi'] ?? '');
+                $colIndex = 3;
+            } elseif ($type->ma_loai === 'sinh_vien') {
+                $sheet->setCellValue("A{$rowIndex}", $rec['ma_doi_tuong'] ?? '');
+                $sheet->setCellValue("B{$rowIndex}", $rec['ten_hien_thi'] ?? '');
+                $sheet->setCellValue("C{$rowIndex}", $rec['email'] ?? '');
+                $colIndex = 4;
+            } else {
+                $sheet->setCellValue("A{$rowIndex}", $rec['ma_doi_tuong'] ?? '');
+                $sheet->setCellValue("B{$rowIndex}", $rec['ten_hien_thi'] ?? '');
+                $colIndex = 3;
+            }
+
+            foreach ($fields as $field) {
+                $rawVal = $rec['attributes'][$field->ma_truong] ?? '';
+                $valStr = $rawVal;
+
+                if ($field->kieu_du_lieu === 'boolean') {
+                    $valStr = ($rawVal == '1' || $rawVal === 'true' || $rawVal === 'Có') ? 'Có' : 'Không';
+                } elseif (is_array($rawVal)) {
+                    $valStr = implode(', ', $rawVal);
+                }
+
+                $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+                $sheet->setCellValue("{$colLetter}{$rowIndex}", $valStr);
+                $colIndex++;
+            }
+            $sheet->getRowDimension($rowIndex)->setRowHeight(22);
+            $rowIndex++;
+        }
+
+        $lastRow = max(2, $rowIndex - 1);
+        $sheet->getStyle("A1:{$lastColLetter}{$lastRow}")->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '475569'],
+                ],
+            ],
+            'alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ]
+        ]);
+
+        for ($i = 1; $i <= count($headers); $i++) {
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i);
+            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $fileName = 'Danh_Sach_' . $type->ma_loai . '_' . date('Ymd_His') . '.xlsx';
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 }

@@ -128,13 +128,11 @@
                                                             <img :src="attr.value" class="rounded border mr-2" style="width: 50px; height: 50px; object-fit: cover;" />
                                                             <span class="small text-truncate font-weight-bold" style="max-width: 250px;">{{ getFileName(attr.value) }}</span>
                                                         </div>
-                                                        <div>
+                                                        <div class="d-flex align-items-center gap-1">
                                                             <a :href="attr.value" target="_blank" class="btn btn-sm btn-outline-primary mr-1" title="Xem ảnh">
                                                                 <i class="fas fa-eye"></i>
                                                             </a>
-                                                            <button type="button" @click="clearFile(attr)" class="btn btn-sm btn-outline-danger" title="Xóa">
-                                                                <i class="fas fa-trash-alt"></i>
-                                                            </button>
+                                                            <IconButton variant="red" icon="fas fa-trash-alt" title="Xóa" @click="clearFile(attr)" />
                                                         </div>
                                                     </div>
                                                     <input 
@@ -152,13 +150,11 @@
                                                             <i :class="getFileIconClass(attr.value) + ' fa-2x mr-2'"></i>
                                                             <span class="small text-truncate font-weight-bold" style="max-width: 250px;">{{ getFileName(attr.value) }}</span>
                                                         </div>
-                                                        <div>
+                                                        <div class="d-flex align-items-center gap-1">
                                                             <a :href="attr.value" target="_blank" download class="btn btn-sm btn-outline-primary mr-1" title="Tải tệp">
                                                                 <i class="fas fa-download"></i> Tải về
                                                             </a>
-                                                            <button type="button" @click="clearFile(attr)" class="btn btn-sm btn-outline-danger" title="Xóa">
-                                                                <i class="fas fa-trash-alt"></i>
-                                                            </button>
+                                                            <IconButton variant="red" icon="fas fa-trash-alt" title="Xóa" @click="clearFile(attr)" />
                                                         </div>
                                                     </div>
                                                     <input 
@@ -209,15 +205,14 @@
                                 </div>
 
                                 <div v-if="authStore.hasPermission('StudentPortalController.updateProfileData')" class="text-right mt-4 border-top pt-3">
-                                    <button 
-                                        type="submit" 
-                                        class="btn btn-primary px-4 shadow-sm"
-                                        :disabled="saving"
-                                    >
-                                        <i v-if="saving" class="fas fa-spinner fa-spin mr-1"></i>
-                                        <i v-else class="fas fa-save mr-1"></i>
-                                        Lưu thay đổi
-                                    </button>
+                                    <LTEButton
+                                        type="submit"
+                                        variant="primary"
+                                        :icon="saving ? 'fas fa-spinner fa-spin' : 'fas fa-save'"
+                                        text="Lưu thay đổi"
+                                        class="btn-sm text-xs font-weight-bold px-3 shadow-sm"
+                                        :is-disabled="saving"
+                                    />
                                 </div>
                             </form>
                         </div>
@@ -231,6 +226,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useAuthStore } from '@/store/auth';
+import LTEButton from '@/components/controls/LTEButton.vue';
+import IconButton from '@/components/controls/IconButton.vue';
 
 const authStore = useAuthStore();
 

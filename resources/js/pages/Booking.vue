@@ -15,10 +15,14 @@
                             <!-- Action header -->
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <h5 class="text-primary font-weight-bold mb-0">Danh sách lịch hẹn của bạn</h5>
-                                <button v-if="authStore.hasPermission('StudentPortalController.createBooking')" class="btn btn-info px-3 shadow-sm text-white" @click="openBookingModal">
-                                    <i class="fas fa-calendar-plus mr-1"></i>
-                                    Đặt lịch hẹn mới
-                                </button>
+                                <LTEButton 
+                                    v-if="authStore.hasPermission('StudentPortalController.createBooking')"
+                                    variant="info"
+                                    icon="fas fa-calendar-plus"
+                                    text="Đặt lịch hẹn mới"
+                                    class="btn-sm text-xs font-weight-bold px-3 shadow-sm text-white"
+                                    @click="openBookingModal"
+                                />
                             </div>
 
                             <!-- Bookings list -->
@@ -74,17 +78,17 @@
                     <div class="row">
                         <!-- Lecturer Select -->
                         <div class="col-12 mb-3">
-                            <label class="font-weight-bold small text-muted">Chọn Giảng viên <span class="text-danger">*</span></label>
-                            <select v-model="form.giang_vien_id" class="form-control" required>
-                                <option value="" disabled>-- Chọn giảng viên muốn đặt lịch --</option>
-                                <option 
-                                    v-for="gv in lecturers" 
-                                    :key="gv.id_giang_vien" 
-                                    :value="gv.id_giang_vien"
-                                >
-                                    {{ gv.ho_ten }} ({{ gv.email }})
-                                </option>
-                            </select>
+                            <LTESelect2Option 
+                                v-model="form.giang_vien_id" 
+                                :init-value="form.giang_vien_id"
+                                label="Chọn Giảng viên *" 
+                                placeholder="-- Chọn giảng viên muốn đặt lịch --" 
+                                :data="lecturers.map(gv => ({ value: gv.id_giang_vien, text: `${gv.ho_ten} (${gv.email})` }))" 
+                                :multiple="false" 
+                                :close-on-select="true" 
+                                :allow-clear="false" 
+                                :enable-data-watch="true" 
+                            />
                         </div>
 
                         <!-- Date/Time Select -->
@@ -119,6 +123,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useAuthStore } from '@/store/auth';
+import LTESelect2Option from '@/components/controls/LTESelect2Option.vue';
+import LTEButton from '@/components/controls/LTEButton.vue';
+import IconButton from '@/components/controls/IconButton.vue';
 
 const authStore = useAuthStore();
 const loading = ref(true);

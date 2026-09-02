@@ -23,6 +23,9 @@ class isLogin
             return redirect()->action([DangNhapController::class, 'dangNhapKeycloak']);
         }
 
+        if ($request->isMethod('GET')) {
+            $request->session()->save();
+        }
 
         return $next($request);
     }

@@ -1,6 +1,6 @@
 <template>
-    <div class="form-group">
-        <label v-if="label">{{ label }}</label>
+    <div :class="[hasLabel ? 'form-group mb-2' : 'm-0 p-0', extraClasses]">
+        <label v-if="hasLabel" :class="labelClass">{{ label }}</label>
         <select
             ref="select2"
             class="form-control custom-select"
@@ -15,6 +15,7 @@
 
 <script>
 export default {
+    name: 'LTESelect2Option',
     props: {
         data: Array,
         modelValue: [Array, String, Number],
@@ -28,8 +29,16 @@ export default {
             required: false,
             default: null,
         },
-        style: {
+        labelClass: {
             type: String,
+            default: 'font-weight-bold small text-muted text-xs mb-1',
+        },
+        class: {
+            type: String,
+            default: '',
+        },
+        style: {
+            type: [String, Object],
             required: false,
             default: '',
         },
@@ -65,7 +74,7 @@ export default {
         },
         dropdownParent: {
             type: [String, HTMLElement],
-            default: null,
+            default: 'body',
         },
         isDisabled: {
             type: [Boolean, Number],
@@ -74,8 +83,16 @@ export default {
         },
         enableDataWatch: {
             type: Boolean,
-            default: false,
+            default: true,
         },
+    },
+    computed: {
+        hasLabel() {
+            return this.label && String(this.label).trim() !== '';
+        },
+        extraClasses() {
+            return this.class || '';
+        }
     },
     mounted() {
         this.$nextTick(() => {
@@ -84,7 +101,6 @@ export default {
                     width: $(this).data('width') ? $(this).data('width') : $(this).hasClass('w-100') ? '100%' : 'style',
                     allowClear: this.allowClear,
                     closeOnSelect: this.closeOnSelect,
-                    // dropdownParent: $(this.$refs.select2).parent(),
                     dropdownParent: this.getDropdownParent(),
                     dropdownAutoWidth: this.dropdownAutoWidth,
                     minimumResultsForSearch: this.minimumResultsForSearch,
@@ -112,26 +128,29 @@ export default {
                     this.$emit('update:modelValue', selectedValues)
                     this.$emit('update:selectedValues', selectedValues, event)
                 })
-            } else {
             }
-
-            // document.querySelector('.select2-search__field').setAttribute('readonly', true);
         })
     },
     watch: {
         initValue(newVal) {
             this.$nextTick(() => {
-                $(this.$refs.select2).val(newVal).trigger('change.select2')
+                if (this.$refs.select2) {
+                    $(this.$refs.select2).val(newVal).trigger('change.select2')
+                }
             })
         },
-        //modelValue(newVal) {
-        //    this.$nextTick(() => {
-        //        $(this.$refs.select2).val(newVal).trigger("change");
-        //    });
-        //},
+        modelValue(newVal) {
+            this.$nextTick(() => {
+                if (this.$refs.select2) {
+                    $(this.$refs.select2).val(newVal).trigger('change.select2')
+                }
+            })
+        },
         isDisabled(newVal) {
             this.$nextTick(() => {
-                $(this.$refs.select2).prop('disabled', newVal)
+                if (this.$refs.select2) {
+                    $(this.$refs.select2).prop('disabled', newVal)
+                }
             })
         },
         data: {
@@ -179,17 +198,14 @@ export default {
             deep: true,
         },
     },
-    data() {
-        return {}
-    },
     methods: {
         getDropdownParent() {
             if (this.dropdownParent instanceof HTMLElement) {
                 return $(this.dropdownParent)
-            } else if (typeof this.dropdownParent === 'string') {
+            } else if (typeof this.dropdownParent === 'string' && this.dropdownParent.trim() !== '') {
                 return $(this.dropdownParent)
             } else {
-                return $(this.$refs.select2).parent()
+                return $('body')
             }
         },
     },
@@ -197,52 +213,106 @@ export default {
 </script>
 
 <style>
+/* Global Select2 styling matching form-control-sm text-xs across desktop and mobile */
+.select2-container--default .select2-selection--single {
+    height: 31px !important;
+    padding: 2px 6px !important;
+    font-size: 0.75rem !important;
+    line-height: 1.5 !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 0.25rem !important;
+    background-color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    font-size: 0.75rem !important;
+    color: #495057 !important;
+    padding-left: 2px !important;
+    padding-right: 18px !important;
+    margin-top: 0 !important;
+    line-height: 27px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 29px !important;
+    top: 1px !important;
+    right: 3px !important;
+}
+
+/* Select2 Multiple Selection styling */
+.select2-container--default .select2-selection--multiple {
+    min-height: 31px !important;
+    padding: 1px 4px !important;
+    font-size: 0.75rem !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 0.25rem !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    font-size: 0.75rem !important;
+    padding: 1px 6px !important;
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
+    background-color: #e9ecef !important;
+    border: 1px solid #adb5bd !important;
+    border-radius: 0.2rem !important;
+    color: #212529 !important;
+}
+
+/* Select2 Dropdown List styling attached to body */
+.select2-container--open {
+    z-index: 999999 !important;
+}
+
+.select2-container .select2-dropdown {
+    font-size: 0.75rem !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 0.25rem !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    z-index: 999999 !important;
+    background-color: #ffffff !important;
+}
+
 .select2-results__options {
-    max-height: 400px !important;
+    max-height: 250px !important;
     overflow-y: auto !important;
     scrollbar-width: thin;
 }
 
+.select2-container--default .select2-results__option {
+    padding: 5px 10px !important;
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #007bff !important;
+    color: #ffffff !important;
+}
+
+.select2-search--dropdown {
+    padding: 4px !important;
+}
+
+.select2-search--dropdown .select2-search__field {
+    padding: 3px 6px !important;
+    font-size: 0.75rem !important;
+    height: 26px !important;
+    border-radius: 0.2rem !important;
+    border: 1px solid #ced4da !important;
+}
+
 .select2-selection__clear {
-    /* margin-left: 15px !important; */
-    padding-left: 9px !important;
-    padding-right: 9px !important;
-    border-radius: 5px;
-    /* font-size: 20px; */
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    border-radius: 4px;
+    font-size: 0.75rem !important;
+    line-height: 27px !important;
 }
 
 .select2-selection__clear:hover {
-    background-color: #ccc;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-    margin-top: -4px;
-}
-
-.select2-container .select2-dropdown {
-    box-shadow:
-        rgba(0, 0, 0, 0.25) 0px 54px 55px,
-        rgba(0, 0, 0, 0.12) 0px -12px 30px,
-        rgba(0, 0, 0, 0.12) 0px 4px 6px,
-        rgba(0, 0, 0, 0.17) 0px 12px 13px,
-        rgba(0, 0, 0, 0.09) 0px -3px 5px;
-}
-
-@media (max-width: 768px) {
-    .select2-container .select2-results__option {
-        padding-top: 14px;
-        padding-bottom: 14px;
-    }
-
-    .select2-container--default .select2-selection--single {
-        height: 31px !important;
-        padding: 4px 8px !important;
-        font-size: 0.875rem !important;
-    }
-
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        top: 3px !important;
-        right: 3px !important;
-    }
+    background-color: #e2e8f0;
 }
 </style>

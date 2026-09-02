@@ -1,10 +1,10 @@
 <template>
-    <div class="form-group form-group-sm" :class="class" v-if="visible">
-        <label v-if="visibleLabel && label">{{ label }}</label>
+    <div :class="[hasLabel ? 'form-group mb-2' : 'm-0 p-0', extraClasses]" v-if="visible">
+        <label v-if="hasLabel" :class="labelClass">{{ label }}</label>
         <input
             :placeholder="placeholder"
             :type="type"
-            :class="[`${useUI.isMobile() ? 'form-control-sm' : ''}`, inputClass]"
+            :class="[inputClass]"
             :id="inputId"
             :value="modelValue"
             :disabled="isDisabled"
@@ -21,6 +21,10 @@ export default {
             type: String,
             default: '',
         },
+        labelClass: {
+            type: String,
+            default: 'font-weight-bold small text-muted text-xs mb-1',
+        },
         placeholder: {
             type: String,
             default: '',
@@ -31,7 +35,7 @@ export default {
         },
         inputClass: {
             type: String,
-            default: 'form-control',
+            default: 'form-control form-control-sm text-xs',
         },
         class: {
             type: String,
@@ -59,19 +63,12 @@ export default {
         },
     },
     computed: {
-        extraClasses() {
-            const classes = []
-
-            if (this.class) {
-                classes.push(this.class)
-            }
-
-            if (this.windowWidth < 768) {
-                classes.push('btn-sm')
-            }
-
-            return classes
+        hasLabel() {
+            return this.visibleLabel && this.label && String(this.label).trim() !== '';
         },
+        extraClasses() {
+            return this.class || '';
+        }
     },
     setup() {
         const useUI = useUIManager()

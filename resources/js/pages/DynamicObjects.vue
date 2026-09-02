@@ -19,7 +19,7 @@
                                     <button 
                                         class="nav-link font-weight-bold py-1 px-2.5 text-xs" 
                                         :class="{ active: activeTab === 'types' }" 
-                                        @click="activeTab = 'types'"
+                                        @click="switchTab('types')"
                                     >
                                         <i class="fas fa-list-ul mr-1"></i> Loại Đối Tượng
                                     </button>
@@ -28,7 +28,7 @@
                                     <button 
                                         class="nav-link font-weight-bold py-1 px-2.5 text-xs" 
                                         :class="{ active: activeTab === 'fields' }" 
-                                        @click="activeTab = 'fields'"
+                                        @click="switchTab('fields')"
                                     >
                                         <i class="fas fa-sliders-h mr-1"></i> Thuộc Tính Động
                                     </button>
@@ -37,7 +37,7 @@
                                     <button 
                                         class="nav-link font-weight-bold py-1 px-2.5 text-xs" 
                                         :class="{ active: activeTab === 'records' }" 
-                                        @click="activeTab = 'records'"
+                                        @click="switchTab('records')"
                                     >
                                         <i class="fas fa-database mr-1"></i> Dữ Liệu Đối Tượng
                                     </button>
@@ -51,13 +51,14 @@
                                         Danh mục Loại đối tượng 
                                         <span class="badge badge-light border text-muted ml-1">{{ types.length }} loại</span>
                                     </h6>
-                                    <button 
-                                        v-if="hasPermission('DynamicObjectController.saveType')" 
+                                    <LTEButton 
+                                        v-if="hasPermission('DynamicObjectController.putType')" 
+                                        variant="primary" 
+                                        icon="fas fa-plus" 
+                                        text="Thêm Loại đối tượng" 
+                                        class="btn-sm py-1 px-2 text-xs shadow-sm" 
                                         @click="openTypeModal()" 
-                                        class="btn btn-primary btn-sm py-1 px-2 text-xs shadow-sm"
-                                    >
-                                        <i class="fas fa-plus mr-1"></i> Thêm Loại đối tượng
-                                    </button>
+                                    />
                                 </div>
 
                                 <AppTable
@@ -98,7 +99,7 @@
                                     <template #actions="{ item }">
                                         <IconButton @click="configureFields(item)" variant="slate" icon="fas fa-sliders-h" title="Cấu hình Thuộc tính" />
                                         <IconButton @click="viewRecords(item)" variant="blue" icon="fas fa-database" title="Xem Dữ liệu đối tượng" />
-                                        <IconButton v-if="hasPermission('DynamicObjectController.saveType')" @click="openTypeModal(item)" variant="amber" icon="fas fa-edit" title="Chỉnh sửa" />
+                                        <IconButton v-if="hasPermission('DynamicObjectController.putType')" @click="openTypeModal(item)" variant="amber" icon="fas fa-edit" title="Chỉnh sửa" />
                                         <IconButton v-if="hasPermission('DynamicObjectController.deleteType') && !['giang_vien', 'sinh_vien'].includes(item.ma_loai)" @click="deleteType(item)" variant="red" icon="fas fa-trash-alt" title="Xóa" />
                                     </template>
                                 </AppTable>
@@ -109,25 +110,27 @@
                                 <div class="d-flex justify-content-between align-items-center mb-1.5">
                                     <div class="d-flex align-items-center">
                                         <label class="small font-weight-bold text-dark mb-0 mr-2 text-xs">Loại đối tượng:</label>
-                                        <select
-                                            :value="selectedTypeId"
-                                            @change="onTypeSelectChange($event.target.value)"
-                                            class="form-control form-control-sm font-weight-bold text-dark py-0"
-                                            style="width: auto; min-width: 180px; font-size: 0.78rem; height: 28px;"
-                                        >
-                                            <option v-for="option in typeSelectOptions" :key="option.value" :value="option.value">
-                                                {{ option.text }}
-                                            </option>
-                                        </select>
+                                        <LTESelect2Option
+                                            :model-value="selectedTypeId"
+                                            :init-value="selectedTypeId"
+                                            :data="typeSelectOptions"
+                                            :multiple="false"
+                                            :close-on-select="true"
+                                            :allow-clear="false"
+                                            :enable-data-watch="true"
+                                            @update:model-value="onTypeSelectChange"
+                                            style="width: 220px;"
+                                        />
                                         <span class="text-muted small ml-2 font-weight-normal">({{ fields.length }} thuộc tính - {{ Object.keys(groupedFields).length }} nhóm)</span>
                                     </div>
-                                    <button 
-                                        v-if="hasPermission('DynamicObjectController.saveField')" 
+                                    <LTEButton 
+                                        v-if="hasPermission('DynamicObjectController.putField')" 
+                                        variant="primary" 
+                                        icon="fas fa-plus" 
+                                        text="Thêm Thuộc tính" 
+                                        class="btn-sm py-1 px-2 text-xs shadow-sm" 
                                         @click="openFieldModal()" 
-                                        class="btn btn-primary btn-sm py-1 px-2 text-xs shadow-sm"
-                                    >
-                                        <i class="fas fa-plus mr-1"></i> Thêm Thuộc tính
-                                    </button>
+                                    />
                                 </div>
 
                                 <AppTable>
@@ -205,7 +208,7 @@
                                                     </td>
                                                     <td class="text-center py-1 px-2">
                                                         <div class="d-inline-flex align-items-center gap-1">
-                                                            <IconButton v-if="hasPermission('DynamicObjectController.saveField')" @click="openFieldModal(f)" variant="amber" icon="fas fa-edit" title="Chỉnh sửa Thuộc tính" />
+                                                            <IconButton v-if="hasPermission('DynamicObjectController.putField')" @click="openFieldModal(f)" variant="amber" icon="fas fa-edit" title="Chỉnh sửa Thuộc tính" />
                                                             <IconButton v-if="hasPermission('DynamicObjectController.deleteField')" @click="deleteField(f)" variant="red" icon="fas fa-trash-alt" title="Xóa Thuộc tính" />
                                                         </div>
                                                     </td>
@@ -226,25 +229,57 @@
                                 <div class="d-flex justify-content-between align-items-center mb-1.5">
                                     <div class="d-flex align-items-center">
                                         <label class="small font-weight-bold text-dark mb-0 mr-2 text-xs">Loại đối tượng:</label>
-                                        <select
-                                            :value="selectedTypeId"
-                                            @change="onTypeSelectChange($event.target.value)"
-                                            class="form-control form-control-sm font-weight-bold text-dark py-0"
-                                            style="width: auto; min-width: 180px; font-size: 0.78rem; height: 28px;"
-                                        >
-                                            <option v-for="option in typeSelectOptions" :key="option.value" :value="option.value">
-                                                {{ option.text }}
-                                            </option>
-                                        </select>
+                                        <LTESelect2Option
+                                            :model-value="selectedTypeId"
+                                            :init-value="selectedTypeId"
+                                            :data="typeSelectOptions"
+                                            :multiple="false"
+                                            :close-on-select="true"
+                                            :allow-clear="false"
+                                            :enable-data-watch="true"
+                                            @update:model-value="onTypeSelectChange"
+                                            style="width: 220px;"
+                                        />
                                         <span class="text-muted small ml-2 font-weight-normal">({{ records.length }} bản ghi)</span>
                                     </div>
-                                    <button 
-                                        v-if="hasPermission('DynamicObjectController.saveRecord')" 
-                                        @click="openRecordModal()" 
-                                        class="btn btn-success btn-sm py-1 px-2 text-xs shadow-sm"
-                                    >
-                                        <i class="fas fa-plus mr-1"></i> Thêm Bản ghi
-                                    </button>
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        <LTEButton 
+                                            variant="outline-primary" 
+                                            icon="fas fa-file-excel text-success" 
+                                            text="File Mẫu Excel" 
+                                            class="btn-sm py-1 px-2.5 text-xs font-weight-bold shadow-sm" 
+                                            title="Tải file mẫu Excel được tạo tự động theo thuộc tính đã cấu hình" 
+                                            @click="downloadImportTemplate()" 
+                                        />
+
+                                        <LTEButton 
+                                            v-if="hasPermission('DynamicObjectController.putRecord')" 
+                                            variant="info" 
+                                            icon="fas fa-file-import" 
+                                            text="Import Dữ Liệu" 
+                                            class="btn-sm py-1 px-2.5 text-xs font-weight-bold shadow-sm text-white" 
+                                            title="Chuyển sang trang Import & Phân tích Dữ liệu tập trung" 
+                                            @click="goToImportPage()" 
+                                        />
+
+                                        <LTEButton 
+                                            variant="outline-success" 
+                                            icon="fas fa-file-export" 
+                                            text="Xuất Dữ Liệu (Excel)" 
+                                            class="btn-sm py-1 px-2.5 text-xs font-weight-bold shadow-sm" 
+                                            title="Xuất toàn bộ danh sách bản ghi và dữ liệu thuộc tính ra file Excel (.xlsx)" 
+                                            @click="exportRecords()" 
+                                        />
+
+                                        <LTEButton 
+                                            v-if="hasPermission('DynamicObjectController.putRecord')" 
+                                            variant="success" 
+                                            icon="fas fa-plus" 
+                                            text="Thêm Bản ghi" 
+                                            class="btn-sm py-1 px-2.5 text-xs font-weight-bold shadow-sm" 
+                                            @click="openRecordModal()" 
+                                        />
+                                    </div>
                                 </div>
 
                                 <AppTable>
@@ -302,7 +337,7 @@
                                                 </td>
                                                 <td class="text-center py-1 px-2">
                                                     <div class="d-inline-flex align-items-center gap-1">
-                                                        <IconButton v-if="hasPermission('DynamicObjectController.saveRecord')" @click="openRecordModal(rec)" variant="amber" icon="fas fa-edit" title="Chỉnh sửa Bản ghi" />
+                                                        <IconButton v-if="hasPermission('DynamicObjectController.putRecord')" @click="openRecordModal(rec)" variant="amber" icon="fas fa-edit" title="Chỉnh sửa Bản ghi" />
                                                         <IconButton v-if="hasPermission('DynamicObjectController.deleteRecord')" @click="deleteRecord(rec)" variant="red" icon="fas fa-trash-alt" title="Xóa Bản ghi" />
                                                     </div>
                                                 </td>
@@ -348,12 +383,19 @@
                             </div>
                         </div>
                         <div class="flex justify-end gap-3 mt-6 pt-3 border-t border-slate-100">
-                            <button @click="showTypeModal = false" class="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:bg-slate-100">
-                                Hủy
-                            </button>
-                            <button @click="saveType" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-lg shadow">
-                                Lưu thông tin
-                            </button>
+                            <LTEButton 
+                                variant="light" 
+                                text="Hủy" 
+                                class="btn-sm text-xs font-weight-bold px-3 border" 
+                                @click="showTypeModal = false" 
+                            />
+                            <LTEButton 
+                                variant="primary" 
+                                icon="far fa-save" 
+                                text="Lưu thông tin" 
+                                class="btn-sm text-xs font-weight-bold px-3 shadow-sm" 
+                                @click="saveType" 
+                            />
                         </div>
                     </div>
                 </div>
@@ -390,33 +432,53 @@
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Kiểu Dữ Liệu</label>
-                                <select v-model="fieldForm.kieu_du_lieu" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                    <option value="">-- Chọn kiểu dữ liệu --</option>
-                                    <option v-for="opt in dataTypeOptions" :key="opt.value" :value="opt.value">
-                                        {{ opt.text }}
-                                    </option>
-                                </select>
+                                <LTESelect2Option
+                                    v-model="fieldForm.kieu_du_lieu"
+                                    :init-value="fieldForm.kieu_du_lieu"
+                                    placeholder="-- Chọn kiểu dữ liệu --"
+                                    :data="dataTypeOptions"
+                                    :multiple="false"
+                                    :close-on-select="true"
+                                    :allow-clear="false"
+                                    :enable-data-watch="true"
+                                />
                             </div>
 
                             <!-- Dynamic Reference Settings (Select / MultiSelect) -->
                             <div v-if="['select', 'multiselect'].includes(fieldForm.kieu_du_lieu)" class="p-3 bg-blue-50/50 rounded-lg border border-blue-200/60 space-y-3">
                                 <div>
                                     <label class="block text-[11px] font-bold text-blue-900 uppercase mb-1">Nguồn danh sách chọn</label>
-                                    <select v-model="fieldForm.lien_ket_loai_doi_tuong_id" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                        <option :value="null">📌 Tự định nghĩa danh sách tùy chọn bên dưới</option>
-                                        <option v-for="t in types" :key="t.id" :value="t.id">
-                                            🔗 Lấy tự động từ Danh mục: {{ t.ten_loai }}
-                                        </option>
-                                    </select>
+                                    <LTESelect2Option
+                                        v-model="fieldForm.lien_ket_loai_doi_tuong_id"
+                                        :init-value="fieldForm.lien_ket_loai_doi_tuong_id"
+                                        placeholder="-- Nguồn danh sách chọn --"
+                                        :data="[
+                                            { value: '', text: '📌 Tự định nghĩa danh sách tùy chọn bên dưới' },
+                                            ...types.map(t => ({ value: t.id, text: '🔗 Lấy tự động từ Danh mục: ' + t.ten_loai }))
+                                        ]"
+                                        :multiple="false"
+                                        :close-on-select="true"
+                                        :allow-clear="false"
+                                        :enable-data-watch="true"
+                                    />
                                 </div>
 
                                 <!-- Dynamic Linked Binding Rule (Save Ma vs Save Ten) -->
                                 <div v-if="fieldForm.lien_ket_loai_doi_tuong_id">
                                     <label class="block text-[11px] font-bold text-blue-900 uppercase mb-1">Giá trị lưu vào hệ thống</label>
-                                    <select v-model="fieldForm.cau_hinh.tieu_chuan_gia_tri" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                        <option value="ma">Mã đối tượng / Email (Khuyên dùng - Ràng buộc duy nhất)</option>
-                                        <option value="ten">Tên hiển thị (Tên đầy đủ của đối tượng)</option>
-                                    </select>
+                                    <LTESelect2Option
+                                        v-model="fieldForm.cau_hinh.tieu_chuan_gia_tri"
+                                        :init-value="fieldForm.cau_hinh.tieu_chuan_gia_tri"
+                                        placeholder="-- Giá trị lưu vào hệ thống --"
+                                        :data="[
+                                            { value: 'ma', text: 'Mã đối tượng / Email (Khuyên dùng - Ràng buộc duy nhất)' },
+                                            { value: 'ten', text: 'Tên hiển thị (Tên đầy đủ của đối tượng)' }
+                                        ]"
+                                        :multiple="false"
+                                        :close-on-select="true"
+                                        :allow-clear="false"
+                                        :enable-data-watch="true"
+                                    />
                                 </div>
 
                                 <!-- Manual Option List Chips -->
@@ -504,12 +566,19 @@
                             </div>
                         </div>
                         <div class="flex justify-end gap-2 mt-4 pt-2.5 border-t border-slate-100">
-                            <button @click="showFieldModal = false" class="px-3 py-1.5 text-slate-600 font-medium text-xs rounded-lg hover:bg-slate-100 transition-colors">
-                                Hủy
-                            </button>
-                            <button @click="saveField" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg shadow-2xs transition-all">
-                                Lưu thuộc tính
-                            </button>
+                            <LTEButton 
+                                variant="light" 
+                                text="Hủy" 
+                                class="btn-sm text-xs font-weight-bold px-3 border" 
+                                @click="showFieldModal = false" 
+                            />
+                            <LTEButton 
+                                variant="primary" 
+                                icon="far fa-save" 
+                                text="Lưu thuộc tính" 
+                                class="btn-sm text-xs font-weight-bold px-3 shadow-sm" 
+                                @click="saveField" 
+                            />
                         </div>
                     </div>
                 </div>
@@ -573,20 +642,17 @@
                                         ></textarea>
 
                                         <!-- Select Dropdown (Static or Dynamic Ref) -->
-                                        <select
+                                        <LTESelect2Option
                                             v-else-if="['select', 'multiselect'].includes(f.kieu_du_lieu)"
                                             v-model="recordForm.attributes[f.ma_truong]"
-                                            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                        >
-                                            <option value="">-- Chọn {{ f.ten_truong }} --</option>
-                                            <option 
-                                                v-for="opt in getOptionsForField(f)" 
-                                                :key="opt.value" 
-                                                :value="opt.value"
-                                            >
-                                                {{ opt.text }}
-                                            </option>
-                                        </select>
+                                            :init-value="recordForm.attributes[f.ma_truong]"
+                                            :placeholder="'-- Chọn ' + f.ten_truong + ' --'"
+                                            :data="getOptionsForField(f)"
+                                            :multiple="f.kieu_du_lieu === 'multiselect'"
+                                            :close-on-select="f.kieu_du_lieu !== 'multiselect'"
+                                            :allow-clear="true"
+                                            :enable-data-watch="true"
+                                        />
 
                                         <!-- Input for File / Image with Preview Card -->
                                         <div v-else-if="['file', 'image'].includes(f.kieu_du_lieu)" class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
@@ -648,12 +714,19 @@
                         </div>
 
                         <div class="flex justify-end gap-3 mt-6 pt-3 border-t border-slate-100">
-                            <button @click="showRecordModal = false" class="px-4 py-2 text-slate-600 font-medium text-sm rounded-lg hover:bg-slate-100">
-                                Hủy
-                            </button>
-                            <button @click="saveRecord" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm rounded-lg shadow">
-                                Lưu bản ghi
-                            </button>
+                            <LTEButton 
+                                variant="light" 
+                                text="Hủy" 
+                                class="btn-sm text-xs font-weight-bold px-3 border" 
+                                @click="showRecordModal = false" 
+                            />
+                            <LTEButton 
+                                variant="success" 
+                                icon="far fa-save" 
+                                text="Lưu bản ghi" 
+                                class="btn-sm text-xs font-weight-bold px-3 shadow-sm" 
+                                @click="saveRecord" 
+                            />
                         </div>
                     </div>
                 </div>
@@ -667,6 +740,235 @@
                         <img :src="previewImageUrl" class="w-full max-h-[80vh] object-contain rounded-xl" />
                     </div>
                 </div>
+                <!-- MODAL: BATCH IMPORT DỮ LIỆU -->
+                <div v-if="showImportModal" class="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 border border-slate-100 animate-fadeIn max-h-[92vh] overflow-y-auto">
+                        <!-- Modal Header -->
+                        <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-lg mb-0 flex items-center gap-2">
+                                    <i class="fas fa-file-import text-blue-600"></i> Import Dữ liệu Đối tượng
+                                </h3>
+                                <p class="text-xs text-slate-500 mb-0 mt-0.5" v-if="currentRecordType">
+                                    Loại đối tượng: <strong class="text-slate-800">{{ currentRecordType.ten_loai }}</strong> (Mã: <code>{{ currentRecordType.ma_loai }}</code>)
+                                </p>
+                            </div>
+                            <button @click="showImportModal = false" class="text-slate-400 hover:text-slate-600 p-1">
+                                <i class="fas fa-times text-lg"></i>
+                            </button>
+                        </div>
+
+                        <!-- Step Indicator -->
+                        <div class="flex items-center justify-center mb-5 gap-3">
+                            <div :class="['flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all', importStep === 1 ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500']">
+                                <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">1</span>
+                                <span>Chọn File & Chế độ</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+                            <div :class="['flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all', importStep === 2 ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500']">
+                                <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-xs">2</span>
+                                <span>Xem trước & Kiểm tra dữ liệu</span>
+                            </div>
+                        </div>
+
+                        <!-- STEP 1: UPLOAD & MODE SELECTION -->
+                        <div v-if="importStep === 1" class="space-y-5">
+                            <!-- Download Sample Excel Banner -->
+                            <div class="bg-blue-50/70 border border-blue-200/80 rounded-xl p-4 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm flex-shrink-0">
+                                        <i class="fas fa-file-excel"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-bold text-slate-800 text-sm mb-0">Tải tệp mẫu chuẩn Excel (.xlsx)</h5>
+                                        <p class="text-xs text-slate-600 mb-0 mt-0.5">
+                                            Tệp mẫu được tự động sinh dựa trên thuộc tính động đã cấu hình của loại đối tượng này.
+                                        </p>
+                                    </div>
+                                </div>
+                                <button @click="downloadImportTemplate()" class="btn btn-primary btn-sm px-3 font-weight-bold shadow-sm flex-shrink-0">
+                                    <i class="fas fa-download mr-1"></i> Tải File Mẫu
+                                </button>
+                            </div>
+
+                            <!-- Upload Dropzone -->
+                            <div class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-6 text-center bg-slate-50/50 hover:bg-blue-50/30 transition-all cursor-pointer relative" @click="$refs.fileInput.click()">
+                                <input ref="fileInput" type="file" accept=".xlsx,.xls,.csv" class="hidden" @change="onFileSelect" />
+                                <div v-if="!selectedFile">
+                                    <div class="w-14 h-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-3 text-2xl">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm mb-1">Nhấp vào đây hoặc kéo thả file Excel / CSV vào</h5>
+                                    <p class="text-xs text-slate-500 mb-0">Hỗ trợ định dạng: <code>.xlsx</code>, <code>.xls</code>, <code>.csv</code> (Dung lượng tối đa 10MB)</p>
+                                </div>
+                                <div v-else class="flex items-center justify-center gap-3 py-2">
+                                    <i class="fas fa-file-excel text-emerald-600 text-3xl"></i>
+                                    <div class="text-left">
+                                        <p class="font-bold text-slate-900 text-sm mb-0">{{ selectedFile.name }}</p>
+                                        <span class="text-xs text-slate-500">{{ (selectedFile.size / 1024).toFixed(1) }} KB</span>
+                                    </div>
+                                    <button @click.stop="selectedFile = null" class="ml-4 text-slate-400 hover:text-red-600 p-1">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Import Mode Options -->
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Chọn quy tắc xử lý khi trùng lặp (Mã đối tượng)</label>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <!-- Option 1: Upsert -->
+                                    <label :class="['border p-3 rounded-xl cursor-pointer transition-all flex items-start gap-2.5', importMode === 'upsert' ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500/20' : 'bg-white border-slate-200 hover:border-slate-300']">
+                                        <input type="radio" v-model="importMode" value="upsert" class="mt-0.5 text-blue-600 focus:ring-blue-500" />
+                                        <div>
+                                            <span class="font-bold text-slate-900 text-xs block">🔄 Thêm mới & Cập nhật</span>
+                                            <span class="text-[11px] text-slate-500 block leading-tight mt-0.5">Tự động thêm mới nếu chưa có, cập nhật dữ liệu nếu mã đã tồn tại.</span>
+                                        </div>
+                                    </label>
+
+                                    <!-- Option 2: Insert new only -->
+                                    <label :class="['border p-3 rounded-xl cursor-pointer transition-all flex items-start gap-2.5', importMode === 'insert_new' ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500/20' : 'bg-white border-slate-200 hover:border-slate-300']">
+                                        <input type="radio" v-model="importMode" value="insert_new" class="mt-0.5 text-blue-600 focus:ring-blue-500" />
+                                        <div>
+                                            <span class="font-bold text-slate-900 text-xs block">➕ Chỉ Thêm mới</span>
+                                            <span class="text-[11px] text-slate-500 block leading-tight mt-0.5">Thêm các bản ghi mới, tự động bỏ qua nếu mã đã tồn tại trong DB.</span>
+                                        </div>
+                                    </label>
+
+                                    <!-- Option 3: Update existing only -->
+                                    <label :class="['border p-3 rounded-xl cursor-pointer transition-all flex items-start gap-2.5', importMode === 'update_existing' ? 'bg-blue-50 border-blue-500 ring-2 ring-blue-500/20' : 'bg-white border-slate-200 hover:border-slate-300']">
+                                        <input type="radio" v-model="importMode" value="update_existing" class="mt-0.5 text-blue-600 focus:ring-blue-500" />
+                                        <div>
+                                            <span class="font-bold text-slate-900 text-xs block">✏️ Chỉ Cập nhật</span>
+                                            <span class="text-[11px] text-slate-500 block leading-tight mt-0.5">Cập nhật dữ liệu cho mã đã có, bỏ qua nếu mã chưa tồn tại.</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Footer Buttons -->
+                            <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                                <LTEButton 
+                                    variant="light" 
+                                    text="Hủy" 
+                                    class="btn-sm text-xs font-weight-bold px-3 border" 
+                                    @click="showImportModal = false" 
+                                />
+                                <LTEButton 
+                                    variant="primary" 
+                                    :icon="previewLoading ? 'fas fa-spinner fa-spin' : 'fas fa-search'" 
+                                    :text="previewLoading ? 'Đang đọc file...' : 'Kiểm tra & Xem trước Dữ liệu'" 
+                                    class="btn-sm text-xs font-weight-bold px-3 shadow-sm" 
+                                    :is-disabled="!selectedFile || previewLoading" 
+                                    @click="runPreviewImport" 
+                                />
+                            </div>
+                        </div>
+
+                        <!-- STEP 2: PREVIEW & VALIDATION TABLE -->
+                        <div v-else class="space-y-4">
+                            <!-- Stat Pills Summary -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div class="bg-slate-100 p-3 rounded-xl border border-slate-200 text-center">
+                                    <span class="text-xs text-slate-500 font-bold uppercase block">Tổng số hàng</span>
+                                    <span class="text-lg font-extrabold text-slate-800">{{ previewData.total_rows }}</span>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-xl border border-blue-200 text-center">
+                                    <span class="text-xs text-blue-600 font-bold uppercase block">➕ Thêm mới</span>
+                                    <span class="text-lg font-extrabold text-blue-700">{{ previewData.new_count }}</span>
+                                </div>
+                                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-200 text-center">
+                                    <span class="text-xs text-emerald-600 font-bold uppercase block">🔄 Cập nhật</span>
+                                    <span class="text-lg font-extrabold text-emerald-700">{{ previewData.update_count }}</span>
+                                </div>
+                                <div class="bg-red-50 p-3 rounded-xl border border-red-200 text-center">
+                                    <span class="text-xs text-red-600 font-bold uppercase block">⚠️ Lỗi / Không hợp lệ</span>
+                                    <span class="text-lg font-extrabold text-red-700">{{ previewData.error_count }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Error Auto-clear Option Banner -->
+                            <div v-if="previewData.error_count > 0" class="bg-amber-50/90 border border-amber-200/80 rounded-xl p-3 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-exclamation-triangle text-amber-600 text-sm"></i>
+                                    <span class="text-xs text-amber-900 font-semibold">Có {{ previewData.error_count }} hàng chứa giá trị thuộc tính không hợp lệ.</span>
+                                </div>
+                                <label class="d-inline-flex align-items-center gap-2 cursor-pointer mb-0">
+                                    <input type="checkbox" v-model="autoClearErrors" class="w-4 h-4 text-blue-600 rounded cursor-pointer" />
+                                    <span class="text-xs font-bold text-amber-900">Tự động bỏ trống ô bị lỗi thuộc tính & vẫn import bản ghi đó</span>
+                                </label>
+                            </div>
+
+                            <!-- Preview Data Table -->
+                            <div class="border border-slate-200 rounded-xl overflow-hidden max-h-[380px] overflow-y-auto">
+                                <table class="table table-hover table-striped app-table mb-0" style="font-size: 0.8rem;">
+                                    <thead class="thead-dark sticky-top">
+                                        <tr>
+                                            <th style="width: 40px;" class="text-center">#</th>
+                                            <th style="width: 130px;" class="text-center">Trạng thái</th>
+                                            <th>Mã đối tượng</th>
+                                            <th>Tên hiển thị</th>
+                                            <th v-if="currentRecordType && ['giang_vien', 'sinh_vien'].includes(currentRecordType.ma_loai)">Email</th>
+                                            <th v-for="f in previewData.fields" :key="f.id">{{ f.ten_truong }}</th>
+                                            <th>Ghi chú / Lỗi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="r in previewData.rows" :key="r.row_index" :class="r.action_type === 'error' ? 'bg-red-50/60' : ''">
+                                            <td class="text-center font-weight-bold text-muted">{{ r.row_index }}</td>
+                                            <td class="text-center">
+                                                <AppBadge v-if="r.action_type === 'new'" variant="primary">➕ Thêm mới</AppBadge>
+                                                <AppBadge v-else-if="r.action_type === 'update'" variant="success">🔄 Cập nhật</AppBadge>
+                                                <AppBadge v-else variant="danger">⚠️ Lỗi</AppBadge>
+                                            </td>
+                                            <td class="font-weight-bold text-dark">{{ r.ma_doi_tuong || '-' }}</td>
+                                            <td>{{ r.ten_hien_thi || '-' }}</td>
+                                            <td v-if="currentRecordType && ['giang_vien', 'sinh_vien'].includes(currentRecordType.ma_loai)">{{ r.email || '-' }}</td>
+                                            <td v-for="f in previewData.fields" :key="f.id">
+                                                {{ r.attributes[f.ma_truong] || '-' }}
+                                            </td>
+                                            <td>
+                                                <div v-if="r.errors && r.errors.length > 0" class="text-danger font-weight-bold text-xs">
+                                                    <div v-for="(err, i) in r.errors" :key="i">• {{ err }}</div>
+                                                </div>
+                                                <span v-else class="text-muted text-xs">Hợp lệ</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Footer Action Buttons -->
+                            <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+                                <LTEButton 
+                                    variant="outline-secondary" 
+                                    icon="fas fa-arrow-left" 
+                                    text="Quay lại chọn file" 
+                                    class="btn-sm text-xs font-weight-bold px-2.5" 
+                                    @click="importStep = 1" 
+                                />
+
+                                <div class="flex gap-2">
+                                    <LTEButton 
+                                        variant="light" 
+                                        text="Hủy" 
+                                        class="btn-sm text-xs font-weight-bold px-3 border" 
+                                        @click="showImportModal = false" 
+                                    />
+                                    <LTEButton 
+                                        variant="success" 
+                                        :icon="processLoading ? 'fas fa-spinner fa-spin' : 'fas fa-check-circle'" 
+                                        :text="processLoading ? 'Đang import...' : `Xác Nhận Import (${previewData.new_count + previewData.update_count} bản ghi)`" 
+                                        class="btn-sm text-xs font-weight-bold px-3 shadow-sm" 
+                                        :is-disabled="processLoading || (previewData.new_count === 0 && previewData.update_count === 0)" 
+                                        @click="executeProcessImport" 
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </Teleport>
         </template>
     </LTEContentWrapper>
@@ -675,9 +977,13 @@
 <script>
 import axios from 'axios'
 import { useAuthStore } from '@/store/auth'
+import LTESelect2Option from '@/components/controls/LTESelect2Option.vue'
+import LTEButton from '@/components/controls/LTEButton.vue'
+import IconButton from '@/components/controls/IconButton.vue'
 
 export default {
     name: 'DynamicObjects',
+    components: { LTESelect2Option, LTEButton, IconButton },
     data() {
         return {
             activeTab: 'types', // types | fields | records
@@ -694,6 +1000,23 @@ export default {
             dragOverField: null,
             dragOverGroup: null,
             dragOverPosition: 'above',
+
+            // Import State
+            showImportModal: false,
+            importStep: 1, // 1: Select file & mode, 2: Preview
+            importMode: 'upsert', // upsert | insert_new | update_existing
+            autoClearErrors: false,
+            selectedFile: null,
+            previewLoading: false,
+            processLoading: false,
+            previewData: {
+                total_rows: 0,
+                new_count: 0,
+                update_count: 0,
+                error_count: 0,
+                fields: [],
+                rows: []
+            },
 
             // Modals
             showTypeModal: false,
@@ -789,12 +1112,146 @@ export default {
             return groups
         }
     },
+    watch: {
+        '$route.query'(newQuery) {
+            if (newQuery.tab && ['types', 'fields', 'records'].includes(newQuery.tab)) {
+                this.activeTab = newQuery.tab
+            }
+            if (newQuery.loai_doi_tuong_id && this.types.some(t => t.id == newQuery.loai_doi_tuong_id)) {
+                this.selectedTypeId = parseInt(newQuery.loai_doi_tuong_id)
+            }
+            if (this.activeTab === 'fields') {
+                this.loadFields()
+            } else if (this.activeTab === 'records') {
+                this.loadRecords()
+            }
+        }
+    },
     mounted() {
         this.loadTypes()
     },
     methods: {
         hasPermission(perm) {
             return useAuthStore().hasPermission(perm)
+        },
+        // Import Methods
+        downloadImportTemplate() {
+            if (!this.selectedTypeId) {
+                if (window.func && window.func.toastError) {
+                    window.func.toastError('Vui lòng chọn loại đối tượng trước!');
+                }
+                return;
+            }
+            const url = route('DynamicObjectController.exportImportTemplate', { loai_doi_tuong_id: this.selectedTypeId });
+            window.open(url, '_blank');
+        },
+
+        goToImportPage() {
+            if (!this.selectedTypeId) {
+                if (window.func && window.func.toastError) {
+                    window.func.toastError('Vui lòng chọn loại đối tượng trước!');
+                }
+                return;
+            }
+            this.$router.push({
+                name: 'router-portal-doi-tuong-dong-import',
+                query: { loai_doi_tuong_id: this.selectedTypeId }
+            });
+        },
+
+        exportRecords() {
+            if (!this.selectedTypeId) {
+                if (window.func && window.func.toastError) {
+                    window.func.toastError('Vui lòng chọn loại đối tượng để xuất dữ liệu!');
+                }
+                return;
+            }
+            const url = route('DynamicObjectController.exportRecords', { loai_doi_tuong_id: this.selectedTypeId });
+            window.open(url, '_blank');
+        },
+
+        openImportModal() {
+            if (!this.selectedTypeId) {
+                if (window.func && window.func.toastError) {
+                    window.func.toastError('Vui lòng chọn loại đối tượng để import!');
+                }
+                return;
+            }
+            this.importStep = 1;
+            this.selectedFile = null;
+            this.importMode = 'upsert';
+            this.previewData = { total_rows: 0, new_count: 0, update_count: 0, error_count: 0, fields: [], rows: [] };
+            this.showImportModal = true;
+        },
+
+        onFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                this.selectedFile = file;
+            }
+        },
+
+        async runPreviewImport() {
+            if (!this.selectedFile) {
+                if (window.func && window.func.toastError) {
+                    window.func.toastError('Vui lòng chọn tệp Excel hoặc CSV để import!');
+                }
+                return;
+            }
+            this.previewLoading = true;
+            try {
+                const formData = new FormData();
+                formData.append('file', this.selectedFile);
+                formData.append('loai_doi_tuong_id', this.selectedTypeId);
+
+                const response = await axios.post(route('DynamicObjectController.putPreviewImport'), formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+
+                if (response.data.status === 200) {
+                    this.previewData = response.data.data;
+                    this.importStep = 2;
+                }
+            } catch (err) {
+                console.error('Error previewing import:', err);
+                const msg = err.response?.data?.message || 'Không thể đọc dữ liệu từ tệp import!';
+                if (window.func && window.func.toastError) {
+                    window.func.toastError(msg);
+                }
+            } finally {
+                this.previewLoading = false;
+            }
+        },
+
+        async executeProcessImport() {
+            if (!this.previewData.rows || this.previewData.rows.length === 0) return;
+            
+            this.processLoading = true;
+            try {
+                const payload = {
+                    loai_doi_tuong_id: this.selectedTypeId,
+                    mode: this.importMode,
+                    auto_clear_errors: this.autoClearErrors,
+                    rows: this.previewData.rows
+                };
+
+                const response = await axios.post(route('DynamicObjectController.putProcessImport'), payload);
+                if (response.data.status === 200) {
+                    if (window.func && window.func.toastSuccess) {
+                        window.func.toastSuccess(response.data.message);
+                    }
+                    this.showImportModal = false;
+                    this.fetchRecords();
+                }
+            } catch (err) {
+                console.error('Error processing import:', err);
+                const msg = err.response?.data?.message || 'Xử lý Import thất bại!';
+                if (window.func && window.func.toastError) {
+                    window.func.toastError(msg);
+                }
+            } finally {
+                this.processLoading = false;
+            }
         },
         // Drag & Drop handlers
         onDragStart(event, field, groupName) {
@@ -910,7 +1367,7 @@ export default {
 
             // Save new sequential order to backend database
             try {
-                const res = await axios.post(route('DynamicObjectController.reorderFields'), { orders })
+                const res = await axios.post(route('DynamicObjectController.updateFieldOrders'), { orders })
                 if (res.data.status === 200 && window.toastr) {
                     window.toastr.success('Cập nhật thứ tự và đánh số lại thành công!')
                 }
@@ -919,13 +1376,39 @@ export default {
             }
         },
 
+        switchTab(tabName) {
+            this.activeTab = tabName
+            if (tabName === 'types') {
+                this.loadTypes()
+            } else if (tabName === 'fields') {
+                this.loadFields()
+            } else if (tabName === 'records') {
+                this.loadRecords()
+            }
+        },
+
         async loadTypes() {
             try {
                 const res = await axios.get(route('DynamicObjectController.getTypes'))
                 if (res.data.status === 200) {
                     this.types = res.data.data
-                    if (this.types.length > 0 && !this.selectedTypeId) {
+                    const queryTab = this.$route?.query?.tab
+                    const queryTypeId = this.$route?.query?.loai_doi_tuong_id
+
+                    if (queryTab && ['types', 'fields', 'records'].includes(queryTab)) {
+                        this.activeTab = queryTab
+                    }
+
+                    if (queryTypeId && this.types.some(t => t.id == queryTypeId)) {
+                        this.selectedTypeId = parseInt(queryTypeId)
+                    } else if (this.types.length > 0 && !this.selectedTypeId) {
                         this.selectedTypeId = this.types[0].id
+                    }
+
+                    if (this.activeTab === 'fields') {
+                        this.loadFields()
+                    } else if (this.activeTab === 'records') {
+                        this.loadRecords()
                     }
                 }
             } catch (err) {
@@ -955,6 +1438,9 @@ export default {
         },
 
         async loadFields() {
+            if (!this.selectedTypeId && this.types && this.types.length > 0) {
+                this.selectedTypeId = this.types[0].id
+            }
             if (!this.selectedTypeId) return
             try {
                 const res = await axios.get(route('DynamicObjectController.getFields'), {
@@ -970,6 +1456,9 @@ export default {
         },
 
         async loadRecords() {
+            if (!this.selectedTypeId && this.types && this.types.length > 0) {
+                this.selectedTypeId = this.types[0].id
+            }
             if (!this.selectedTypeId) return
             try {
                 const res = await axios.get(route('DynamicObjectController.getRecords'), {
@@ -1071,7 +1560,7 @@ export default {
 
         async saveType() {
             try {
-                const res = await axios.post(route('DynamicObjectController.saveType'), this.typeForm)
+                const res = await axios.post(route('DynamicObjectController.putType'), this.typeForm)
                 if (res.data.status === 200) {
                     if (window.func && window.func.toastSuccess) {
                         window.func.toastSuccess(res.data.message)
@@ -1245,7 +1734,7 @@ export default {
         async saveFieldOrder() {
             try {
                 const orders = this.fields.map((f, i) => ({ id: f.id, thu_tu: i + 1 }))
-                const res = await axios.post(route('DynamicObjectController.reorderFields'), { orders })
+                const res = await axios.post(route('DynamicObjectController.updateFieldOrders'), { orders })
                 if (res.data.status === 200 && window.func && window.func.toastSuccess) {
                     window.func.toastSuccess('Đã cập nhật thứ tự thuộc tính!')
                 }
@@ -1261,7 +1750,7 @@ export default {
                 if (['select', 'multiselect'].includes(this.fieldForm.kieu_du_lieu) && !this.fieldForm.lien_ket_loai_doi_tuong_id) {
                     this.fieldForm.lua_chon = JSON.stringify(this.optionList)
                 }
-                const res = await axios.post(route('DynamicObjectController.saveField'), this.fieldForm)
+                const res = await axios.post(route('DynamicObjectController.putField'), this.fieldForm)
                 if (res.data.status === 200) {
                     if (window.func && window.func.toastSuccess) {
                         window.func.toastSuccess(res.data.message)
@@ -1344,7 +1833,7 @@ export default {
                     }
                 }
 
-                const res = await axios.post(route('DynamicObjectController.saveRecord'), formData, {
+                const res = await axios.post(route('DynamicObjectController.putRecord'), formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 })
 
