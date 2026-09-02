@@ -19,6 +19,7 @@ import TablePro from './controls/TablePro.vue'
 import IconButton from './controls/IconButton.vue'
 import AppBadge from './controls/AppBadge.vue'
 import AppTable from './controls/AppTable.vue'
+import Toast from './controls/Toast.vue'
 
 // Đăng ký toàn cục các component
 const globalComponents = {
@@ -44,6 +45,7 @@ const globalComponents = {
         app.component('IconButton', IconButton)
         app.component('AppBadge', AppBadge)
         app.component('AppTable', AppTable)
+        app.component('Toast', Toast)
     },
 }
 export default globalComponents

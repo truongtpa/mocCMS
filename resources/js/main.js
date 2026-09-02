@@ -8,6 +8,7 @@ import { ZiggyVue } from 'ziggy-js'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import * as Sentry from '@sentry/vue'
+import func from './utils/func'
 import './utils/monaco'
 
 const app = createApp(App)
@@ -26,5 +27,5 @@ app.use(ZiggyVue)
 app.use(router)
 app.use(globalComponents)
 app.config.globalProperties.$axios = window.axios
-app.config.globalProperties.$func = window.func
+app.config.globalProperties.$func = func
 app.mount('#app')

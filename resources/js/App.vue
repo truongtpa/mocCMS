@@ -121,6 +121,9 @@
     <div v-once>
         <LTEFooter />
     </div>
+
+    <!-- Global Toast Container -->
+    <Toast />
 </template>
 
 <script>

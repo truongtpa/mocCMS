@@ -1658,7 +1658,8 @@ export default {
         },
 
         async saveLayoutConfig() {
-            if (!this.selectedTypeId) return
+            if (!this.selectedTypeId || this.savingLayout) return
+            this.savingLayout = true
             try {
                 const layoutItems = this.layoutFields.map((f, idx) => ({
                     id: f.id,
@@ -1678,6 +1679,8 @@ export default {
                 }
             } catch (err) {
                 console.error(err)
+            } finally {
+                this.savingLayout = false
             }
         },
 

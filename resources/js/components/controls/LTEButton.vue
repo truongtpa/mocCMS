@@ -18,6 +18,7 @@
 <script>
 export default {
     name: 'LTEButton',
+    emits: ['click'],
     props: {
         variant: {
             type: String,
