@@ -62,7 +62,7 @@ class StudentPortalController extends Controller
                             ->where('truong_id', $attr->id)
                             ->first();
                         $attr->value = $val ? $val->gia_tri : '';
-                        $attr->cho_phep_chinh_sua = true;
+                        $attr->cho_phep_chinh_sua = (bool)($attr->cho_phep_chinh_sua ?? true);
                         $refOptions = \App\Http\Controllers\DynamicObjectController::resolveAttributeOptions($attr);
                         if ($refOptions !== null) {
                             $attr->ref_options = $refOptions;
@@ -110,7 +110,7 @@ class StudentPortalController extends Controller
                             ->where('truong_id', $attr->id)
                             ->first();
                         $attr->value = $val ? $val->gia_tri : '';
-                        $attr->cho_phep_chinh_sua = true;
+                        $attr->cho_phep_chinh_sua = (bool)($attr->cho_phep_chinh_sua ?? true);
                         $refOptions = \App\Http\Controllers\DynamicObjectController::resolveAttributeOptions($attr);
                         if ($refOptions !== null) {
                             $attr->ref_options = $refOptions;
@@ -176,6 +176,11 @@ class StudentPortalController extends Controller
         foreach ($attrsRaw as $attr) {
             $truongId = $attr['truong_id'] ?? null;
             if (!$truongId) continue;
+
+            $fieldDef = DB::table('danh_muc_truong')->where('id', $truongId)->first();
+            if ($fieldDef && isset($fieldDef->cho_phep_chinh_sua) && !$fieldDef->cho_phep_chinh_sua) {
+                continue;
+            }
 
             $val = $attr['gia_tri'] ?? '';
 

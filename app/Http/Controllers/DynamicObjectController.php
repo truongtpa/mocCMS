@@ -153,6 +153,7 @@ class DynamicObjectController extends Controller
         $lienKetLoaiDoiTuongId = $request->input('lien_ket_loai_doi_tuong_id');
         $luaChon = $request->input('lua_chon');
         $batBuoc = $request->input('bat_buoc', false);
+        $choPhepChinhSua = $request->input('cho_phep_chinh_sua', true);
         $cauHinh = $request->input('cau_hinh');
 
         $data = [
@@ -163,6 +164,7 @@ class DynamicObjectController extends Controller
             'trang_thai' => $trangThai,
             'thu_tu' => $thuTu,
             'bat_buoc' => (bool)$batBuoc,
+            'cho_phep_chinh_sua' => (bool)$choPhepChinhSua,
             'lien_ket_loai_doi_tuong_id' => $lienKetLoaiDoiTuongId ? intval($lienKetLoaiDoiTuongId) : null,
             'lua_chon' => is_array($luaChon) ? json_encode($luaChon, JSON_UNESCAPED_UNICODE) : $luaChon,
             'cau_hinh' => is_array($cauHinh) ? json_encode($cauHinh, JSON_UNESCAPED_UNICODE) : $cauHinh,
@@ -420,6 +422,9 @@ class DynamicObjectController extends Controller
 
         $fields = DB::table('danh_muc_truong')->where('loai_doi_tuong_id', $loaiDoiTuongId)->get();
         foreach ($fields as $field) {
+            if ($id && isset($field->cho_phep_chinh_sua) && !$field->cho_phep_chinh_sua) {
+                continue;
+            }
             $val = null;
             if ($request->hasFile("attributes.{$field->ma_truong}")) {
                 $uploadedFile = $request->file("attributes.{$field->ma_truong}");
