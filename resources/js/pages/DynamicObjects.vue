@@ -301,13 +301,13 @@
                                     <template #thead>
                                         <thead style="background-color: #007bff !important;">
                                             <tr>
-                                                <th style="width: 45px;" class="text-center py-1.5 px-2 text-white font-weight-bold text-xs border-0">#</th>
-                                                <th v-if="currentRecordType && currentRecordType.ma_loai !== 'giang_vien'" class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">{{ getCodeHeaderLabel() }}</th>
-                                                <th class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">{{ getNameHeaderLabel() }}</th>
-                                                <th v-for="f in recordFields" :key="f.id" class="py-1.5 px-2 text-white font-weight-bold text-xs border-0">
+                                                <th style="width: 45px; min-width: 45px;" class="text-center py-2 px-2.5 text-white font-weight-bold text-xs border-0 text-nowrap">#</th>
+                                                <th v-if="currentRecordType && currentRecordType.ma_loai !== 'giang_vien'" style="min-width: 140px;" class="py-2 px-2.5 text-white font-weight-bold text-xs border-0 text-nowrap">{{ getCodeHeaderLabel() }}</th>
+                                                <th style="min-width: 180px;" class="py-2 px-2.5 text-white font-weight-bold text-xs border-0 text-nowrap">{{ getNameHeaderLabel() }}</th>
+                                                <th v-for="f in recordFields" :key="f.id" style="min-width: 140px;" class="py-2 px-2.5 text-white font-weight-bold text-xs border-0 text-nowrap">
                                                     {{ f.ten_truong }}
                                                 </th>
-                                                <th class="text-center py-1.5 px-2 text-white font-weight-bold text-xs border-0" style="width: 10%;">Thao tác</th>
+                                                <th class="text-center py-2 px-2.5 text-white font-weight-bold text-xs border-0 text-nowrap sticky-actions-col" style="width: 100px; min-width: 100px;">Thao tác</th>
                                             </tr>
                                         </thead>
                                     </template>
@@ -350,7 +350,7 @@
                                                         {{ rec.attributes[f.ma_truong] || '-' }}
                                                     </template>
                                                 </td>
-                                                <td class="text-center py-1 px-2">
+                                                <td class="text-center py-1 px-2 sticky-actions-col">
                                                     <div class="d-inline-flex align-items-center gap-1">
                                                         <IconButton v-if="hasPermission('DynamicObjectController.putRecord')" @click="openRecordModal(rec)" variant="amber" icon="fas fa-edit" title="Chỉnh sửa Bản ghi" />
                                                         <IconButton v-if="hasPermission('DynamicObjectController.deleteRecord')" @click="deleteRecord(rec)" variant="red" icon="fas fa-trash-alt" title="Xóa Bản ghi" />
@@ -2176,6 +2176,38 @@ export default {
     border-bottom: none !important;
     border-top: none !important;
     font-weight: 700 !important;
+}
+
+/* Ensure sticky columns work with separate borders */
+.app-table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+.sticky-actions-col {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    right: 0 !important;
+    z-index: 10 !important;
+    box-shadow: -3px 0 6px -2px rgba(0, 0, 0, 0.15) !important;
+}
+
+thead th.sticky-actions-col {
+    z-index: 15 !important;
+    background-color: #007bff !important;
+    color: #ffffff !important;
+}
+
+tbody td.sticky-actions-col {
+    background-color: #ffffff !important;
+}
+
+tbody tr:nth-of-type(odd) td.sticky-actions-col {
+    background-color: #f8fafc !important;
+}
+
+tbody tr:hover td.sticky-actions-col {
+    background-color: #f1f5f9 !important;
 }
 
 /* Drag & Drop Visual Effects */

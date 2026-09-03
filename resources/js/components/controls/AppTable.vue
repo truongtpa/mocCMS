@@ -19,11 +19,11 @@
                             :key="col.key"
                             :style="{
                                 width: col.width || 'auto',
-                                minWidth: col.minWidth || 'auto',
+                                minWidth: col.minWidth || '120px',
                                 maxWidth: col.maxWidth || 'auto',
                                 textAlign: col.align || 'left'
                             }"
-                            class="py-1.5 px-2 text-white font-weight-bold text-xs border-0"
+                            class="py-2 px-2.5 text-white font-weight-bold text-xs border-0 text-nowrap"
                         >
                             <slot :name="`header-${col.key}`" :column="col">
                                 {{ col.label }}
@@ -31,8 +31,8 @@
                         </th>
                         <th
                             v-if="hasActionsSlot"
-                            :style="{ width: actionsWidth || '90px', textAlign: 'center' }"
-                            class="py-1.5 px-2 text-white font-weight-bold text-xs border-0"
+                            :style="{ width: actionsWidth || '90px', minWidth: actionsWidth || '90px', textAlign: 'center' }"
+                            class="py-2 px-2.5 text-white font-weight-bold text-xs border-0 text-nowrap sticky-actions-col"
                         >
                             {{ actionsLabel || 'Thao tác' }}
                         </th>
@@ -48,13 +48,13 @@
                                 v-for="col in columns"
                                 :key="col.key"
                                 :style="{ textAlign: col.align || 'left' }"
-                                class="py-1 px-2 text-xs"
+                                class="py-2 px-2.5 text-xs text-nowrap"
                             >
                                 <slot :name="`col-${col.key}`" :item="item" :index="index">
                                     {{ item[col.key] }}
                                 </slot>
                             </td>
-                            <td v-if="hasActionsSlot" class="text-center py-1 px-2 text-xs">
+                            <td v-if="hasActionsSlot" class="text-center py-2 px-2.5 text-xs text-nowrap sticky-actions-col">
                                 <div class="d-inline-flex align-items-center gap-1">
                                     <slot name="actions" :item="item" :index="index"></slot>
                                 </div>
@@ -130,7 +130,48 @@ const totalColumns = computed(() => {
 </script>
 
 <style scoped>
+.table-responsive {
+    overflow-x: auto !important;
+    position: relative !important;
+    -webkit-overflow-scrolling: touch;
+}
+
 .app-table {
     margin-bottom: 0 !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+.app-table th,
+.app-table td {
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+}
+
+/* Sticky Action Column */
+.sticky-actions-col {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    right: 0 !important;
+    z-index: 10 !important;
+    box-shadow: -3px 0 6px -2px rgba(0, 0, 0, 0.15) !important;
+}
+
+thead th.sticky-actions-col {
+    z-index: 15 !important;
+    background-color: #007bff !important;
+    color: #ffffff !important;
+}
+
+tbody td.sticky-actions-col {
+    background-color: #ffffff !important;
+}
+
+tbody tr:nth-of-type(odd) td.sticky-actions-col {
+    background-color: #f8fafc !important;
+}
+
+tbody tr:hover td.sticky-actions-col {
+    background-color: #f1f5f9 !important;
 }
 </style>
