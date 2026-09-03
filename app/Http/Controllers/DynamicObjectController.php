@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Response;
+use App\Services\S3Services;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -224,10 +225,28 @@ class DynamicObjectController extends Controller
             return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
         }
 
-        $deleted = DB::table('danh_muc_truong')->where('id', $id)->delete();
-        if ($deleted === 0) {
+        $field = DB::table('danh_muc_truong')->where('id', $id)->first();
+        if (!$field) {
             return Response::Error('Không tìm thấy', 'Không tìm thấy thuộc tính!');
         }
+
+        // Tự động xóa các file/ảnh đã upload trên MinIO nếu thuộc tính bị xóa là file/image
+        if (in_array($field->kieu_du_lieu, ['file', 'image'])) {
+            $oldFiles = DB::table('gia_tri_thong_tin')
+                ->where('truong_id', $id)
+                ->whereNotNull('gia_tri')
+                ->where('gia_tri', '!=', '')
+                ->pluck('gia_tri')
+                ->toArray();
+            if (!empty($oldFiles)) {
+                \App\Services\S3Services::xoaHangLoat($oldFiles);
+            }
+        }
+
+        DB::transaction(function () use ($id) {
+            DB::table('gia_tri_thong_tin')->where('truong_id', $id)->delete();
+            DB::table('danh_muc_truong')->where('id', $id)->delete();
+        });
 
         return Response::Success([], 'Xóa thuộc tính thành công!');
     }
@@ -337,7 +356,11 @@ class DynamicObjectController extends Controller
                 foreach ($fields as $field) {
                     $keyPrimary = $mId . '_' . $field->id;
                     $keyAlt = $altId . '_' . $field->id;
-                    $rec['attributes'][$field->ma_truong] = $valMap[$keyPrimary] ?? $valMap[$keyAlt] ?? '';
+                    $val = $valMap[$keyPrimary] ?? $valMap[$keyAlt] ?? '';
+                    if (in_array($field->kieu_du_lieu, ['image', 'file']) && !empty($val)) {
+                        $val = S3Services::urlCongKhai($val);
+                    }
+                    $rec['attributes'][$field->ma_truong] = $val;
                 }
             }
         }
@@ -443,6 +466,29 @@ class DynamicObjectController extends Controller
             }
 
             if ($val !== null) {
+                if (is_string($val) && in_array($field->kieu_du_lieu, ['file', 'image'])) {
+                    if (str_contains($val, '?')) {
+                        $val = explode('?', $val)[0];
+                    }
+                    $bucket = env('AWS_BUCKET', 'daotao-vlute-edu-vn');
+                    if (str_contains($val, '/' . $bucket . '/')) {
+                        $parts = explode('/' . $bucket . '/', $val);
+                        $val = end($parts);
+                    } elseif (str_starts_with($val, 'http://') || str_starts_with($val, 'https://')) {
+                        $parsed = parse_url($val, PHP_URL_PATH);
+                        $val = ltrim($parsed ?? '', '/');
+                    }
+                    $val = ltrim($val, '/');
+
+                    // Auto delete old S3 file if replaced
+                    $oldRow = DB::table('gia_tri_thong_tin')
+                        ->where('doi_tuong_id', $masterDoiTuongId)
+                        ->where('truong_id', $field->id)
+                        ->first();
+                    if ($oldRow && !empty($oldRow->gia_tri) && $oldRow->gia_tri !== $val) {
+                        \App\Services\S3Services::xoaFile($oldRow->gia_tri);
+                    }
+                }
                 DB::table('gia_tri_thong_tin')->updateOrInsert(
                     [
                         'doi_tuong_id' => $masterDoiTuongId,
@@ -557,14 +603,11 @@ class DynamicObjectController extends Controller
 
         $path = $uploadedFile->store('dynamic_uploads', $targetDisk);
         if ($path) {
-            $s3Endpoint = env('AWS_PUBLIC_ENDPOINT', env('AWS_ENDPOINT', 'http://localhost:9000'));
-            $bucket = env('AWS_BUCKET', 'daotao-vlute-edu-vn');
-            
-            return rtrim($s3Endpoint, '/') . '/' . $bucket . '/' . $path;
+            return $path;
         }
 
         $path = $uploadedFile->store('public/uploads');
-        return '/storage/' . str_replace('public/', '', $path);
+        return str_replace('public/', '', $path);
     }
 
     public static function resolveAttributeOptions($attr)

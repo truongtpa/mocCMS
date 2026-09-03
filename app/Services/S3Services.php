@@ -207,10 +207,51 @@ class S3Services
         }
     }
 
-    /** URL công khai của một object key trên MinIO. */
-    public static function urlCongKhai(string $path): string
+    /** URL công khai (Presigned URL kèm Token xác thực) của một object key trên MinIO. */
+    public static function urlCongKhai(?string $path): string
     {
-        return Storage::disk('minio')->url($path);
+        if (empty($path)) {
+            return '';
+        }
+
+        // Tách bỏ query parameters (?X-Amz-...) cũ nếu có để luôn ký token mới tươi
+        if (str_contains($path, '?')) {
+            $path = explode('?', $path)[0];
+        }
+
+        // Nếu là URL đầy đủ, tách lấy relative object path
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            $bucket = env('AWS_BUCKET', 'daotao-vlute-edu-vn');
+            if (str_contains($path, '/' . $bucket . '/')) {
+                $parts = explode('/' . $bucket . '/', $path);
+                $path = end($parts);
+            } else {
+                $parsed = parse_url($path, PHP_URL_PATH);
+                $path = ltrim($parsed ?? '', '/');
+            }
+        }
+
+        $path = ltrim($path, '/');
+
+        // Nếu không chứa '/' và không có đuôi file hợp lệ -> Chuỗi văn bản thuần (vd: 'Dữ liệu mẫu')
+        $hasExtension = (bool)preg_match('/\.(png|jpg|jpeg|gif|webp|pdf|doc|docx|xls|xlsx|zip|rar|csv|txt|json)$/i', $path);
+        if (!str_contains($path, '/') && !$hasExtension) {
+            return $path;
+        }
+
+        try {
+            $s3 = new static();
+            $signedUrl = $s3->linkTaiFile($path);
+            if (!empty($signedUrl)) {
+                return $signedUrl;
+            }
+        } catch (\Throwable $e) {
+            // Fallback khi không ký được
+        }
+
+        $publicEndpoint = rtrim(env('AWS_PUBLIC_ENDPOINT', env('AWS_ENDPOINT', 'http://localhost:9000')), '/');
+        $bucket = env('AWS_BUCKET', 'daotao-vlute-edu-vn');
+        return $publicEndpoint . '/' . $bucket . '/' . $path;
     }
 
     /** File có tồn tại trên MinIO không (path rỗng hoặc URL ngoài luôn là không). */
@@ -243,6 +284,39 @@ class S3Services
 
             return false;
         }
+    }
+
+    /** Upload danh sách nhiều file cùng lúc lên MinIO. */
+    public static function uploadHangLoat(array $files, ?string $thuMuc = null): array
+    {
+        $ketQua = [];
+        foreach ($files as $file) {
+            if ($file instanceof UploadedFile && $file->isValid()) {
+                $path = static::uploadFile($file, $thuMuc);
+                if ($path) {
+                    $ketQua[] = [
+                        'ten_goc' => $file->getClientOriginalName(),
+                        'path' => $path,
+                        'url' => static::urlCongKhai($path),
+                        'size' => $file->getSize(),
+                        'mime' => $file->getClientMimeType()
+                    ];
+                }
+            }
+        }
+        return $ketQua;
+    }
+
+    /** Xóa nhiều file hàng loạt trên MinIO. */
+    public static function xoaHangLoat(array $paths): int
+    {
+        $count = 0;
+        foreach ($paths as $path) {
+            if (is_string($path) && static::xoaFile($path)) {
+                $count++;
+            }
+        }
+        return $count;
     }
 
     public function getObjectContent($key)

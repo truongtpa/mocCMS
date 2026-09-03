@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\S3Services;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -62,8 +63,14 @@ class StudentPortalController extends Controller
                         $val = DB::table('gia_tri_thong_tin')
                             ->whereIn('doi_tuong_id', $possibleIds)
                             ->where('truong_id', $attr->id)
+                            ->orderBy('id', 'desc')
                             ->first();
-                        $attr->value = $val ? $val->gia_tri : '';
+                        $rawVal = $val ? $val->gia_tri : '';
+                        if (in_array($attr->kieu_du_lieu, ['image', 'file']) && !empty($rawVal)) {
+                            $attr->value = \App\Services\S3Services::urlCongKhai($rawVal);
+                        } else {
+                            $attr->value = $rawVal;
+                        }
                         $attr->cho_phep_chinh_sua = (bool)($attr->cho_phep_chinh_sua ?? true);
                         
                         $cauHinh = [];
@@ -124,8 +131,14 @@ class StudentPortalController extends Controller
                         $val = DB::table('gia_tri_thong_tin')
                             ->whereIn('doi_tuong_id', $possibleIds)
                             ->where('truong_id', $attr->id)
+                            ->orderBy('id', 'desc')
                             ->first();
-                        $attr->value = $val ? $val->gia_tri : '';
+                        $rawVal = $val ? $val->gia_tri : '';
+                        if (in_array($attr->kieu_du_lieu, ['image', 'file']) && !empty($rawVal)) {
+                            $attr->value = \App\Services\S3Services::urlCongKhai($rawVal);
+                        } else {
+                            $attr->value = $rawVal;
+                        }
                         $attr->cho_phep_chinh_sua = (bool)($attr->cho_phep_chinh_sua ?? true);
                         
                         $cauHinh = [];
@@ -212,11 +225,37 @@ class StudentPortalController extends Controller
             }
 
             $val = $attr['gia_tri'] ?? '';
+            if (is_string($val) && $fieldDef && in_array($fieldDef->kieu_du_lieu, ['file', 'image'])) {
+                if (str_contains($val, '?')) {
+                    $val = explode('?', $val)[0];
+                }
+                $bucket = env('AWS_BUCKET', 'daotao-vlute-edu-vn');
+                if (str_contains($val, '/' . $bucket . '/')) {
+                    $parts = explode('/' . $bucket . '/', $val);
+                    $val = end($parts);
+                } elseif (str_starts_with($val, 'http://') || str_starts_with($val, 'https://')) {
+                    $parsed = parse_url($val, PHP_URL_PATH);
+                    $val = ltrim($parsed ?? '', '/');
+                }
+                $val = ltrim($val, '/');
+            }
 
             // Handle file upload if present
             if ($r->hasFile("file_{$truongId}")) {
                 $uploadedFile = $r->file("file_{$truongId}");
                 $val = $this->uploadFileToS3($uploadedFile);
+            }
+
+            // Clean up old S3 file if file is being replaced or updated
+            if ($fieldDef && in_array($fieldDef->kieu_du_lieu, ['file', 'image'])) {
+                $oldRow = DB::table('gia_tri_thong_tin')
+                    ->where('doi_tuong_id', $doiTuongId)
+                    ->where('truong_id', $truongId)
+                    ->orderBy('id', 'desc')
+                    ->first();
+                if ($oldRow && !empty($oldRow->gia_tri) && $oldRow->gia_tri !== $val) {
+                    \App\Services\S3Services::xoaFile($oldRow->gia_tri);
+                }
             }
 
             DB::table('gia_tri_thong_tin')->updateOrInsert(
@@ -245,10 +284,7 @@ class StudentPortalController extends Controller
 
             $path = $uploadedFile->store('dynamic_uploads', $targetDisk);
             if ($path) {
-                $s3Endpoint = env('AWS_PUBLIC_ENDPOINT', env('AWS_ENDPOINT', 'http://localhost:9000'));
-                $bucket = env('AWS_BUCKET', 'daotao-vlute-edu-vn');
-                
-                return rtrim($s3Endpoint, '/') . '/' . $bucket . '/' . $path;
+                return $path;
             }
         } catch (\Exception $e) {
             Log::error("S3 Storage Upload Error: " . $e->getMessage());

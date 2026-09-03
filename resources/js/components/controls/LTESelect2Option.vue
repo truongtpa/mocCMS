@@ -8,7 +8,7 @@
             :data-placeholder="placeholder"
             :style="{ width: '100%', ...style }"
         >
-            <option v-for="item in data" :key="item.value" :value="item.value">{{ item.text }}</option>
+            <option v-for="item in selectOptions" :key="item.value" :value="item.value">{{ item.text }}</option>
         </select>
     </div>
 </template>
@@ -18,6 +18,7 @@ export default {
     name: 'LTESelect2Option',
     props: {
         data: Array,
+        options: Array,
         modelValue: [Array, String, Number],
         placeholder: {
             type: String,
@@ -45,12 +46,12 @@ export default {
         multiple: {
             type: Boolean,
             required: false,
-            default: true,
+            default: false,
         },
         closeOnSelect: {
             type: Boolean,
             required: false,
-            default: false,
+            default: true,
         },
         allowClear: {
             type: Boolean,
@@ -92,120 +93,107 @@ export default {
         },
         extraClasses() {
             return this.class || '';
+        },
+        selectOptions() {
+            const arr = this.data || this.options || [];
+            return arr.map(item => {
+                if (typeof item === 'object' && item !== null) {
+                    const val = item.value !== undefined ? item.value : (item.id !== undefined ? item.id : item.text);
+                    const txt = item.text !== undefined ? item.text : (item.label !== undefined ? item.label : val);
+                    return { value: val, text: txt, id: val };
+                }
+                return { value: item, text: item, id: item };
+            });
         }
     },
     mounted() {
         this.$nextTick(() => {
-            if (this.$refs.select2) {
-                $(this.$refs.select2).select2({
-                    width: $(this).data('width') ? $(this).data('width') : $(this).hasClass('w-100') ? '100%' : 'style',
-                    allowClear: this.allowClear,
-                    closeOnSelect: this.closeOnSelect,
-                    dropdownParent: this.getDropdownParent(),
-                    dropdownAutoWidth: this.dropdownAutoWidth,
-                    minimumResultsForSearch: this.minimumResultsForSearch,
-                })
-
-                $(this.$refs.select2).on('select2:open', () => {
-                    setTimeout(() => {
-                        const searchField = document.querySelector('.select2-search__field')
-                        if (searchField) searchField.focus()
-                    }, 50)
-                })
-
-                if (this.isDisabled) {
-                    $(this.$refs.select2).prop('disabled', true)
-                }
-
-                if (this.initValue !== undefined && this.initValue !== null) {
-                    $(this.$refs.select2).val(this.initValue).trigger('change.select2')
-                } else {
-                    $(this.$refs.select2).val(null).trigger('change.select2')
-                }
-
-                $(this.$refs.select2).on('change', (event) => {
-                    const selectedValues = $(this.$refs.select2).val()
-                    this.$emit('update:modelValue', selectedValues)
-                    this.$emit('update:selectedValues', selectedValues, event)
-                })
-            }
-        })
+            this.initSelect2();
+        });
     },
     watch: {
         initValue(newVal) {
             this.$nextTick(() => {
                 if (this.$refs.select2) {
-                    $(this.$refs.select2).val(newVal).trigger('change.select2')
+                    $(this.$refs.select2).val(newVal).trigger('change.select2');
                 }
-            })
+            });
         },
         modelValue(newVal) {
             this.$nextTick(() => {
                 if (this.$refs.select2) {
-                    $(this.$refs.select2).val(newVal).trigger('change.select2')
+                    $(this.$refs.select2).val(newVal).trigger('change.select2');
                 }
-            })
+            });
         },
         isDisabled(newVal) {
             this.$nextTick(() => {
                 if (this.$refs.select2) {
-                    $(this.$refs.select2).prop('disabled', newVal)
+                    $(this.$refs.select2).prop('disabled', newVal);
+                    $(this.$refs.select2).trigger('change.select2');
                 }
-            })
+            });
         },
-        data: {
+        selectOptions: {
             handler() {
-                if (!this.enableDataWatch) return
-
+                if (!this.enableDataWatch) return;
                 this.$nextTick(() => {
-                    if (this.$refs.select2) {
-                        $(this.$refs.select2).off().select2('destroy')
-
-                        $(this.$refs.select2).select2({
-                            width: $(this).data('width')
-                                ? $(this).data('width')
-                                : $(this).hasClass('w-100')
-                                  ? '100%'
-                                  : 'style',
-                            allowClear: this.allowClear,
-                            closeOnSelect: this.closeOnSelect,
-                            dropdownParent: this.getDropdownParent(),
-                            dropdownAutoWidth: this.dropdownAutoWidth,
-                            minimumResultsForSearch: this.minimumResultsForSearch,
-                        })
-
-                        if (this.initValue !== undefined && this.initValue !== null) {
-                            $(this.$refs.select2).val(this.initValue).trigger('change.select2')
-                        } else {
-                            $(this.$refs.select2).val(null).trigger('change.select2')
-                        }
-
-                        $(this.$refs.select2).on('change', (event) => {
-                            const selectedValues = $(this.$refs.select2).val()
-                            this.$emit('update:modelValue', selectedValues)
-                            this.$emit('update:selectedValues', selectedValues, event)
-                        })
-
-                        $(this.$refs.select2).on('select2:open', () => {
-                            setTimeout(() => {
-                                const searchField = document.querySelector('.select2-search__field')
-                                if (searchField) searchField.focus()
-                            }, 50)
-                        })
-                    }
-                })
+                    this.initSelect2();
+                });
             },
             deep: true,
         },
     },
     methods: {
+        initSelect2() {
+            if (!this.$refs.select2) return;
+            const $el = $(this.$refs.select2);
+            
+            if ($el.hasClass('select2-hidden-accessible')) {
+                $el.off().select2('destroy');
+            }
+
+            $el.select2({
+                width: '100%',
+                allowClear: this.allowClear,
+                closeOnSelect: this.closeOnSelect,
+                dropdownParent: this.getDropdownParent(),
+                dropdownAutoWidth: this.dropdownAutoWidth,
+                minimumResultsForSearch: this.minimumResultsForSearch,
+            });
+
+            $el.prop('disabled', !!this.isDisabled);
+
+            const currentVal = (this.modelValue !== undefined && this.modelValue !== null && this.modelValue !== '')
+                ? this.modelValue
+                : (this.initValue !== undefined && this.initValue !== null ? this.initValue : null);
+
+            if (currentVal !== null) {
+                $el.val(currentVal).trigger('change.select2');
+            } else {
+                $el.val(null).trigger('change.select2');
+            }
+
+            $el.on('change', (event) => {
+                const selectedValues = $el.val();
+                this.$emit('update:modelValue', selectedValues);
+                this.$emit('update:selectedValues', selectedValues, event);
+            });
+
+            $el.on('select2:open', () => {
+                setTimeout(() => {
+                    const searchField = document.querySelector('.select2-search__field');
+                    if (searchField) searchField.focus();
+                }, 50);
+            });
+        },
         getDropdownParent() {
             if (this.dropdownParent instanceof HTMLElement) {
-                return $(this.dropdownParent)
+                return $(this.dropdownParent);
             } else if (typeof this.dropdownParent === 'string' && this.dropdownParent.trim() !== '') {
-                return $(this.dropdownParent)
+                return $(this.dropdownParent);
             } else {
-                return $('body')
+                return $('body');
             }
         },
     },
@@ -224,6 +212,19 @@ export default {
     background-color: #ffffff !important;
     display: flex !important;
     align-items: center !important;
+}
+
+/* Disabled styling matching Bootstrap 4 .form-control:disabled */
+.select2-container--default.select2-container--disabled .select2-selection--single,
+.select2-container--default.select2-container--disabled .select2-selection--multiple {
+    background-color: #e9ecef !important;
+    border-color: #ced4da !important;
+    opacity: 1 !important;
+    cursor: not-allowed !important;
+}
+
+.select2-container--default.select2-container--disabled .select2-selection--single .select2-selection__rendered {
+    color: #495057 !important;
 }
 
 .select2-container--default .select2-selection--single .select2-selection__rendered {

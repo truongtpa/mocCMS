@@ -544,85 +544,80 @@
 
     <Teleport to="body">
                 <!-- MODAL: TYPE FORM -->
-                <div v-if="showTypeModal" class="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100 animate-fadeIn">
-                        <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
-                            <h3 class="font-bold text-slate-900 text-lg mb-0">
-                                {{ typeForm.id ? 'Chỉnh sửa Loại đối tượng' : 'Thêm Loại đối tượng mới' }}
-                            </h3>
-                            <button @click="showTypeModal = false" class="text-slate-400 hover:text-slate-600">
-                                <i class="fas fa-times text-lg"></i>
-                            </button>
-                        </div>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mã loại đối tượng *</label>
-                                <input v-model="typeForm.ma_loai" :disabled="typeForm.id && ['giang_vien', 'sinh_vien'].includes(typeForm.ma_loai)" type="text" placeholder="Ví dụ: phong_hoc, thiet_bi..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100" />
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tên loại đối tượng *</label>
-                                <input v-model="typeForm.ten_loai" type="text" placeholder="Ví dụ: Phòng học & Giảng đường" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mô tả</label>
-                                <textarea v-model="typeForm.mo_ta" rows="3" placeholder="Mô tả chức năng đối tượng..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
-                            </div>
-                        </div>
-                        <div class="flex justify-end gap-3 mt-6 pt-3 border-t border-slate-100">
-                            <LTEButton 
-                                variant="light" 
-                                text="Hủy" 
-                                class="btn-sm text-xs font-weight-bold px-3 border" 
-                                @click="showTypeModal = false" 
-                            />
-                            <LTEButton 
-                                variant="primary" 
-                                icon="far fa-save" 
-                                text="Lưu thông tin" 
-                                class="btn-sm text-xs font-weight-bold px-3 shadow-sm" 
-                                @click="saveType" 
-                            />
-                        </div>
+                <LTEModal ref="typeModal" size="md">
+                    <div class="space-y-2">
+                        <LTEInput 
+                            v-model="typeForm.ma_loai" 
+                            label="MÃ LOẠI ĐỐI TƯỢNG *" 
+                            placeholder="Ví dụ: phong_hoc, thiet_bi..." 
+                            :is-disabled="typeForm.id && ['giang_vien', 'sinh_vien'].includes(typeForm.ma_loai)" 
+                        />
+                        <LTEInput 
+                            v-model="typeForm.ten_loai" 
+                            label="TÊN LOẠI ĐỐI TƯỢNG *" 
+                            placeholder="Ví dụ: Phòng học & Giảng đường" 
+                        />
+                        <LTETextArea 
+                            v-model="typeForm.mo_ta" 
+                            label="MÔ TẢ" 
+                            placeholder="Mô tả chức năng đối tượng..." 
+                            :rows="3" 
+                        />
                     </div>
-                </div>
+                </LTEModal>
 
                 <!-- MODAL: FIELD FORM WITH PHÂN NHÓM & DYNAMIC REFERENCE -->
-                <div v-if="showFieldModal" class="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3">
-                    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-4 border border-slate-100 animate-fadeIn max-h-[90vh] overflow-y-auto">
-                        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
-                            <h3 class="font-bold text-slate-900 text-sm mb-0">
-                                {{ fieldForm.id ? 'Chỉnh sửa Thuộc tính' : 'Thêm Thuộc tính động mới' }}
-                            </h3>
-                            <button @click="showFieldModal = false" class="text-slate-400 hover:text-slate-600 transition-colors">
-                                <i class="fas fa-times text-sm"></i>
-                            </button>
+                <LTEModal ref="fieldModal" size="lg">
+                    <div class="space-y-2">
+                        <LTEInput 
+                            v-model="fieldForm.ma_truong" 
+                            label="MÃ THUỘC TÍNH *" 
+                            placeholder="Ví dụ: hoc_vi, chuc_danh, file_cv..." 
+                        />
+                        <LTEInput 
+                            v-model="fieldForm.ten_truong" 
+                            label="TÊN THUỘC TÍNH *" 
+                            placeholder="Ví dụ: Học vị / Tệp CV đính kèm" 
+                        />
+                        <div class="grid grid-cols-2 gap-x-3 gap-y-0">
+                            <LTEInput 
+                                v-model="fieldForm.phan_nhom" 
+                                label="PHÂN NHÓM" 
+                                placeholder="Ví dụ: Thông tin Lý lịch & Cá nhân..." 
+                            />
+                            <LTEInput 
+                                v-model.number="fieldForm.thu_tu" 
+                                type="number" 
+                                label="THỨ TỰ SẮP XẾP" 
+                                placeholder="Ví dụ: 1, 2, 3..." 
+                            />
                         </div>
-                        <div class="space-y-3">
+                        <div>
+                            <LTESelect2Option
+                                v-model="fieldForm.kieu_du_lieu"
+                                :init-value="fieldForm.kieu_du_lieu"
+                                label="KIỂU DỮ LIỆU"
+                                placeholder="-- Chọn kiểu dữ liệu --"
+                                :data="dataTypeOptions"
+                                :multiple="false"
+                                :close-on-select="true"
+                                :allow-clear="false"
+                                :enable-data-watch="true"
+                            />
+                        </div>
+
+                        <!-- Dynamic Reference Settings (Select / MultiSelect) -->
+                        <div v-if="['select', 'multiselect'].includes(fieldForm.kieu_du_lieu)" class="p-3 bg-blue-50/50 rounded-lg border border-blue-200/60 space-y-2">
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Mã Thuộc Tính *</label>
-                                <input v-model="fieldForm.ma_truong" type="text" placeholder="Ví dụ: hoc_vi, chuc_danh, file_cv..." class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Tên Thuộc Tính *</label>
-                                <input v-model="fieldForm.ten_truong" type="text" placeholder="Ví dụ: Học vị / Tệp CV đính kèm" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                            </div>
-                            <div class="grid grid-cols-2 gap-2.5">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Phân Nhóm</label>
-                                    <input v-model="fieldForm.phan_nhom" type="text" placeholder="Ví dụ: Thông tin Lý lịch & Cá nhân..." class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Thứ Tự Sắp Xếp</label>
-                                    <input v-model.number="fieldForm.thu_tu" type="number" min="1" placeholder="Ví dụ: 1, 2, 3..." class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Kiểu Dữ Liệu</label>
                                 <LTESelect2Option
-                                    v-model="fieldForm.kieu_du_lieu"
-                                    :init-value="fieldForm.kieu_du_lieu"
-                                    placeholder="-- Chọn kiểu dữ liệu --"
-                                    :data="dataTypeOptions"
+                                    v-model="fieldForm.lien_ket_loai_doi_tuong_id"
+                                    :init-value="fieldForm.lien_ket_loai_doi_tuong_id"
+                                    label="NGUỒN DANH SÁCH CHỌN"
+                                    placeholder="-- Nguồn danh sách chọn --"
+                                    :data="[
+                                        { value: '', text: '📌 Tự định nghĩa danh sách tùy chọn bên dưới' },
+                                        ...types.map(t => ({ value: t.id, text: '🔗 Lấy tự động từ Danh mục: ' + t.ten_loai }))
+                                    ]"
                                     :multiple="false"
                                     :close-on-select="true"
                                     :allow-clear="false"
@@ -630,253 +625,201 @@
                                 />
                             </div>
 
-                            <!-- Dynamic Reference Settings (Select / MultiSelect) -->
-                            <div v-if="['select', 'multiselect'].includes(fieldForm.kieu_du_lieu)" class="p-3 bg-blue-50/50 rounded-lg border border-blue-200/60 space-y-3">
-                                <div>
-                                    <label class="block text-[11px] font-bold text-blue-900 uppercase mb-1">Nguồn danh sách chọn</label>
-                                    <LTESelect2Option
-                                        v-model="fieldForm.lien_ket_loai_doi_tuong_id"
-                                        :init-value="fieldForm.lien_ket_loai_doi_tuong_id"
-                                        placeholder="-- Nguồn danh sách chọn --"
-                                        :data="[
-                                            { value: '', text: '📌 Tự định nghĩa danh sách tùy chọn bên dưới' },
-                                            ...types.map(t => ({ value: t.id, text: '🔗 Lấy tự động từ Danh mục: ' + t.ten_loai }))
-                                        ]"
-                                        :multiple="false"
-                                        :close-on-select="true"
-                                        :allow-clear="false"
-                                        :enable-data-watch="true"
+                            <!-- Dynamic Linked Binding Rule (Save Ma vs Save Ten) -->
+                            <div v-if="fieldForm.lien_ket_loai_doi_tuong_id">
+                                <LTESelect2Option
+                                    v-model="fieldForm.cau_hinh.tieu_chuan_gia_tri"
+                                    :init-value="fieldForm.cau_hinh.tieu_chuan_gia_tri"
+                                    label="GIÁ TRỊ LƯU VÀO HỆ THỐNG"
+                                    placeholder="-- Giá trị lưu vào hệ thống --"
+                                    :data="[
+                                        { value: 'ma', text: 'Mã đối tượng / Email (Khuyên dùng - Ràng buộc duy nhất)' },
+                                        { value: 'ten', text: 'Tên hiển thị (Tên đầy đủ của đối tượng)' }
+                                    ]"
+                                    :multiple="false"
+                                    :close-on-select="true"
+                                    :allow-clear="false"
+                                    :enable-data-watch="true"
+                                />
+                            </div>
+
+                            <!-- Manual Option List Chips -->
+                            <div v-if="!fieldForm.lien_ket_loai_doi_tuong_id" class="space-y-1">
+                                <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Danh sách tùy chọn</label>
+                                
+                                <div class="flex items-center gap-1.5">
+                                    <LTEInput 
+                                        v-model="newOptionText" 
+                                        placeholder="Nhập tên tùy chọn rồi nhấn Enter..." 
+                                        class="flex-1 mb-0 p-0" 
+                                        @keydown.enter.prevent="addOptionChip"
                                     />
+                                    <button 
+                                        type="button"
+                                        @click="addOptionChip" 
+                                        class="btn btn-sm btn-primary text-xs px-3 h-[31px]"
+                                    >
+                                        <i class="fas fa-plus text-[10px]"></i> Thêm
+                                    </button>
                                 </div>
 
-                                <!-- Dynamic Linked Binding Rule (Save Ma vs Save Ten) -->
-                                <div v-if="fieldForm.lien_ket_loai_doi_tuong_id">
-                                    <label class="block text-[11px] font-bold text-blue-900 uppercase mb-1">Giá trị lưu vào hệ thống</label>
-                                    <LTESelect2Option
-                                        v-model="fieldForm.cau_hinh.tieu_chuan_gia_tri"
-                                        :init-value="fieldForm.cau_hinh.tieu_chuan_gia_tri"
-                                        placeholder="-- Giá trị lưu vào hệ thống --"
-                                        :data="[
-                                            { value: 'ma', text: 'Mã đối tượng / Email (Khuyên dùng - Ràng buộc duy nhất)' },
-                                            { value: 'ten', text: 'Tên hiển thị (Tên đầy đủ của đối tượng)' }
-                                        ]"
-                                        :multiple="false"
-                                        :close-on-select="true"
-                                        :allow-clear="false"
-                                        :enable-data-watch="true"
-                                    />
-                                </div>
-
-                                <!-- Manual Option List Chips -->
-                                <div v-if="!fieldForm.lien_ket_loai_doi_tuong_id" class="space-y-2">
-                                    <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Danh sách tùy chọn</label>
-                                    
-                                    <div class="flex items-center gap-1.5">
-                                        <input 
-                                            v-model="newOptionText" 
-                                            @keydown.enter.prevent="addOptionChip"
-                                            type="text" 
-                                            placeholder="Nhập tên tùy chọn rồi nhấn Enter hoặc bấm Thêm..." 
-                                            class="flex-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" 
-                                        />
+                                <div class="flex flex-wrap gap-1.5 pt-1 min-h-[32px] p-2 bg-white rounded-lg border border-slate-200">
+                                    <div 
+                                        v-for="(opt, idx) in optionList" 
+                                        :key="idx" 
+                                        class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md text-xs font-semibold group"
+                                    >
+                                        <span>{{ opt }}</span>
                                         <button 
                                             type="button"
-                                            @click="addOptionChip" 
-                                            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1"
+                                            @click="removeOptionChip(idx)" 
+                                            class="text-blue-400 hover:text-rose-600 transition-colors"
+                                            title="Xóa tùy chọn này"
                                         >
-                                            <i class="fas fa-plus text-[10px]"></i> Thêm
+                                            <i class="fas fa-times text-[10px]"></i>
                                         </button>
                                     </div>
-
-                                    <div class="flex flex-wrap gap-1.5 pt-1 min-h-[32px] p-2 bg-white rounded-lg border border-slate-200">
-                                        <div 
-                                            v-for="(opt, idx) in optionList" 
-                                            :key="idx" 
-                                            class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-md text-xs font-semibold group"
-                                        >
-                                            <span>{{ opt }}</span>
-                                            <button 
-                                                type="button"
-                                                @click="removeOptionChip(idx)" 
-                                                class="text-blue-400 hover:text-rose-600 transition-colors"
-                                                title="Xóa tùy chọn này"
-                                            >
-                                                <i class="fas fa-times text-[10px]"></i>
-                                            </button>
-                                        </div>
-                                        <span v-if="optionList.length === 0" class="text-[11px] text-slate-400 italic">Chưa có tùy chọn nào. Hãy nhập tên ở trên để thêm.</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Advanced File & Image Config Section -->
-                            <div v-if="['file', 'image'].includes(fieldForm.kieu_du_lieu)" class="p-3 bg-amber-50/50 rounded-lg border border-amber-200/60 space-y-2.5">
-                                <h4 class="font-bold text-[11px] text-amber-900 uppercase mb-1 flex items-center gap-1">
-                                    <i class="fas fa-sliders-h text-amber-600"></i> Cấu hình tệp & Dung lượng
-                                </h4>
-                                <div class="grid grid-cols-2 gap-2.5">
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Dung lượng tối đa (MB)</label>
-                                        <input v-model.number="fieldForm.cau_hinh.dung_luong_toi_da" type="number" min="1" max="100" placeholder="Mặc định: 10 MB" class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                                    </div>
-                                    <div>
-                                        <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Đuôi tệp cho phép</label>
-                                        <input v-model="fieldForm.cau_hinh.dinh_dang_tep" type="text" placeholder="Ví dụ: pdf, docx, png..." class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Ràng buộc tên tệp (Pattern / Regex)</label>
-                                    <input v-model="fieldForm.cau_hinh.mau_ten_tep" type="text" placeholder="Ví dụ: ^[A-Za-z0-9_-]+$ (Không dấu, không khoảng trắng)..." class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                                </div>
-                            </div>
-
-                            <!-- Common Values & Validation Settings -->
-                            <div class="p-3 bg-slate-100/70 rounded-lg border border-slate-200/80 space-y-2.5">
-                                <h4 class="font-bold text-[11px] text-slate-800 uppercase mb-1 flex items-center gap-1">
-                                    <i class="fas fa-check-circle text-slate-500"></i> Ràng buộc & Giá trị mặc định
-                                </h4>
-                                <div>
-                                    <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Giá trị mặc định ban đầu</label>
-                                    <input v-model="fieldForm.cau_hinh.gia_tri_mac_dinh" type="text" placeholder="Ví dụ: Chưa xác định / Nam..." class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                                </div>
-                                <div class="flex items-center justify-between pt-1">
-                                    <div class="flex items-center gap-2">
-                                        <input v-model="fieldForm.bat_buoc" type="checkbox" id="field_required" class="w-3.5 h-3.5 text-rose-600 rounded cursor-pointer" />
-                                        <label for="field_required" class="text-xs font-bold text-rose-700 mb-0 cursor-pointer">Bắt buộc nhập</label>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <input v-model="fieldForm.cho_phep_chinh_sua" type="checkbox" id="field_editable" class="w-3.5 h-3.5 text-amber-600 rounded cursor-pointer" />
-                                        <label for="field_editable" class="text-xs font-bold text-amber-700 mb-0 cursor-pointer">Cho phép chỉnh sửa</label>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <input v-model="fieldForm.trang_thai" type="checkbox" id="field_status" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer" />
-                                        <label for="field_status" class="text-xs font-semibold text-slate-700 mb-0 cursor-pointer">Kích hoạt</label>
-                                    </div>
+                                    <span v-if="optionList.length === 0" class="text-[11px] text-slate-400 italic">Chưa có tùy chọn nào. Hãy nhập tên ở trên để thêm.</span>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex justify-end gap-2 mt-4 pt-2.5 border-t border-slate-100">
-                            <LTEButton 
-                                variant="light" 
-                                text="Hủy" 
-                                class="btn-sm text-xs font-weight-bold px-3 border" 
-                                @click="showFieldModal = false" 
+
+                        <!-- Advanced File & Image Config Section -->
+                        <div v-if="['file', 'image'].includes(fieldForm.kieu_du_lieu)" class="p-3 bg-amber-50/50 rounded-lg border border-amber-200/60 space-y-2">
+                            <h4 class="font-bold text-[11px] text-amber-900 uppercase mb-1 flex items-center gap-1">
+                                <i class="fas fa-sliders-h text-amber-600"></i> Cấu hình tệp & Dung lượng
+                            </h4>
+                            <div class="grid grid-cols-2 gap-x-3 gap-y-0">
+                                <LTEInput 
+                                    v-model.number="fieldForm.cau_hinh.dung_luong_toi_da" 
+                                    type="number" 
+                                    label="DUNG LƯỢNG TỐI ĐA (MB)" 
+                                    placeholder="Mặc định: 10 MB" 
+                                />
+                                <LTEInput 
+                                    v-model="fieldForm.cau_hinh.dinh_dang_tep" 
+                                    label="ĐUÔI TỆP CHO PHÉP" 
+                                    placeholder="Ví dụ: pdf, docx, png..." 
+                                />
+                            </div>
+                            <LTEInput 
+                                v-model="fieldForm.cau_hinh.mau_ten_tep" 
+                                label="RÀNG BUỘC TÊN TỆP (PATTERN / REGEX)" 
+                                placeholder="Ví dụ: ^[A-Za-z0-9_-]+$ (Không dấu, không khoảng trắng)..." 
                             />
-                            <LTEButton 
-                                variant="primary" 
-                                icon="far fa-save" 
-                                text="Lưu thuộc tính" 
-                                class="btn-sm text-xs font-weight-bold px-3 shadow-sm" 
-                                @click="saveField" 
+                        </div>
+
+                        <!-- Common Values & Validation Settings -->
+                        <div class="p-3 bg-slate-100/70 rounded-lg border border-slate-200/80 space-y-2">
+                            <h4 class="font-bold text-[11px] text-slate-800 uppercase mb-1 flex items-center gap-1">
+                                <i class="fas fa-check-circle text-slate-500"></i> Ràng buộc & Giá trị mặc định
+                            </h4>
+                            <LTEInput 
+                                v-model="fieldForm.cau_hinh.gia_tri_mac_dinh" 
+                                label="GIÁ TRỊ MẶC ĐỊNH BAN ĐẦU" 
+                                placeholder="Ví dụ: Chưa xác định / Nam..." 
                             />
+                            <div class="flex items-center justify-between pt-1">
+                                <div class="flex items-center gap-2">
+                                    <input v-model="fieldForm.bat_buoc" type="checkbox" id="field_required" class="w-3.5 h-3.5 text-rose-600 rounded cursor-pointer" />
+                                    <label for="field_required" class="text-xs font-bold text-rose-700 mb-0 cursor-pointer">Bắt buộc nhập</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input v-model="fieldForm.cho_phep_chinh_sua" type="checkbox" id="field_editable" class="w-3.5 h-3.5 text-amber-600 rounded cursor-pointer" />
+                                    <label for="field_editable" class="text-xs font-bold text-amber-700 mb-0 cursor-pointer">Cho phép chỉnh sửa</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input v-model="fieldForm.trang_thai" type="checkbox" id="field_status" class="w-3.5 h-3.5 text-blue-600 rounded cursor-pointer" />
+                                    <label for="field_status" class="text-xs font-semibold text-slate-700 mb-0 cursor-pointer">Kích hoạt</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </LTEModal>
 
                 <!-- MODAL: RECORD FORM WITH GROUPED ATTRIBUTES -->
-                <div v-if="showRecordModal" class="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 border border-slate-100 animate-fadeIn max-h-[90vh] overflow-y-auto">
-                        <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
-                            <h3 class="font-bold text-slate-900 text-lg mb-0">
-                                {{ recordForm.id ? 'Chỉnh sửa Bản ghi' : 'Thêm Bản ghi mới' }} - {{ currentRecordType ? currentRecordType.ten_loai : '' }}
-                            </h3>
-                            <button @click="showRecordModal = false" class="text-slate-400 hover:text-slate-600">
-                                <i class="fas fa-times text-lg"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="space-y-5">
-                            <!-- Basic Fixed Information Group -->
-                            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-4">
-                                <h4 class="font-bold text-xs uppercase text-blue-800 mb-2 flex items-center gap-1.5 border-b border-blue-200/60 pb-2">
-                                    <i class="fas fa-id-card text-blue-600"></i> Thông tin định danh cơ bản
-                                </h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div v-if="currentRecordType && currentRecordType.ma_loai !== 'giang_vien'">
-                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">{{ getCodeHeaderLabel() }} *</label>
-                                        <input v-model="recordForm.ma_doi_tuong" type="text" :placeholder="'Nhập ' + getCodeHeaderLabel() + '...'" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                                    </div>
+                <LTEModal ref="recordModal" size="xl">
+                    <div class="space-y-3">
+                        <!-- Basic Fixed Information Group -->
+                        <div class="bg-blue-50/40 p-3 rounded-lg border border-blue-100 mb-2">
+                            <h4 class="font-bold text-xs uppercase text-blue-800 mb-2 flex items-center gap-1.5 border-b border-blue-200/60 pb-1.5">
+                                <i class="fas fa-id-card text-blue-600"></i> Thông tin định danh cơ bản
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-3 gap-y-0">
+                                <LTEInput 
+                                    v-if="currentRecordType && currentRecordType.ma_loai !== 'giang_vien'"
+                                    v-model="recordForm.ma_doi_tuong" 
+                                    :label="getCodeHeaderLabel() + ' *'" 
+                                    :placeholder="'Nhập ' + getCodeHeaderLabel() + '...'" 
+                                />
 
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">{{ getNameHeaderLabel() }} *</label>
-                                        <input v-model="recordForm.ten_hien_thi" type="text" :placeholder="'Nhập ' + getNameHeaderLabel() + '...'" class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                                    </div>
+                                <LTEInput 
+                                    v-model="recordForm.ten_hien_thi" 
+                                    :label="getNameHeaderLabel() + ' *'" 
+                                    :placeholder="'Nhập ' + getNameHeaderLabel() + '...'" 
+                                />
 
-                                    <div v-if="currentRecordType && ['giang_vien', 'sinh_vien'].includes(currentRecordType.ma_loai)" class="md:col-span-2">
-                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">{{ getEmailHeaderLabel() }} *</label>
-                                        <input v-model="recordForm.email" type="email" placeholder="nguyenvana@vlute.edu.vn..." class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-                                    </div>
-                                </div>
+                                <LTEInput 
+                                    v-if="currentRecordType && ['giang_vien', 'sinh_vien'].includes(currentRecordType.ma_loai)" 
+                                    v-model="recordForm.email" 
+                                    type="email" 
+                                    :label="getEmailHeaderLabel() + ' *'" 
+                                    placeholder="nguyenvana@vlute.edu.vn..." 
+                                    class="md:col-span-2"
+                                />
                             </div>
+                        </div>
 
-                            <!-- Dynamic Grouped Attributes -->
-                            <div 
-                                v-for="(groupFields, groupName) in groupedRecordFields" 
-                                :key="groupName" 
-                                class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4"
-                            >
-                                <h4 class="font-bold text-xs uppercase text-slate-800 mb-2 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-                                    <i class="fas fa-layer-group text-blue-600"></i> {{ groupName }}
-                                </h4>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div v-for="f in groupFields" :key="f.id" :class="(f.col_span === 12 || ['textarea', 'file', 'image'].includes(f.kieu_du_lieu)) ? 'md:col-span-2' : 'md:col-span-1'">
-                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">{{ f.ten_truong }}</label>
-                                        
-                                         <!-- Input for Textarea -->
-                                        <textarea 
-                                            v-if="f.kieu_du_lieu === 'textarea'"
-                                            v-model="recordForm.attributes[f.ma_truong]"
-                                            :disabled="recordForm.id && (f.cho_phep_chinh_sua === false || f.cho_phep_chinh_sua === 0 || f.cho_phep_chinh_sua === '0')"
-                                            rows="3"
-                                            :placeholder="'Nhập ' + f.ten_truong.toLowerCase() + '...'"
-                                            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:cursor-not-allowed"
-                                        ></textarea>
+                        <!-- Dynamic Grouped Attributes -->
+                        <div 
+                            v-for="(groupFields, groupName) in groupedRecordFields" 
+                            :key="groupName" 
+                            class="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs mb-2"
+                        >
+                            <h4 class="font-bold text-xs uppercase text-slate-800 mb-2 flex items-center gap-1.5 border-b border-slate-100 pb-1.5">
+                                <i class="fas fa-layer-group text-blue-600"></i> {{ groupName }}
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-3 gap-y-0">
+                                <div v-for="f in groupFields" :key="f.id" :class="(f.col_span === 12 || ['textarea', 'file', 'image'].includes(f.kieu_du_lieu)) ? 'md:col-span-2' : 'md:col-span-1'">
+                                     <!-- Input for Textarea -->
+                                    <LTETextArea 
+                                        v-if="f.kieu_du_lieu === 'textarea'"
+                                        v-model="recordForm.attributes[f.ma_truong]"
+                                        :label="f.ten_truong"
+                                        :is-disabled="recordForm.id && (f.cho_phep_chinh_sua === false || f.cho_phep_chinh_sua === 0 || f.cho_phep_chinh_sua === '0')"
+                                        :rows="3"
+                                        :placeholder="'Nhập ' + f.ten_truong.toLowerCase() + '...'"
+                                    />
 
-                                        <!-- Select Dropdown (Static or Dynamic Ref) -->
-                                        <LTESelect2Option
-                                            v-else-if="['select', 'multiselect'].includes(f.kieu_du_lieu)"
-                                            v-model="recordForm.attributes[f.ma_truong]"
-                                            :init-value="recordForm.attributes[f.ma_truong]"
-                                            :disabled="recordForm.id && (f.cho_phep_chinh_sua === false || f.cho_phep_chinh_sua === 0 || f.cho_phep_chinh_sua === '0')"
-                                            :placeholder="'-- Chọn ' + f.ten_truong + ' --'"
-                                            :data="getOptionsForField(f)"
-                                            :multiple="f.kieu_du_lieu === 'multiselect'"
-                                            :close-on-select="f.kieu_du_lieu !== 'multiselect'"
-                                            :allow-clear="true"
-                                            :enable-data-watch="true"
-                                        />
+                                    <!-- Select Dropdown (Static or Dynamic Ref) -->
+                                    <LTESelect2Option
+                                        v-else-if="['select', 'multiselect'].includes(f.kieu_du_lieu)"
+                                        v-model="recordForm.attributes[f.ma_truong]"
+                                        :init-value="recordForm.attributes[f.ma_truong]"
+                                        :label="f.ten_truong"
+                                        :disabled="recordForm.id && (f.cho_phep_chinh_sua === false || f.cho_phep_chinh_sua === 0 || f.cho_phep_chinh_sua === '0')"
+                                        :placeholder="'-- Chọn ' + f.ten_truong + ' --'"
+                                        :data="getOptionsForField(f)"
+                                        :multiple="f.kieu_du_lieu === 'multiselect'"
+                                        :close-on-select="f.kieu_du_lieu !== 'multiselect'"
+                                        :allow-clear="true"
+                                        :enable-data-watch="true"
+                                    />
 
-                                        <!-- Input for File / Image with Preview Card -->
-                                        <div v-else-if="['file', 'image'].includes(f.kieu_du_lieu)" class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                                            <!-- Display current attachment preview if exists -->
-                                            <div v-if="recordForm.attributes[f.ma_truong] && typeof recordForm.attributes[f.ma_truong] === 'string'" class="flex items-center justify-between p-2 bg-white rounded-lg border border-slate-200">
-                                                <div class="flex items-center gap-2 overflow-hidden">
-                                                    <img v-if="f.kieu_du_lieu === 'image'" :src="recordForm.attributes[f.ma_truong]" class="w-10 h-10 object-cover rounded-lg border" />
-                                                    <i v-else :class="getFileIconClass(recordForm.attributes[f.ma_truong]) + ' text-xl text-blue-600'"></i>
-                                                    <span class="text-xs text-slate-700 font-mono truncate max-w-[240px]">
-                                                        {{ getFileNameFromUrl(recordForm.attributes[f.ma_truong]) }}
-                                                    </span>
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <a :href="recordForm.attributes[f.ma_truong]" target="_blank" download class="text-blue-600 hover:text-blue-800 text-xs font-bold p-1">
-                                                        <i class="fas fa-download"></i>
-                                                    </a>
-                                                    <button v-if="!recordForm.id || (f.cho_phep_chinh_sua !== false && f.cho_phep_chinh_sua !== 0 && f.cho_phep_chinh_sua !== '0')" type="button" @click="clearFileAttribute(f.ma_truong)" class="text-rose-500 hover:text-rose-700 text-xs p-1">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
+                                    <!-- Input for File / Image via LTEFilePond Component -->
+                                    <LTEFilePond
+                                        v-else-if="['file', 'image'].includes(f.kieu_du_lieu)"
+                                        v-model="recordForm.attributes[f.ma_truong]"
+                                        :label="f.ten_truong"
+                                        :accepted-file-types="f.kieu_du_lieu === 'image' ? ['image/*'] : []"
+                                        :is-disabled="recordForm.id && (f.cho_phep_chinh_sua === false || f.cho_phep_chinh_sua === 0 || f.cho_phep_chinh_sua === '0')"
+                                        folder="dynamic_uploads"
+                                    />
 
-                                            <input 
-                                                v-if="!recordForm.id || (f.cho_phep_chinh_sua !== false && f.cho_phep_chinh_sua !== 0 && f.cho_phep_chinh_sua !== '0')"
-                                                type="file" 
-                                                @change="onFileSelected($event, f.ma_truong)"
-                                                class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" 
-                                            />
-                                        </div>
-
-                                        <!-- Input for Boolean -->
-                                        <div v-else-if="f.kieu_du_lieu === 'boolean'" class="flex items-center gap-2 pt-1">
+                                    <!-- Input for Boolean -->
+                                    <div v-else-if="f.kieu_du_lieu === 'boolean'" class="mb-2">
+                                        <label class="font-weight-bold small text-muted text-xs mb-1 block">{{ f.ten_truong }}</label>
+                                        <div class="flex items-center gap-2 pt-0.5">
                                             <input 
                                                 type="checkbox" 
                                                 v-model="recordForm.attributes[f.ma_truong]"
@@ -885,47 +828,33 @@
                                             />
                                             <span class="text-xs font-semibold text-slate-700 mb-0">Kích hoạt / Đạt</span>
                                         </div>
+                                    </div>
 
-                                        <!-- Input for Color -->
-                                        <input 
-                                            v-else-if="f.kieu_du_lieu === 'color'"
+                                    <!-- Input for Color -->
+                                    <div v-else-if="f.kieu_du_lieu === 'color'">
+                                        <LTEInput 
                                             v-model="recordForm.attributes[f.ma_truong]"
-                                            :disabled="recordForm.id && (f.cho_phep_chinh_sua === false || f.cho_phep_chinh_sua === 0 || f.cho_phep_chinh_sua === '0')"
+                                            :label="f.ten_truong"
                                             type="color"
-                                            class="w-16 h-9 p-1 bg-slate-50 border border-slate-300 rounded-xl cursor-pointer disabled:cursor-not-allowed"
-                                        />
-
-                                        <!-- Default Input (text, number, date, datetime, email, url) -->
-                                        <input 
-                                            v-else
-                                            v-model="recordForm.attributes[f.ma_truong]" 
-                                            :disabled="recordForm.id && (f.cho_phep_chinh_sua === false || f.cho_phep_chinh_sua === 0 || f.cho_phep_chinh_sua === '0')"
-                                            :type="f.kieu_du_lieu === 'number' ? 'number' : (f.kieu_du_lieu === 'date' ? 'date' : (f.kieu_du_lieu === 'datetime' ? 'datetime-local' : (f.kieu_du_lieu === 'email' ? 'email' : 'text')))" 
-                                            :placeholder="'Nhập ' + f.ten_truong.toLowerCase() + '...'" 
-                                            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:cursor-not-allowed" 
+                                            :is-disabled="recordForm.id && (f.cho_phep_chinh_sua === false || f.cho_phep_chinh_sua === 0 || f.cho_phep_chinh_sua === '0')"
+                                            class="w-24"
                                         />
                                     </div>
+
+                                    <!-- Default Input (text, number, date, datetime, email, url) -->
+                                    <LTEInput 
+                                        v-else
+                                        v-model="recordForm.attributes[f.ma_truong]" 
+                                        :label="f.ten_truong"
+                                        :is-disabled="recordForm.id && (f.cho_phep_chinh_sua === false || f.cho_phep_chinh_sua === 0 || f.cho_phep_chinh_sua === '0')"
+                                        :type="f.kieu_du_lieu === 'number' ? 'number' : (f.kieu_du_lieu === 'date' ? 'date' : (f.kieu_du_lieu === 'datetime' ? 'datetime-local' : (f.kieu_du_lieu === 'email' ? 'email' : 'text')))" 
+                                        :placeholder="'Nhập ' + f.ten_truong.toLowerCase() + '...'" 
+                                    />
                                 </div>
                             </div>
                         </div>
-
-                        <div class="flex justify-end gap-3 mt-6 pt-3 border-t border-slate-100">
-                            <LTEButton 
-                                variant="light" 
-                                text="Hủy" 
-                                class="btn-sm text-xs font-weight-bold px-3 border" 
-                                @click="showRecordModal = false" 
-                            />
-                            <LTEButton 
-                                variant="success" 
-                                icon="far fa-save" 
-                                text="Lưu bản ghi" 
-                                class="btn-sm text-xs font-weight-bold px-3 shadow-sm" 
-                                @click="saveRecord" 
-                            />
-                        </div>
                     </div>
-                </div>
+                </LTEModal>
 
                 <!-- LIGHTBOX IMAGE PREVIEW MODAL -->
                 <div v-if="previewImageUrl" class="fixed inset-0 z-[9999] bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4" @click.self="previewImageUrl = null">
@@ -1174,12 +1103,15 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/auth'
 import LTESelect2Option from '@/components/controls/LTESelect2Option.vue'
+import LTEInput from '@/components/controls/LTEInput.vue'
+import LTETextArea from '@/components/controls/LTETextArea.vue'
+import LTEModal from '@/components/controls/LTEModal.vue'
 import LTEButton from '@/components/controls/LTEButton.vue'
 import IconButton from '@/components/controls/IconButton.vue'
 
 export default {
     name: 'DynamicObjects',
-    components: { LTESelect2Option, LTEButton, IconButton },
+    components: { LTEModal, LTESelect2Option, LTEInput, LTETextArea, LTEButton, IconButton },
     data() {
         return {
             activeTab: 'types', // types | fields | records
@@ -1863,13 +1795,16 @@ export default {
         },
 
         // Type Modal
-        openTypeModal(type = null) {
+        async openTypeModal(type = null) {
             if (type) {
                 this.typeForm = { id: type.id, ma_loai: type.ma_loai, ten_loai: type.ten_loai, mo_ta: type.mo_ta }
             } else {
                 this.typeForm = { id: null, ma_loai: '', ten_loai: '', mo_ta: '' }
             }
-            this.showTypeModal = true
+            this.$refs.typeModal.$data.title = type ? 'Chỉnh sửa Loại đối tượng' : 'Thêm Loại đối tượng mới'
+            this.$refs.typeModal.$data.save = 'Lưu thông tin'
+            const res = await this.$refs.typeModal.openModal()
+            if (res) this.saveType()
         },
 
         async saveType() {
@@ -1879,7 +1814,7 @@ export default {
                     if (window.func && window.func.toastSuccess) {
                         window.func.toastSuccess(res.data.message)
                     }
-                    this.showTypeModal = false
+                    this.$refs.typeModal.closeModal()
                     this.loadTypes()
                 }
             } catch (err) {
@@ -1911,7 +1846,7 @@ export default {
         },
 
         // Field Modal & Reordering
-        openFieldModal(field = null) {
+        async openFieldModal(field = null) {
             this.newOptionText = ''
             if (field) {
                 let parsedConfig = {
@@ -1968,7 +1903,10 @@ export default {
                 }
                 this.optionList = []
             }
-            this.showFieldModal = true
+            this.$refs.fieldModal.$data.title = field ? 'Chỉnh sửa Thuộc tính' : 'Thêm Thuộc tính động mới'
+            this.$refs.fieldModal.$data.save = 'Lưu thuộc tính'
+            const res = await this.$refs.fieldModal.openModal()
+            if (res) this.saveField()
         },
 
         parseOptionList(rawChoices) {
@@ -2071,7 +2009,7 @@ export default {
                     if (window.func && window.func.toastSuccess) {
                         window.func.toastSuccess(res.data.message)
                     }
-                    this.showFieldModal = false
+                    this.$refs.fieldModal.closeModal()
                     this.loadFields()
                 }
             } catch (err) {
@@ -2106,7 +2044,7 @@ export default {
             }
         },
 
-        openRecordModal(rec = null) {
+        async openRecordModal(rec = null) {
             if (rec) {
                 this.recordForm = {
                     id: rec.id,
@@ -2128,7 +2066,11 @@ export default {
                     fileObjects: {}
                 }
             }
-            this.showRecordModal = true
+            const typeName = this.currentRecordType ? this.currentRecordType.ten_loai : ''
+            this.$refs.recordModal.$data.title = (rec ? 'Chỉnh sửa Bản ghi' : 'Thêm Bản ghi mới') + (typeName ? ' - ' + typeName : '')
+            this.$refs.recordModal.$data.save = 'Lưu bản ghi'
+            const res = await this.$refs.recordModal.openModal()
+            if (res) this.saveRecord()
         },
 
         async saveRecord() {
@@ -2142,10 +2084,13 @@ export default {
 
                 // Append attributes
                 for (const key in this.recordForm.attributes) {
-                    if (this.recordForm.fileObjects[key]) {
+                    const val = this.recordForm.attributes[key]
+                    if (val instanceof File) {
+                        formData.append(`attributes[${key}]`, val)
+                    } else if (this.recordForm.fileObjects[key]) {
                         formData.append(`attributes[${key}]`, this.recordForm.fileObjects[key])
                     } else {
-                        formData.append(`attributes[${key}]`, this.recordForm.attributes[key] || '')
+                        formData.append(`attributes[${key}]`, val || '')
                     }
                 }
 
@@ -2157,7 +2102,7 @@ export default {
                     if (window.func && window.func.toastSuccess) {
                         window.func.toastSuccess(res.data.message)
                     }
-                    this.showRecordModal = false
+                    this.$refs.recordModal.closeModal()
                     this.loadRecords()
                 }
             } catch (err) {

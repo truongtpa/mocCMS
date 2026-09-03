@@ -436,22 +436,11 @@
                 </form>
             </LTEModal>
 
-            <!-- MODAL QUẢN LÝ QUYỀN HẠN -->
-            <LTEModal ref="permissionModal" @close="resetPermissionForm">
+            <!-- MODAL QUẢN LÝ QUYỀN HẠN (DUAL LISTBOX TRANSFER SELECTOR - KHUNG RỘNG XL) -->
+            <LTEModal ref="permissionModal" size="xl" @close="resetPermissionForm">
                 <form @submit.prevent="submitPermissionForm">
-                    <div class="form-group mb-2">
-                        <label class="font-weight-bold small text-muted text-xs">Mã Quyền (Permission Key) <span class="text-danger">*</span></label>
-                        <input 
-                            v-model="permissionForm.ma_quyen" 
-                            type="text" 
-                            class="form-control form-control-sm" 
-                            placeholder="Ví dụ: StudentPortalController.addAchievement" 
-                            required
-                        />
-                        <small class="text-muted">Định dạng chuẩn: <code>ControllerName.methodName</code></small>
-                    </div>
-                    <div class="form-group mb-2">
-                        <label class="font-weight-bold small text-muted text-xs">Tên Quyền Mô Tả <span class="text-danger">*</span></label>
+                    <div class="form-group mb-3">
+                        <label class="font-weight-bold small text-dark text-xs">Tên Quyền Mô Tả <span class="text-danger">*</span></label>
                         <input 
                             v-model="permissionForm.ten_quyen" 
                             type="text" 
@@ -459,6 +448,157 @@
                             placeholder="Ví dụ: Khai báo thành tích mới" 
                             required
                         />
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="font-weight-bold small text-dark text-xs mb-1">
+                            <i class="fas fa-network-wired text-primary mr-1"></i> Gán Phương thức API (Controller.method) <span class="text-danger">*</span>
+                        </label>
+                        <p class="text-muted text-xs mb-2">Chọn phương thức API từ danh sách bên trái và bấm <strong>[ Chuyển > ]</strong> sang nhóm bên phải để phân quyền.</p>
+
+                        <!-- DUAL LISTBOX TRANSFER SELECTOR -->
+                        <div class="row align-items-stretch no-gutters p-2 rounded border bg-light">
+                            <!-- KHUNG BÊN TRÁI: KHẢ DỤNG -->
+                            <div class="col-md-5 d-flex flex-column bg-white rounded border p-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5 pb-1 border-bottom">
+                                    <span class="font-weight-bold text-xs text-secondary">
+                                        <i class="fas fa-list-ul mr-1 text-info"></i> API Khả dụng ({{ leftAvailableMethods.length }})
+                                    </span>
+                                    <span v-if="selectedLeftItems.length > 0" class="badge badge-primary px-1.5 py-0.5" style="font-size: 10px;">Đã chọn {{ selectedLeftItems.length }}</span>
+                                </div>
+                                <div class="form-row mb-1.5">
+                                    <div class="col-7">
+                                        <input v-model="searchLeft" type="text" class="form-control form-control-sm text-xs px-2" placeholder="Tìm API..." />
+                                    </div>
+                                    <div class="col-5">
+                                        <select v-model="filterController" class="custom-select custom-select-sm text-xs px-1">
+                                            <option value="all">Tất cả Nhóm</option>
+                                            <option value="StudentPortalController">StudentPortal</option>
+                                            <option value="DynamicObjectController">DynamicObject</option>
+                                            <option value="PhanQuyenController">PhanQuyen</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1 overflow-auto border rounded p-1" style="max-height: 380px; min-height: 280px; background-color: #fafafa;">
+                                    <div v-if="leftAvailableMethods.length === 0" class="text-center text-muted text-xs py-4">
+                                        Không có API phù hợp.
+                                    </div>
+                                    <div 
+                                        v-for="item in leftAvailableMethods" 
+                                        :key="item"
+                                        class="custom-control custom-checkbox py-1 px-2 mb-1 rounded cursor-pointer border-bottom-light d-flex align-items-center justify-content-between"
+                                        :style="{ backgroundColor: selectedLeftItems.includes(item) ? '#e6f0ff' : 'transparent' }"
+                                        @click.prevent="toggleSelectLeft(item)"
+                                    >
+                                        <div class="d-flex align-items-center w-100" style="word-break: break-all;">
+                                            <input 
+                                                type="checkbox" 
+                                                class="custom-control-input" 
+                                                :checked="selectedLeftItems.includes(item)" 
+                                            />
+                                            <label class="custom-control-label font-weight-normal text-xs text-dark w-100 cursor-pointer" style="font-family: monospace; font-size: 12px; line-height: 1.4;">
+                                                {{ item }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- NÚT CHUYỂN Ở GIỮA -->
+                            <div class="col-md-2 d-flex flex-column justify-content-center align-items-center px-2 py-2 gap-1.5">
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-primary btn-block text-xs font-weight-bold shadow-sm py-1.5"
+                                    :disabled="selectedLeftItems.length === 0"
+                                    title="Chuyển mục đã chọn sang phải"
+                                    @click="moveToRight"
+                                >
+                                    Chuyển <i class="fas fa-chevron-right ml-1"></i>
+                                </button>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-outline-secondary btn-block text-xs font-weight-bold py-1.5"
+                                    :disabled="selectedRightItems.length === 0"
+                                    title="Bỏ mục đã chọn về bên trái"
+                                    @click="moveToLeft"
+                                >
+                                    <i class="fas fa-chevron-left mr-1"></i> Bỏ
+                                </button>
+                                <hr class="my-2 w-100 border-top" />
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-outline-primary btn-block text-xs py-1"
+                                    title="Chuyển tất cả sang phải"
+                                    @click="moveAllToRight"
+                                >
+                                    >> Tất cả
+                                </button>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-outline-danger btn-block text-xs py-1"
+                                    title="Xóa tất cả ở bên phải"
+                                    @click="moveAllToLeft"
+                                >
+                                    << Xóa sạch
+                                </button>
+                            </div>
+
+                            <!-- KHUNG BÊN PHẢI: ĐÃ CHỌN -->
+                            <div class="col-md-5 d-flex flex-column bg-white rounded border p-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5 pb-1 border-bottom">
+                                    <span class="font-weight-bold text-xs text-success">
+                                        <i class="fas fa-check-circle mr-1"></i> Đã chọn ({{ selectedFuncs.length }})
+                                    </span>
+                                    <span v-if="selectedRightItems.length > 0" class="badge badge-danger px-1.5 py-0.5" style="font-size: 10px;">Đã chọn {{ selectedRightItems.length }}</span>
+                                </div>
+                                <div class="mb-1.5">
+                                    <input v-model="searchRight" type="text" class="form-control form-control-sm text-xs px-2" placeholder="Tìm API đã chọn..." />
+                                </div>
+                                <div class="flex-grow-1 overflow-auto border rounded p-1" style="max-height: 380px; min-height: 280px; background-color: #f4fbf7;">
+                                    <div v-if="selectedFuncs.length === 0" class="text-center text-muted text-xs py-4">
+                                        Chưa chọn phương thức API nào.<br/>Vui lòng chọn từ bên trái.
+                                    </div>
+                                    <div 
+                                        v-for="item in rightSelectedMethods" 
+                                        :key="item"
+                                        class="custom-control custom-checkbox py-1 px-2 mb-1 rounded cursor-pointer border-bottom-light d-flex align-items-center justify-content-between"
+                                        :style="{ backgroundColor: selectedRightItems.includes(item) ? '#fee2e2' : 'transparent' }"
+                                        @click.prevent="toggleSelectRight(item)"
+                                    >
+                                        <div class="d-flex align-items-center" style="max-width: 90%; word-break: break-all;">
+                                            <input 
+                                                type="checkbox" 
+                                                class="custom-control-input" 
+                                                :checked="selectedRightItems.includes(item)" 
+                                            />
+                                            <label class="custom-control-label font-weight-bold text-xs text-success w-100 cursor-pointer" style="font-family: monospace; font-size: 12px; line-height: 1.4;">
+                                                {{ item }}
+                                            </label>
+                                        </div>
+                                        <i class="fas fa-times text-danger text-xs cursor-pointer ml-1" title="Bỏ chọn" @click.stop="removeSingleFunc(item)"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- NHẬP TRỰC TIẾP PHƯƠNG THỨC TỦY CHỈNH -->
+                        <div class="mt-2 pt-2 border-top">
+                            <label class="small text-muted font-weight-normal text-xs mb-1">Hoặc nhập bổ sung phương thức API tùy chỉnh khác:</label>
+                            <div class="input-group input-group-sm">
+                                <input 
+                                    v-model="customNewFunc" 
+                                    type="text" 
+                                    class="form-control text-xs" 
+                                    placeholder="Ví dụ: CustomController.myNewAction" 
+                                    @keyup.enter="addCustomMethod"
+                                />
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-primary btn-sm text-xs font-weight-bold px-3" @click="addCustomMethod">
+                                        <i class="fas fa-plus mr-1"></i> Thêm vào nhóm
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </LTEModal>
@@ -805,6 +945,137 @@ const deleteRole = async (role) => {
     }
 };
 
+// System known API methods list
+const knownSystemApiMethods = reactive([
+    // StudentPortalController
+    'StudentPortalController.getDashboardStats',
+    'StudentPortalController.updateBookingStatus',
+    'StudentPortalController.getProfileData',
+    'StudentPortalController.updateProfileData',
+    'StudentPortalController.addEavAttribute',
+    'StudentPortalController.forceSyncStudentApi',
+    'StudentPortalController.getAchievementsList',
+    'StudentPortalController.addAchievement',
+    'StudentPortalController.getBookingLecturers',
+    'StudentPortalController.getBookingsList',
+    'StudentPortalController.createBooking',
+    // DynamicObjectController
+    'DynamicObjectController.getTypes',
+    'DynamicObjectController.putType',
+    'DynamicObjectController.deleteType',
+    'DynamicObjectController.getFields',
+    'DynamicObjectController.putField',
+    'DynamicObjectController.updateFieldOrders',
+    'DynamicObjectController.deleteField',
+    'DynamicObjectController.getRecords',
+    'DynamicObjectController.putRecord',
+    'DynamicObjectController.deleteRecord',
+    'DynamicObjectController.exportImportTemplate',
+    'DynamicObjectController.putPreviewImport',
+    'DynamicObjectController.putProcessImport',
+    'DynamicObjectController.getLayoutConfig',
+    'DynamicObjectController.putLayoutConfig',
+    'DynamicObjectController.exportRecords',
+    // PhanQuyenController
+    'PhanQuyenController.getDanhSachVaiTro',
+    'PhanQuyenController.putVaiTro',
+    'PhanQuyenController.deleteVaiTro',
+    'PhanQuyenController.getDanhSachQuyen',
+    'PhanQuyenController.putQuyen',
+    'PhanQuyenController.deleteQuyen',
+    'PhanQuyenController.getMaTranQuyen',
+    'PhanQuyenController.updateQuyenVaiTro',
+    'PhanQuyenController.getDanhSachNguoiDung',
+    'PhanQuyenController.putVaiTroNguoiDung',
+    'PhanQuyenController.getCaiDat',
+    'PhanQuyenController.putCaiDat',
+    'PhanQuyenController.deleteCaiDat',
+]);
+
+// Dual Transfer Selector States
+const selectedFuncs = ref([]);
+const selectedLeftItems = ref([]);
+const selectedRightItems = ref([]);
+const searchLeft = ref('');
+const searchRight = ref('');
+const filterController = ref('all');
+const customNewFunc = ref('');
+
+// Computed Available Methods (Left Box)
+const leftAvailableMethods = computed(() => {
+    return knownSystemApiMethods.filter(item => {
+        if (selectedFuncs.value.includes(item)) return false;
+        if (filterController.value !== 'all' && !item.startsWith(filterController.value)) return false;
+        if (searchLeft.value && !item.toLowerCase().includes(searchLeft.value.toLowerCase())) return false;
+        return true;
+    });
+});
+
+// Computed Selected Methods (Right Box)
+const rightSelectedMethods = computed(() => {
+    return selectedFuncs.value.filter(item => {
+        if (searchRight.value && !item.toLowerCase().includes(searchRight.value.toLowerCase())) return false;
+        return true;
+    });
+});
+
+const toggleSelectLeft = (item) => {
+    const idx = selectedLeftItems.value.indexOf(item);
+    if (idx > -1) selectedLeftItems.value.splice(idx, 1);
+    else selectedLeftItems.value.push(item);
+};
+
+const toggleSelectRight = (item) => {
+    const idx = selectedRightItems.value.indexOf(item);
+    if (idx > -1) selectedRightItems.value.splice(idx, 1);
+    else selectedRightItems.value.push(item);
+};
+
+const moveToRight = () => {
+    selectedLeftItems.value.forEach(item => {
+        if (!selectedFuncs.value.includes(item)) {
+            selectedFuncs.value.push(item);
+        }
+    });
+    selectedLeftItems.value = [];
+};
+
+const moveToLeft = () => {
+    selectedFuncs.value = selectedFuncs.value.filter(item => !selectedRightItems.value.includes(item));
+    selectedRightItems.value = [];
+};
+
+const moveAllToRight = () => {
+    leftAvailableMethods.value.forEach(item => {
+        if (!selectedFuncs.value.includes(item)) {
+            selectedFuncs.value.push(item);
+        }
+    });
+    selectedLeftItems.value = [];
+};
+
+const moveAllToLeft = () => {
+    selectedFuncs.value = [];
+    selectedRightItems.value = [];
+};
+
+const removeSingleFunc = (item) => {
+    selectedFuncs.value = selectedFuncs.value.filter(f => f !== item);
+    selectedRightItems.value = selectedRightItems.value.filter(f => f !== item);
+};
+
+const addCustomMethod = () => {
+    const trimmed = customNewFunc.value.trim();
+    if (!trimmed) return;
+    if (!selectedFuncs.value.includes(trimmed)) {
+        selectedFuncs.value.push(trimmed);
+    }
+    if (!knownSystemApiMethods.includes(trimmed)) {
+        knownSystemApiMethods.push(trimmed);
+    }
+    customNewFunc.value = '';
+};
+
 // 3. Permissions logic
 const fetchPermissions = async () => {
     loadingPermissions.value = true;
@@ -828,8 +1099,21 @@ const openAddPermissionModal = async () => {
 
 const openEditPermissionModal = async (perm) => {
     permissionForm.id = perm.id;
-    permissionForm.ma_quyen = perm.ma_quyen;
     permissionForm.ten_quyen = perm.ten_quyen;
+    permissionForm.ma_quyen = perm.ma_quyen;
+    selectedFuncs.value = splitFuncs(perm.ma_quyen);
+    selectedLeftItems.value = [];
+    selectedRightItems.value = [];
+    searchLeft.value = '';
+    searchRight.value = '';
+
+    // Add any unknown custom funcs into knownSystemApiMethods
+    selectedFuncs.value.forEach(f => {
+        if (!knownSystemApiMethods.includes(f)) {
+            knownSystemApiMethods.push(f);
+        }
+    });
+
     permissionModal.value.$data.title = 'Chỉnh sửa Quyền hạn';
     permissionModal.value.$data.save = 'Cập nhật';
     const res = await permissionModal.value.openModal();
@@ -840,10 +1124,20 @@ const resetPermissionForm = () => {
     permissionForm.id = null;
     permissionForm.ma_quyen = '';
     permissionForm.ten_quyen = '';
+    selectedFuncs.value = [];
+    selectedLeftItems.value = [];
+    selectedRightItems.value = [];
+    searchLeft.value = '';
+    searchRight.value = '';
+    customNewFunc.value = '';
 };
 
 const submitPermissionForm = async () => {
-    if (!permissionForm.ma_quyen || !permissionForm.ten_quyen) return;
+    permissionForm.ma_quyen = selectedFuncs.value.join(',');
+    if (!permissionForm.ma_quyen || !permissionForm.ten_quyen) {
+        if (window.func && window.func.toastError) window.func.toastError('Vui lòng nhập tên quyền và chọn ít nhất 1 phương thức API!');
+        return;
+    }
     try {
         const res = await axios.post(route('PhanQuyenController.putQuyen'), permissionForm);
         if (res.data.status === 200) {

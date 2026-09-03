@@ -20,6 +20,7 @@ import IconButton from './controls/IconButton.vue'
 import AppBadge from './controls/AppBadge.vue'
 import AppTable from './controls/AppTable.vue'
 import Toast from './controls/Toast.vue'
+import LTEFilePond from './controls/LTEFilePond.vue'
 
 // Đăng ký toàn cục các component
 const globalComponents = {
@@ -29,6 +30,7 @@ const globalComponents = {
         app.component('LTECard', LTECard)
         app.component('LTEInput', LTEInput)
         app.component('LTESelect2Option', LTESelect2Option)
+        app.component('LTEFilePond', LTEFilePond)
         app.component('YesNoModal', YesNoModal)
 
         app.component('LTEBreadcrumb', LTEBreadcrumb)

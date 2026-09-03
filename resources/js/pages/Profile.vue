@@ -60,113 +60,34 @@
                                             <label class="font-weight-bold small text-muted mb-1.5">{{ attr.ten_truong }}</label>
                                             
                                             <!-- Textarea -->
-                                            <textarea 
+                                            <LTETextArea 
                                                 v-if="attr.kieu_du_lieu === 'textarea'"
                                                 v-model="attr.value"
-                                                :disabled="!isEditable(attr)"
-                                                :readonly="!isEditable(attr)"
-                                                class="custom-input"
-                                                rows="3"
-                                                :style="!isEditable(attr) ? 'height: auto; background-color: #f1f5f9 !important; cursor: not-allowed !important;' : 'height: auto;'"
-                                                :placeholder="`Nhập ${attr.ten_truong.toLowerCase()}...`"
-                                            ></textarea>
-
-                                            <!-- Date Picker -->
-                                            <input 
-                                                v-else-if="attr.kieu_du_lieu === 'date'"
-                                                v-model="attr.value" 
-                                                :disabled="!isEditable(attr)"
-                                                :readonly="!isEditable(attr)"
-                                                type="date" 
-                                                class="custom-input"
-                                                :style="!isEditable(attr) ? 'background-color: #f1f5f9 !important; cursor: not-allowed !important;' : ''"
-                                            />
-
-                                            <!-- Datetime Picker -->
-                                            <input 
-                                                v-else-if="attr.kieu_du_lieu === 'datetime'"
-                                                v-model="attr.value" 
-                                                :disabled="!isEditable(attr)"
-                                                :readonly="!isEditable(attr)"
-                                                type="datetime-local" 
-                                                class="custom-input"
-                                                :style="!isEditable(attr) ? 'background-color: #f1f5f9 !important; cursor: not-allowed !important;' : ''"
-                                            />
-
-                                            <!-- Number Input -->
-                                            <input 
-                                                v-else-if="attr.kieu_du_lieu === 'number'"
-                                                v-model="attr.value" 
-                                                :disabled="!isEditable(attr)"
-                                                :readonly="!isEditable(attr)"
-                                                type="number" 
-                                                class="custom-input"
-                                                :style="!isEditable(attr) ? 'background-color: #f1f5f9 !important; cursor: not-allowed !important;' : ''"
+                                                :is-disabled="!isEditable(attr)"
+                                                :rows="3"
                                                 :placeholder="`Nhập ${attr.ten_truong.toLowerCase()}...`"
                                             />
 
                                             <!-- Select Dropdown -->
-                                            <select
+                                            <LTESelect2Option
                                                 v-else-if="['select', 'multiselect'].includes(attr.kieu_du_lieu)"
                                                 v-model="attr.value"
-                                                :disabled="!isEditable(attr)"
-                                                class="custom-input custom-select"
-                                                :style="!isEditable(attr) ? 'background-color: #f1f5f9 !important; cursor: not-allowed !important;' : ''"
-                                            >
-                                                <option value="">-- Chọn {{ attr.ten_truong }} --</option>
-                                                <option 
-                                                    v-for="opt in parseOptions(attr)" 
-                                                    :key="opt.value" 
-                                                    :value="opt.value"
-                                                >
-                                                    {{ opt.text }}
-                                                </option>
-                                            </select>
+                                                :init-value="attr.value"
+                                                :multiple="attr.kieu_du_lieu === 'multiselect'"
+                                                :data="parseOptions(attr)"
+                                                :options="parseOptions(attr)"
+                                                :is-disabled="!isEditable(attr)"
+                                                :placeholder="`-- Chọn ${attr.ten_truong} --`"
+                                            />
 
-                                            <!-- Image Input / Upload Preview Card -->
-                                            <div v-else-if="attr.kieu_du_lieu === 'image'" class="p-3 border rounded" :style="!isEditable(attr) ? 'background-color: #f1f5f9 !important;' : 'background-color: #f8fafc;'">
-                                                <div v-if="attr.value" class="d-flex align-items-center justify-content-between mb-2 p-2 bg-white rounded border">
-                                                    <div class="d-flex align-items-center">
-                                                        <img :src="attr.value" class="rounded border mr-2" style="width: 50px; height: 50px; object-fit: cover;" />
-                                                        <span class="small text-truncate font-weight-bold" style="max-width: 250px;">{{ getFileName(attr.value) }}</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center gap-1">
-                                                        <a :href="attr.value" target="_blank" class="btn btn-sm btn-outline-primary mr-1" title="Xem ảnh">
-                                                            <i class="fas fa-eye"></i>
-                                                        </a>
-                                                        <IconButton v-if="isEditable(attr)" variant="red" icon="fas fa-trash-alt" title="Xóa" @click="clearFile(attr)" />
-                                                    </div>
-                                                </div>
-                                                <input 
-                                                    v-if="isEditable(attr)"
-                                                    type="file" 
-                                                    accept="image/*"
-                                                    @change="onFileSelected($event, attr)"
-                                                    class="form-control-file small"
-                                                />
-                                            </div>
-
-                                            <!-- File Upload / Download Preview Card -->
-                                            <div v-else-if="attr.kieu_du_lieu === 'file'" class="p-3 border rounded" :style="!isEditable(attr) ? 'background-color: #f1f5f9 !important;' : 'background-color: #f8fafc;'">
-                                                <div v-if="attr.value" class="d-flex align-items-center justify-content-between mb-2 p-2 bg-white rounded border">
-                                                    <div class="d-flex align-items-center">
-                                                        <i :class="getFileIconClass(attr.value) + ' fa-2x mr-2'"></i>
-                                                        <span class="small text-truncate font-weight-bold" style="max-width: 250px;">{{ getFileName(attr.value) }}</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center gap-1">
-                                                        <a :href="attr.value" target="_blank" download class="btn btn-sm btn-outline-primary mr-1" title="Tải tệp">
-                                                            <i class="fas fa-download"></i> Tải về
-                                                        </a>
-                                                        <IconButton v-if="isEditable(attr)" variant="red" icon="fas fa-trash-alt" title="Xóa" @click="clearFile(attr)" />
-                                                    </div>
-                                                </div>
-                                                <input 
-                                                    v-if="isEditable(attr)"
-                                                    type="file" 
-                                                    @change="onFileSelected($event, attr)"
-                                                    class="form-control-file small"
-                                                />
-                                            </div>
+                                            <!-- Image & File Upload via LTEFilePond -->
+                                            <LTEFilePond
+                                                v-else-if="['image', 'file'].includes(attr.kieu_du_lieu)"
+                                                v-model="attr.value"
+                                                :accepted-file-types="attr.kieu_du_lieu === 'image' ? ['image/*'] : []"
+                                                :is-disabled="!isEditable(attr)"
+                                                folder="profile_uploads"
+                                            />
 
                                             <!-- Boolean Checkbox -->
                                             <div v-else-if="attr.kieu_du_lieu === 'boolean'" class="form-check pt-2">
@@ -192,15 +113,12 @@
                                                 style="width: 60px; height: 38px;"
                                             />
 
-                                            <!-- Default Text Input -->
-                                            <input 
+                                            <!-- Default Input Fields (Text, Number, Date, Datetime) -->
+                                            <LTEInput 
                                                 v-else
                                                 v-model="attr.value" 
-                                                :disabled="!isEditable(attr)"
-                                                :readonly="!isEditable(attr)"
-                                                :type="attr.kieu_du_lieu === 'email' ? 'email' : (attr.kieu_du_lieu === 'url' ? 'url' : 'text')" 
-                                                class="custom-input"
-                                                :style="!isEditable(attr) ? 'background-color: #f1f5f9 !important; cursor: not-allowed !important;' : ''"
+                                                :type="attr.kieu_du_lieu === 'date' ? 'date' : (attr.kieu_du_lieu === 'datetime' ? 'datetime-local' : (attr.kieu_du_lieu === 'number' ? 'number' : (attr.kieu_du_lieu === 'email' ? 'email' : 'text')))"
+                                                :is-disabled="!isEditable(attr)"
                                                 :placeholder="`Nhập ${attr.ten_truong.toLowerCase()}...`"
                                             />
                                         </div>
@@ -392,12 +310,14 @@ const saveProfile = async () => {
     try {
         const formData = new FormData();
         const payload = attributes.value.map(attr => {
-            if (attr.fileObj) {
+            if (attr.value instanceof File) {
+                formData.append(`file_${attr.id}`, attr.value);
+            } else if (attr.fileObj) {
                 formData.append(`file_${attr.id}`, attr.fileObj);
             }
             return {
                 truong_id: attr.id,
-                gia_tri: attr.value || ''
+                gia_tri: (attr.value instanceof File) ? '' : (attr.value || '')
             };
         });
         

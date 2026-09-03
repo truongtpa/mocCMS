@@ -130,6 +130,12 @@ Route::group(['middleware' => ['isLogin']], function () {
         Route::get('/admin/phan-quyen/cai-dat', [\App\Http\Controllers\PhanQuyenController::class, 'getCaiDat'])->name('PhanQuyenController.getCaiDat');
         Route::post('/admin/phan-quyen/cai-dat', [\App\Http\Controllers\PhanQuyenController::class, 'putCaiDat'])->name('PhanQuyenController.putCaiDat');
         Route::delete('/admin/phan-quyen/cai-dat/{id}', [\App\Http\Controllers\PhanQuyenController::class, 'deleteCaiDat'])->name('PhanQuyenController.deleteCaiDat');
+
+        // File Controller Management API
+        Route::post('/admin/file/upload', [\App\Http\Controllers\FileController::class, 'putUploadFile'])->name('FileController.putUploadFile');
+        Route::post('/admin/file/upload-hang-loat', [\App\Http\Controllers\FileController::class, 'putUploadHangLoat'])->name('FileController.putUploadHangLoat');
+        Route::delete('/admin/file/xoa', [\App\Http\Controllers\FileController::class, 'deleteFile'])->name('FileController.deleteFile');
+        Route::get('/admin/file/url', [\App\Http\Controllers\FileController::class, 'getFileUrl'])->name('FileController.getFileUrl');
     });
 });
 
