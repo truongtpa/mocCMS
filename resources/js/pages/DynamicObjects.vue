@@ -811,7 +811,7 @@
                                         v-else-if="['file', 'image'].includes(f.kieu_du_lieu)"
                                         v-model="recordForm.attributes[f.ma_truong]"
                                         :label="f.ten_truong"
-                                        :accepted-file-types="f.kieu_du_lieu === 'image' ? ['image/*'] : []"
+                                        :accepted-file-types="f.kieu_du_lieu === 'image' ? ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/*'] : null"
                                         :is-disabled="recordForm.id && (f.cho_phep_chinh_sua === false || f.cho_phep_chinh_sua === 0 || f.cho_phep_chinh_sua === '0')"
                                         folder="dynamic_uploads"
                                     />

@@ -9,7 +9,7 @@
       :allow-multiple="allowMultiple"
       :max-files="maxFiles"
       :max-file-size="maxFileSize"
-      :accepted-file-types="acceptedFileTypes"
+      :accepted-file-types="computedAcceptedTypes"
       :disabled="isDisabled"
       :server="serverOptions"
       :instant-upload="false"
@@ -101,6 +101,12 @@ export default {
     },
     extraClasses() {
       return this.class || ''
+    },
+    computedAcceptedTypes() {
+      if (!this.acceptedFileTypes || (Array.isArray(this.acceptedFileTypes) && this.acceptedFileTypes.length === 0)) {
+        return null
+      }
+      return this.acceptedFileTypes
     },
     serverOptions() {
       const self = this

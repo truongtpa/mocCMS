@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Response;
 use App\Services\S3Services;
+use App\Services\NhatKyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -172,7 +173,9 @@ class DynamicObjectController extends Controller
         ];
 
         if ($id) {
+            $oldField = DB::table('danh_muc_truong')->where('id', $id)->first();
             DB::table('danh_muc_truong')->where('id', $id)->update($data);
+            NhatKyService::ghiLog('SUA_THUOC_TINH', "Đã cập nhật thuộc tính '{$tenTruong}' (Mã: {$maTruong})", 'danh_muc_truong', $id, $oldField, $data);
         } else {
             $exists = DB::table('danh_muc_truong')
                 ->where('loai_doi_tuong_id', $loaiDoiTuongId)
@@ -185,7 +188,8 @@ class DynamicObjectController extends Controller
 
             $data['loai_doi_tuong_id'] = $loaiDoiTuongId;
             $data['ngay_tao'] = now();
-            DB::table('danh_muc_truong')->insert($data);
+            $newId = DB::table('danh_muc_truong')->insertGetId($data);
+            NhatKyService::ghiLog('THEM_THUOC_TINH', "Đã thêm thuộc tính mới '{$tenTruong}' (Mã: {$maTruong})", 'danh_muc_truong', $newId, null, $data);
         }
 
         return Response::Success([], 'Lưu thuộc tính thành công!');
@@ -216,6 +220,7 @@ class DynamicObjectController extends Controller
                 }
             }
         }
+        NhatKyService::ghiLog('SAP_XEP_THUOC_TINH', 'Đã cập nhật thứ tự sắp xếp các thuộc tính', 'danh_muc_truong', null, null, $orders);
         return Response::Success([], 'Cập nhật thứ tự sắp xếp và phân nhóm thành công!');
     }
 
@@ -230,25 +235,136 @@ class DynamicObjectController extends Controller
             return Response::Error('Không tìm thấy', 'Không tìm thấy thuộc tính!');
         }
 
-        // Tự động xóa các file/ảnh đã upload trên MinIO nếu thuộc tính bị xóa là file/image
-        if (in_array($field->kieu_du_lieu, ['file', 'image'])) {
-            $oldFiles = DB::table('gia_tri_thong_tin')
-                ->where('truong_id', $id)
-                ->whereNotNull('gia_tri')
-                ->where('gia_tri', '!=', '')
-                ->pluck('gia_tri')
-                ->toArray();
-            if (!empty($oldFiles)) {
-                \App\Services\S3Services::xoaHangLoat($oldFiles);
-            }
-        }
+        // 1. Sao lưu định nghĩa thuộc tính và toàn bộ giá trị đã nhập của sinh viên trước khi xóa
+        $values = DB::table('gia_tri_thong_tin')->where('truong_id', $id)->get()->toArray();
+        $userEmail = session(\App\VLUTE::SESSION_Email) ?? session(\App\VLUTE::SESSION_HoTen) ?? 'Admin';
 
+        $backupId = DB::table('sao_luu_thuoc_tinh')->insertGetId([
+            'truong_id' => $id,
+            'ma_truong' => $field->ma_truong,
+            'ten_truong' => $field->ten_truong,
+            'loai_doi_tuong_id' => $field->loai_doi_tuong_id,
+            'field_data' => json_encode($field, JSON_UNESCAPED_UNICODE),
+            'values_data' => json_encode($values, JSON_UNESCAPED_UNICODE),
+            'nguoi_xoa' => $userEmail,
+            'trang_thai' => 1,
+            'ngay_xoa' => now()
+        ]);
+
+        // 2. Gỡ thuộc tính và các giá trị (Tệp trên MinIO được giữ nguyên để có thể khôi phục 100%)
         DB::transaction(function () use ($id) {
             DB::table('gia_tri_thong_tin')->where('truong_id', $id)->delete();
             DB::table('danh_muc_truong')->where('id', $id)->delete();
         });
 
-        return Response::Success([], 'Xóa thuộc tính thành công!');
+        // 3. Ghi nhật ký thao tác custom vào bảng nhat_ky_he_thong
+        NhatKyService::ghiLog(
+            'XOA_THUOC_TINH',
+            "Đã xóa thuộc tính '{$field->ten_truong}' (Mã: {$field->ma_truong}). Đã lưu bản sao lưu (ID: {$backupId})",
+            'danh_muc_truong',
+            $id,
+            $field,
+            ['backup_id' => $backupId]
+        );
+
+        return Response::Success(['backup_id' => $backupId], 'Xóa thuộc tính thành công! Đã sao lưu dữ liệu để có thể khôi phục.');
+    }
+
+    public function khoiPhucThuocTinh(Request $request, $id)
+    {
+        if (!$this->checkUserPermission('DynamicObjectController.deleteField')) {
+            return Response::Error('Không có quyền', 'Bạn không có quyền thực hiện thao tác này!');
+        }
+
+        $backup = DB::table('sao_luu_thuoc_tinh')->where('id', $id)->first();
+        if (!$backup) {
+            return Response::Error('Không tìm thấy', 'Không tìm thấy bản sao lưu!');
+        }
+        if ($backup->trang_thai == 0) {
+            return Response::Error('Lỗi', 'Thuộc tính này đã được khôi phục trước đó!');
+        }
+
+        $fieldData = json_decode($backup->field_data, true);
+        $valuesData = json_decode($backup->values_data, true) ?? [];
+
+        DB::transaction(function () use ($fieldData, $valuesData, $backup) {
+            unset($fieldData['id']);
+            $fieldData['ngay_tao'] = now();
+            $newFieldId = DB::table('danh_muc_truong')->insertGetId($fieldData);
+
+            if (!empty($valuesData)) {
+                foreach ($valuesData as $vRow) {
+                    unset($vRow['id']);
+                    $vRow['truong_id'] = $newFieldId;
+                    $vRow['ngay_tao'] = now();
+                    DB::table('gia_tri_thong_tin')->insert($vRow);
+                }
+            }
+
+            DB::table('sao_luu_thuoc_tinh')->where('id', $backup->id)->update([
+                'trang_thai' => 0,
+                'ngay_khoi_phuc' => now()
+            ]);
+        });
+
+        NhatKyService::ghiLog(
+            'KHOI_PHUC_THUOC_TINH',
+            "Đã khôi phục thành công thuộc tính '{$backup->ten_truong}' (Mã: {$backup->ma_truong}) từ bản sao lưu #{$backup->id}",
+            'danh_muc_truong',
+            $backup->truong_id,
+            null,
+            $fieldData
+        );
+
+        return Response::Success([], 'Khôi phục thuộc tính thành công!');
+    }
+
+    public function getDsNhatKy(Request $request)
+    {
+        $perPage = intval(env('ITEM_PER_PAGE', 10));
+        $keyword = $request->input('s', '');
+        $hanhDong = $request->input('hanh_dong', '');
+
+        $query = DB::table('nhat_ky_he_thong')
+            ->orderBy('id', 'desc');
+
+        if ($keyword !== '') {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('ten_dang_nhap', 'like', "%{$keyword}%")
+                  ->orWhere('hanh_dong', 'like', "%{$keyword}%")
+                  ->orWhere('mo_ta', 'like', "%{$keyword}%")
+                  ->orWhere('bang_tac_dong', 'like', "%{$keyword}%");
+            });
+        }
+
+        if ($hanhDong !== '') {
+            $query->where('hanh_dong', 'like', "%{$hanhDong}%");
+        }
+
+        $logs = $query->paginate($perPage);
+
+        return Response::Success($logs, 'Lấy danh sách nhật ký thành công!');
+    }
+
+    public function getDsSaoLuuThuocTinh(Request $request)
+    {
+        $perPage = intval(env('ITEM_PER_PAGE', 10));
+        $keyword = $request->input('s', '');
+
+        $query = DB::table('sao_luu_thuoc_tinh')
+            ->orderBy('id', 'desc');
+
+        if ($keyword !== '') {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('ma_truong', 'like', "%{$keyword}%")
+                  ->orWhere('ten_truong', 'like', "%{$keyword}%")
+                  ->orWhere('nguoi_xoa', 'like', "%{$keyword}%");
+            });
+        }
+
+        $list = $query->paginate($perPage);
+
+        return Response::Success($list, 'Lấy danh sách sao lưu thuộc tính thành công!');
     }
 
     public function getRecords(Request $request)
@@ -392,6 +508,19 @@ class DynamicObjectController extends Controller
             return Response::Error('Không tìm thấy', 'Không tìm thấy loại đối tượng!');
         }
 
+        $oldRecordData = null;
+        if ($id) {
+            $existingMaster = DB::table('doi_tuong')->where('id', $id)->first();
+            $oldValues = DB::table('gia_tri_thong_tin')->where('doi_tuong_id', $id)->get()->pluck('gia_tri', 'truong_id')->toArray();
+            if ($existingMaster) {
+                $oldRecordData = [
+                    'ten_hien_thi' => $existingMaster->ten_hien_thi ?? '',
+                    'ma_doi_tuong' => $existingMaster->ma_doi_tuong ?? '',
+                    'attributes' => $oldValues
+                ];
+            }
+        }
+
         if (empty($tenHienThi)) {
             return Response::Error('Sai định dạng dữ liệu', 'Vui lòng nhập tên hiển thị!');
         }
@@ -501,6 +630,19 @@ class DynamicObjectController extends Controller
                 );
             }
         }
+
+        NhatKyService::ghiLog(
+            $id ? 'SUA_BAN_GHI' : 'THEM_BAN_GHI',
+            "Đã lưu thông tin bản ghi '{$tenHienThi}' (Mã: {$maDoiTuong})",
+            'doi_tuong',
+            $masterDoiTuongId,
+            $oldRecordData,
+            [
+                'ten_hien_thi' => $tenHienThi,
+                'ma_doi_tuong' => $maDoiTuong,
+                'attributes' => $attributes
+            ]
+        );
 
         return Response::Success([], 'Lưu thông tin thành công!');
     }

@@ -49,6 +49,12 @@ const routes = [
         name: 'router-portal-cai-dat',
         meta: { title: 'Cài đặt hệ thống', permission: 'PhanQuyenController.getCaiDat' },
         component: () => import('@/pages/CaiDat.vue')
+    },
+    {
+        path: '/admin/nhat-ky',
+        name: 'router-portal-nhat-ky',
+        meta: { title: 'Nhật ký & Sao lưu hệ thống', permission: 'DynamicObjectController.getDsNhatKy' },
+        component: () => import('@/pages/NhatKyVaSaoLuu.vue')
     }
 ]
 

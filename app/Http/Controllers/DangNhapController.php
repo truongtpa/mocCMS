@@ -67,11 +67,7 @@ class DangNhapController extends Controller
                             $setting = DB::table('cai_dat')->where('khoa', 'DEFAULT_PERMISSION_GIANG_VIEN')->first();
                             if ($setting && !empty($setting->gia_tri)) {
                                 $val = trim($setting->gia_tri);
-                                $defRole = DB::table('quyen_nhom')
-                                    ->where('id_quyen_nhom', $val)
-                                    ->orWhere('ma_vai_tro', $val)
-                                    ->orWhere('tieu_de', 'like', "%{$val}%")
-                                    ->first();
+                                $defRole = DB::table('quyen_nhom')->where('ma_vai_tro', $val)->first();
                                 if ($defRole) {
                                     DB::table('quyen_nhom_tai_khoan')->insert([
                                         'id_tai_khoan' => (string)$tk->id,
@@ -151,16 +147,7 @@ class DangNhapController extends Controller
                             $setting = DB::table('cai_dat')->where('khoa', 'DEFAULT_PERMISSION_SINH_VIEN')->first();
                             if ($setting && !empty($setting->gia_tri)) {
                                 $val = trim($setting->gia_tri);
-                                $hasMaVaiTro = Schema::hasColumn('quyen_nhom', 'ma_vai_tro');
-                                $defRole = DB::table('quyen_nhom')
-                                    ->where(function($q) use ($val, $hasMaVaiTro) {
-                                        $q->where('id_quyen_nhom', $val);
-                                        if ($hasMaVaiTro) {
-                                            $q->orWhere('ma_vai_tro', $val);
-                                        }
-                                        $q->orWhere('tieu_de', 'like', "%{$val}%");
-                                    })
-                                    ->first();
+                                $defRole = DB::table('quyen_nhom')->where('ma_vai_tro', $val)->first();
                                 if ($defRole) {
                                     DB::table('quyen_nhom_tai_khoan')->insert([
                                         'id_tai_khoan' => (string)$tk->id,

@@ -215,6 +215,9 @@ class StudentPortalController extends Controller
             $attrsRaw = json_decode($attrsRaw, true) ?? [];
         }
 
+        $oldAttrs = [];
+        $newAttrs = [];
+
         foreach ($attrsRaw as $attr) {
             $truongId = $attr['truong_id'] ?? null;
             if (!$truongId) continue;
@@ -247,12 +250,18 @@ class StudentPortalController extends Controller
             }
 
             // Clean up old S3 file if file is being replaced or updated
+            $oldRow = DB::table('gia_tri_thong_tin')
+                ->where('doi_tuong_id', $doiTuongId)
+                ->where('truong_id', $truongId)
+                ->orderBy('id', 'desc')
+                ->first();
+
+            $attrKey = $fieldDef ? $fieldDef->ma_truong : ('truong_' . $truongId);
+            if ($oldRow) {
+                $oldAttrs[$attrKey] = $oldRow->gia_tri;
+            }
+
             if ($fieldDef && in_array($fieldDef->kieu_du_lieu, ['file', 'image'])) {
-                $oldRow = DB::table('gia_tri_thong_tin')
-                    ->where('doi_tuong_id', $doiTuongId)
-                    ->where('truong_id', $truongId)
-                    ->orderBy('id', 'desc')
-                    ->first();
                 if ($oldRow && !empty($oldRow->gia_tri) && $oldRow->gia_tri !== $val) {
                     \App\Services\S3Services::xoaFile($oldRow->gia_tri);
                 }
@@ -268,7 +277,18 @@ class StudentPortalController extends Controller
                     'ngay_tao' => now()
                 ]
             );
+
+            $newAttrs[$attrKey] = $val;
         }
+
+        \App\Services\NhatKyService::ghiLog(
+            'CAP_NHAT_TRANG_CA_NHAN',
+            "Tài khoản '{$email}' đã cập nhật thông tin cá nhân",
+            'gia_tri_thong_tin',
+            $doiTuongId,
+            !empty($oldAttrs) ? $oldAttrs : null,
+            !empty($newAttrs) ? $newAttrs : null
+        );
 
         return response()->json([
             'status' => 200,

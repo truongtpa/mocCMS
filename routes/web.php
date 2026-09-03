@@ -112,6 +112,11 @@ Route::group(['middleware' => ['isLogin']], function () {
         Route::post('/admin/dynamic-objects/layout-config', [\App\Http\Controllers\DynamicObjectController::class, 'putLayoutConfig'])->name('DynamicObjectController.putLayoutConfig');
         Route::get('/admin/dynamic-objects/export/records', [\App\Http\Controllers\DynamicObjectController::class, 'exportRecords'])->name('DynamicObjectController.exportRecords');
 
+        // System Logs & Backup Restoration API Routes
+        Route::get('/admin/nhat-ky/ds', [\App\Http\Controllers\DynamicObjectController::class, 'getDsNhatKy'])->name('DynamicObjectController.getDsNhatKy');
+        Route::get('/admin/sao-luu-thuoc-tinh', [\App\Http\Controllers\DynamicObjectController::class, 'getDsSaoLuuThuocTinh'])->name('DynamicObjectController.getDsSaoLuuThuocTinh');
+        Route::post('/admin/sao-luu-thuoc-tinh/khoi-phuc/{id}', [\App\Http\Controllers\DynamicObjectController::class, 'khoiPhucThuocTinh'])->name('DynamicObjectController.khoiPhucThuocTinh');
+
         // RBAC Permission Management API Routes
         Route::get('/admin/phan-quyen/vai-tro', [\App\Http\Controllers\PhanQuyenController::class, 'getDanhSachVaiTro'])->name('PhanQuyenController.getDanhSachVaiTro');
         Route::post('/admin/phan-quyen/vai-tro', [\App\Http\Controllers\PhanQuyenController::class, 'putVaiTro'])->name('PhanQuyenController.putVaiTro');

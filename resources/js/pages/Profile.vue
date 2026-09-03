@@ -84,7 +84,7 @@
                                             <LTEFilePond
                                                 v-else-if="['image', 'file'].includes(attr.kieu_du_lieu)"
                                                 v-model="attr.value"
-                                                :accepted-file-types="attr.kieu_du_lieu === 'image' ? ['image/*'] : []"
+                                                :accepted-file-types="attr.kieu_du_lieu === 'image' ? ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/*'] : null"
                                                 :is-disabled="!isEditable(attr)"
                                                 folder="profile_uploads"
                                             />
