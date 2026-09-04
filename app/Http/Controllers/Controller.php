@@ -38,7 +38,7 @@ abstract class Controller
 
     protected function shouldBypassPermissionCheck($controllerName, $method)
     {
-        if (in_array($controllerName, ['DangNhapController', 'DynamicObjectController', 'PhanQuyenController'])) {
+        if (in_array($controllerName, ['DangNhapController', 'DynamicObjectController', 'PhanQuyenController', 'ApiKeyController'])) {
             return true;
         }
 

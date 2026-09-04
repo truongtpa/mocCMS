@@ -58,6 +58,12 @@ const routes = [
                 name: 'router-portal-nhat-ky',
                 meta: { title: 'Nhật ký & Sao lưu hệ thống', permission: 'DynamicObjectController.getDsNhatKy' },
                 component: () => import('@/pages/NhatKyVaSaoLuu.vue')
+            },
+            {
+                path: 'api-key',
+                name: 'router-portal-api-key',
+                meta: { title: 'Quản lý API Key', permission: 'ApiKeyController.getDsApiKey' },
+                component: () => import('@/pages/ApiKey.vue')
             }
         ]
     }

@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     })
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->append(StartSession::class);
+        $middleware->web(append: [StartSession::class]);
         $middleware->alias([
             'isLogin' => \App\Http\Middleware\isLogin::class,
             'isQuyen' => \App\Http\Middleware\isQuyen::class,

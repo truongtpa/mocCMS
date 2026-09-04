@@ -141,6 +141,11 @@ Route::group(['middleware' => ['isLogin']], function () {
         Route::post('/admin/file/upload-hang-loat', [\App\Http\Controllers\FileController::class, 'putUploadHangLoat'])->name('FileController.putUploadHangLoat');
         Route::delete('/admin/file/xoa', [\App\Http\Controllers\FileController::class, 'deleteFile'])->name('FileController.deleteFile');
         Route::get('/admin/file/url', [\App\Http\Controllers\FileController::class, 'getFileUrl'])->name('FileController.getFileUrl');
+
+        // API Key Management API
+        Route::get('/admin/api-key', [\App\Http\Controllers\ApiKeyController::class, 'getDsApiKey'])->name('ApiKeyController.getDsApiKey');
+        Route::post('/admin/api-key', [\App\Http\Controllers\ApiKeyController::class, 'putApiKey'])->name('ApiKeyController.putApiKey');
+        Route::delete('/admin/api-key/{id}', [\App\Http\Controllers\ApiKeyController::class, 'deleteApiKey'])->name('ApiKeyController.deleteApiKey');
     });
 });
 

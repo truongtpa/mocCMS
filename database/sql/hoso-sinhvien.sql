@@ -69,7 +69,7 @@ INSERT INTO "quyen_chi_tiet" ("id_quyen_chi_tiet", "id_quyen", "tieu_de", "funcs
 INSERT INTO "quyen_chi_tiet" ("id_quyen_chi_tiet", "id_quyen", "tieu_de", "funcs", "show_views", "ngay_tao", "ngay_cap_nhat") VALUES (9, 5, 'Thêm mới loại đối tượng / thuộc tính / bản ghi', 'DynamicObjectController.putType,DynamicObjectController.putField,DynamicObjectController.putRecord,DynamicObjectController.putPreviewImport,DynamicObjectController.putProcessImport', 'pageDoiTuongDong.them', '2026-09-02 16:14:55.266246', '2026-09-02 16:14:55.266246');
 INSERT INTO "quyen_chi_tiet" ("id_quyen_chi_tiet", "id_quyen", "tieu_de", "funcs", "show_views", "ngay_tao", "ngay_cap_nhat") VALUES (10, 5, 'Cập nhật loại đối tượng / thuộc tính / bản ghi', 'DynamicObjectController.putType,DynamicObjectController.putField,DynamicObjectController.putRecord,DynamicObjectController.updateFieldOrders,DynamicObjectController.putLayoutConfig', 'pageDoiTuongDong.sua', '2026-09-02 16:14:55.266246', '2026-09-02 16:14:55.266246');
 INSERT INTO "quyen_chi_tiet" ("id_quyen_chi_tiet", "id_quyen", "tieu_de", "funcs", "show_views", "ngay_tao", "ngay_cap_nhat") VALUES (11, 5, 'Xóa loại đối tượng / thuộc tính / bản ghi', 'DynamicObjectController.deleteType,DynamicObjectController.deleteField,DynamicObjectController.deleteRecord', 'pageDoiTuongDong.xoa', '2026-09-02 16:14:55.266246', '2026-09-02 16:14:55.266246');
-INSERT INTO "quyen_chi_tiet" ("id_quyen_chi_tiet", "id_quyen", "tieu_de", "funcs", "show_views", "ngay_tao", "ngay_cap_nhat") VALUES (12, 6, 'Quản lý Vai trò và Phân quyền', 'PhanQuyenController.getDanhSachVaiTro,PhanQuyenController.putVaiTro,PhanQuyenController.deleteVaiTro,PhanQuyenController.getDanhSachQuyen,PhanQuyenController.putQuyen,PhanQuyenController.deleteQuyen,PhanQuyenController.getMaTranQuyen,PhanQuyenController.updateQuyenVaiTro,PhanQuyenController.getDanhSachNguoiDung,PhanQuyenController.putVaiTroNguoiDung,PhanQuyenController.getCaiDat,PhanQuyenController.putCaiDat,PhanQuyenController.deleteCaiDat', 'menuPhanQuyen.xem', '2026-09-02 16:14:55.266246', '2026-09-02 16:14:55.266246');
+INSERT INTO "quyen_chi_tiet" ("id_quyen_chi_tiet", "id_quyen", "tieu_de", "funcs", "show_views", "ngay_tao", "ngay_cap_nhat") VALUES (12, 6, 'Quản lý Vai trò và Phân quyền', 'PhanQuyenController.getDanhSachVaiTro,PhanQuyenController.putVaiTro,PhanQuyenController.deleteVaiTro,PhanQuyenController.getDanhSachQuyen,PhanQuyenController.putQuyen,PhanQuyenController.deleteQuyen,PhanQuyenController.getMaTranQuyen,PhanQuyenController.updateQuyenVaiTro,PhanQuyenController.getDanhSachNguoiDung,PhanQuyenController.putVaiTroNguoiDung,PhanQuyenController.getCaiDat,PhanQuyenController.putCaiDat,PhanQuyenController.deleteCaiDat,ApiKeyController.getDsApiKey,ApiKeyController.putApiKey,ApiKeyController.deleteApiKey', 'menuPhanQuyen.xem', '2026-09-02 16:14:55.266246', '2026-09-02 16:14:55.266246');
 INSERT INTO "quyen_chi_tiet" ("id_quyen_chi_tiet", "id_quyen", "tieu_de", "funcs", "show_views", "ngay_tao", "ngay_cap_nhat") VALUES (13, 1, 'Xem Nhật ký & Sao lưu', 'DynamicObjectController.getDsNhatKy,DynamicObjectController.getDsSaoLuuThuocTinh,DynamicObjectController.khoiPhucThuocTinh', 'router-portal-nhat-ky', '2026-09-03 13:32:19', '2026-09-03 06:32:19.336434');
 
 SELECT setval(pg_get_serial_sequence('quyen_chi_tiet', 'id_quyen_chi_tiet'), coalesce((SELECT MAX("id_quyen_chi_tiet") FROM "quyen_chi_tiet"), 1));
@@ -560,4 +560,20 @@ CREATE TABLE "lich_hen" (
 );
 
 SELECT setval(pg_get_serial_sequence('lich_hen', 'id'), coalesce((SELECT MAX("id") FROM "lich_hen"), 1));
+
+-- --------------------------------------------------------
+-- TABLE: api_key
+-- --------------------------------------------------------
+DROP TABLE IF EXISTS "api_key" CASCADE;
+CREATE TABLE "api_key" (
+    "id" SERIAL PRIMARY KEY,
+    "ten_ung_dung" TEXT NOT NULL,
+    "api_key" TEXT NOT NULL UNIQUE,
+    "mo_ta" TEXT NULL,
+    "trang_thai" INT NOT NULL DEFAULT 1,
+    "ngay_tao" TIMESTAMP NULL,
+    "ngay_cap_nhat" TIMESTAMP NULL
+);
+
+SELECT setval(pg_get_serial_sequence('api_key', 'id'), coalesce((SELECT MAX("id") FROM "api_key"), 1));
 

@@ -69,6 +69,13 @@
                         </router-link>
                     </li>
 
+                    <li v-if="checkPermission('ApiKeyController.getDsApiKey')" class="nav-item">
+                        <router-link :to="{ name: 'router-portal-api-key' }" class="nav-link">
+                            <i class="nav-icon fas fa-key"></i>
+                            <p>Quản lý API Key</p>
+                        </router-link>
+                    </li>
+
                     <li class="nav-header">LIÊN KẾT</li>
 
                     <li class="nav-item">

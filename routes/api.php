@@ -38,4 +38,13 @@ Route::group(['prefix' => '/admin', 'middleware' => ['isQuyen']], function () {
         Route::get('/booking/list', [StudentPortalController::class, 'getBookingsList'])->name('StudentPortalController.getBookingsList');
         Route::post('/booking/create', [StudentPortalController::class, 'createBooking'])->name('StudentPortalController.createBooking');
     });
+
+    Route::group(['prefix' => '/api-key'], function () {
+        Route::get('/', [\App\Http\Controllers\ApiKeyController::class, 'getDsApiKey'])->name('ApiKeyController.getDsApiKey');
+        Route::post('/', [\App\Http\Controllers\ApiKeyController::class, 'putApiKey'])->name('ApiKeyController.putApiKey');
+        Route::delete('/{id}', [\App\Http\Controllers\ApiKeyController::class, 'deleteApiKey'])->name('ApiKeyController.deleteApiKey');
+    });
 });
+
+Route::get('/sinh-vien', [\App\Http\Controllers\ApiKeyController::class, 'getThongTinSinhVien'])->name('ApiKeyController.getThongTinSinhVien');
+
