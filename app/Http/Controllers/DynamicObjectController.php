@@ -388,7 +388,11 @@ class DynamicObjectController extends Controller
             ->where('trang_thai', true)
             ->orderBy('thu_tu', 'asc')
             ->orderBy('id', 'asc')
-            ->get();
+            ->get()
+            ->map(function ($f) {
+                $f->ref_options = self::resolveAttributeOptions($f);
+                return $f;
+            });
 
         $records = [];
         $masterMapping = [];
@@ -1462,6 +1466,7 @@ class DynamicObjectController extends Controller
                 
                 $defaultColSpan = in_array($field->kieu_du_lieu, ['textarea', 'file', 'image']) ? 12 : 6;
                 $field->col_span = intval($cauHinh['col_span'] ?? $defaultColSpan);
+                $field->force_new_row = !empty($cauHinh['force_new_row']);
                 $field->cau_hinh = $cauHinh;
                 return $field;
             });
@@ -1502,6 +1507,10 @@ class DynamicObjectController extends Controller
 
                 if (isset($item['col_span'])) {
                     $cauHinh['col_span'] = intval($item['col_span']);
+                }
+
+                if (isset($item['force_new_row'])) {
+                    $cauHinh['force_new_row'] = !!$item['force_new_row'];
                 }
 
                 $updateData = [

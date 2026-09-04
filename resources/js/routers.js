@@ -3,58 +3,63 @@ import { useAuthStore } from '@/store/auth'
 
 const routes = [
     {
-        path: '/admin',
-        name: 'router-admin',
-        meta: { title: 'Bảng điều khiển', permission: 'StudentPortalController.getDashboardStats' },
-        component: () => import('@/pages/Dashboard.vue')
-    },
-    {
-        path: '/admin/ho-so',
-        name: 'router-portal-ho-so',
-        meta: { title: 'Thông tin cá nhân', permission: 'StudentPortalController.getProfileData' },
-        component: () => import('@/pages/Profile.vue')
-    },
-    {
-        path: '/admin/thanh-tich',
-        name: 'router-portal-thanh-tich',
-        meta: { title: 'Giải thưởng & Thành tích', permission: 'StudentPortalController.getAchievementsList' },
-        component: () => import('@/pages/Achievements.vue')
-    },
-    {
-        path: '/admin/dat-lich',
-        name: 'router-portal-dat-lich',
-        meta: { title: 'Đặt lịch Giảng viên', permission: 'StudentPortalController.getBookingsList' },
-        component: () => import('@/pages/Booking.vue')
-    },
-    {
-        path: '/admin/doi-tuong-dong',
-        name: 'router-portal-doi-tuong-dong',
-        meta: { title: 'Quản lý Đối tượng & Thuộc tính', permission: 'DynamicObjectController.getTypes' },
-        component: () => import('@/pages/DynamicObjects.vue')
-    },
-    {
-        path: '/admin/doi-tuong-dong/import',
-        name: 'router-portal-doi-tuong-dong-import',
-        meta: { title: 'Import Dữ liệu Đối tượng', permission: 'DynamicObjectController.saveRecord' },
-        component: () => import('@/pages/DynamicObjectImport.vue')
-    },
-    {
-        path: '/admin/phan-quyen',
-        name: 'router-portal-phan-quyen',
-        meta: { title: 'Quản lý Phân quyền (RBAC)', permission: 'PhanQuyenController.getMaTranQuyen' },
-        component: () => import('@/pages/Permissions.vue')
-    },
-    {
-        path: '/admin/cai-dat',
-        name: 'router-portal-cai-dat',
-        meta: { title: 'Cài đặt hệ thống', permission: 'PhanQuyenController.getCaiDat' },
-        component: () => import('@/pages/CaiDat.vue')
-    },
-    {
-        path: '/admin/nhat-ky',
-        name: 'router-portal-nhat-ky',
-        meta: { title: 'Nhật ký & Sao lưu hệ thống', permission: 'DynamicObjectController.getDsNhatKy' },
-        component: () => import('@/pages/NhatKyVaSaoLuu.vue')
+        path: '/ho-so',
+        children: [
+            {
+                path: '',
+                name: 'router-portal-ho-so',
+                meta: { title: 'Thông tin cá nhân', permission: 'StudentPortalController.getProfileData' },
+                component: () => import('@/pages/Profile.vue')
+            },
+            {
+                path: 'bang-dieu-khien',
+                name: 'router-admin',
+                meta: { title: 'Bảng điều khiển', permission: 'StudentPortalController.getDashboardStats' },
+                component: () => import('@/pages/Dashboard.vue')
+            },
+            {
+                path: 'thanh-tich',
+                name: 'router-portal-thanh-tich',
+                meta: { title: 'Giải thưởng & Thành tích', permission: 'StudentPortalController.getAchievementsList' },
+                component: () => import('@/pages/Achievements.vue')
+            },
+            {
+                path: 'dat-lich',
+                name: 'router-portal-dat-lich',
+                meta: { title: 'Đặt lịch Giảng viên', permission: 'StudentPortalController.getBookingsList' },
+                component: () => import('@/pages/Booking.vue')
+            },
+            {
+                path: 'doi-tuong-dong',
+                name: 'router-portal-doi-tuong-dong',
+                meta: { title: 'Quản lý Đối tượng & Thuộc tính', permission: 'DynamicObjectController.getTypes' },
+                component: () => import('@/pages/DynamicObjects.vue')
+            },
+            {
+                path: 'doi-tuong-dong/import',
+                name: 'router-portal-doi-tuong-dong-import',
+                meta: { title: 'Import Dữ liệu Đối tượng', permission: 'DynamicObjectController.saveRecord' },
+                component: () => import('@/pages/DynamicObjectImport.vue')
+            },
+            {
+                path: 'phan-quyen',
+                name: 'router-portal-phan-quyen',
+                meta: { title: 'Quản lý Phân quyền (RBAC)', permission: 'PhanQuyenController.getMaTranQuyen' },
+                component: () => import('@/pages/Permissions.vue')
+            },
+            {
+                path: 'cai-dat',
+                name: 'router-portal-cai-dat',
+                meta: { title: 'Cài đặt hệ thống', permission: 'PhanQuyenController.getCaiDat' },
+                component: () => import('@/pages/CaiDat.vue')
+            },
+            {
+                path: 'nhat-ky',
+                name: 'router-portal-nhat-ky',
+                meta: { title: 'Nhật ký & Sao lưu hệ thống', permission: 'DynamicObjectController.getDsNhatKy' },
+                component: () => import('@/pages/NhatKyVaSaoLuu.vue')
+            }
+        ]
     }
 ]
 
@@ -69,7 +74,7 @@ export function buildTitle(route) {
 
 router.beforeEach(async (to, from, next) => {
     document.title = buildTitle(to) ? `${buildTitle(to)} - Hệ thống quản lý Đào tạo VLUTE` : 'Hệ thống quản lý Đào tạo VLUTE'
-    
+
     const authStore = useAuthStore()
     authStore.setRouterContext({
         name: to.name,

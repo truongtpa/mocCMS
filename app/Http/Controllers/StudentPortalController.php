@@ -81,6 +81,7 @@ class StudentPortalController extends Controller
                         }
                         $defaultColSpan = in_array($attr->kieu_du_lieu, ['textarea', 'file', 'image']) ? 12 : 6;
                         $attr->col_span = intval($cauHinh['col_span'] ?? $defaultColSpan);
+                        $attr->cau_hinh = $cauHinh;
 
                         $refOptions = \App\Http\Controllers\DynamicObjectController::resolveAttributeOptions($attr);
                         if ($refOptions !== null) {
@@ -106,7 +107,6 @@ class StudentPortalController extends Controller
                 DB::table('giang_vien')->insert([
                     'ho_ten' => $r->session()->get(\App\VLUTE::SESSION_HoTen, 'Giảng viên'),
                     'email' => $email,
-                    'id_don_vi' => 1,
                     'created_at' => now(),
                     'updated_at' => now()
                 ]);
@@ -149,6 +149,7 @@ class StudentPortalController extends Controller
                         }
                         $defaultColSpan = in_array($attr->kieu_du_lieu, ['textarea', 'file', 'image']) ? 12 : 6;
                         $attr->col_span = intval($cauHinh['col_span'] ?? $defaultColSpan);
+                        $attr->cau_hinh = $cauHinh;
 
                         $refOptions = \App\Http\Controllers\DynamicObjectController::resolveAttributeOptions($attr);
                         if ($refOptions !== null) {

@@ -45,7 +45,6 @@ class DangNhapController extends Controller
                         ['email' => $email],
                         [
                             'ho_ten' => $name,
-                            'id_don_vi' => 1,
                             'updated_at' => now()
                         ]
                     );
@@ -185,7 +184,7 @@ class DangNhapController extends Controller
                 $b = (string) \Illuminate\Support\Str::uuid();
                 $request->session()->put('b', $b);
                 $cookie = cookie()->forever('b', $b, null, null, false, false);
-                return redirect()->to('/admin')->withCookie($cookie);
+                return redirect()->to('/ho-so')->withCookie($cookie);
             }
             return redirect()->action([DangNhapController::class, 'redirectKhongCoQuyen']);
         }

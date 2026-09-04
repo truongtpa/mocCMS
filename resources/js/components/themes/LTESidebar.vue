@@ -68,6 +68,22 @@
                             <p>Nhật ký & Sao lưu</p>
                         </router-link>
                     </li>
+
+                    <li class="nav-header">LIÊN KẾT</li>
+
+                    <li class="nav-item">
+                        <a href="https://htql.vlute.edu.vn" target="_blank" class="nav-link">
+                            <i class="nav-icon fas fa-sitemap"></i>
+                            <p>Hệ thống quản lý</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="https://helpdesk.vlute.edu.vn" target="_blank" class="nav-link">
+                            <i class="nav-icon fas fa-question-circle"></i>
+                            <p>Hướng dẫn</p>
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>

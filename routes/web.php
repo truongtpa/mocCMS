@@ -144,12 +144,12 @@ Route::group(['middleware' => ['isLogin']], function () {
     });
 });
 
-// Root route redirect to /admin
+// Root route redirect to /ho-so
 Route::get('/', function() {
-    return redirect('/admin');
+    return redirect('/ho-so');
 });
 
 // Vue SPA Entry Route
 Route::group(['middleware' => ['isLogin']], function () {
-    Route::get("/admin/{any?}", [DangNhapController::class, 'trangChu'])->where("any", ".*");
+    Route::get("/ho-so/{any?}", [DangNhapController::class, 'trangChu'])->where("any", ".*");
 });

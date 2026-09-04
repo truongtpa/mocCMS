@@ -23,21 +23,13 @@
                                     <label class="text-muted small">Họ và tên</label>
                                     <div class="h6 font-weight-bold text-dark">{{ profile.ho_ten }}</div>
                                 </div>
-                                <div class="col-sm-6 mb-3">
-                                    <label class="text-muted small">
-                                        {{ profile.user_type === 'sinh_vien' ? 'Mã số sinh viên (MSSV)' : 'Mã số giảng viên (MSGV)' }}
-                                    </label>
-                                    <div class="h6 font-weight-bold text-dark">
-                                        {{ profile.user_type === 'sinh_vien' ? profile.mssv : (profile.email && profile.email.includes('@') ? profile.email.split('@')[0] : ('GV_' + profile.id)) }}
-                                    </div>
+                                <div v-if="profile.user_type === 'sinh_vien'" class="col-sm-6 mb-3">
+                                    <label class="text-muted small">Mã số sinh viên (MSSV)</label>
+                                    <div class="h6 font-weight-bold text-dark">{{ profile.mssv }}</div>
                                 </div>
                                 <div class="col-sm-6 mb-3">
                                     <label class="text-muted small">Email cá nhân</label>
                                     <div class="h6 font-weight-bold text-dark">{{ profile.email }}</div>
-                                </div>
-                                <div v-if="profile.id_don_vi" class="col-sm-6 mb-3">
-                                    <label class="text-muted small">Đơn vị công tác</label>
-                                    <div class="h6 font-weight-bold text-dark">Đơn vị {{ profile.id_don_vi }}</div>
                                 </div>
                             </div>
 
@@ -52,12 +44,14 @@
                                         {{ groupName }}
                                     </h5>
                                     <div class="row">
-                                        <div 
-                                            v-for="attr in groupAttrs" 
-                                            :key="attr.id" 
-                                            :class="[getColClass(attr.col_span || (['textarea', 'file', 'image'].includes(attr.kieu_du_lieu) ? 12 : 6)), 'mb-3']"
-                                        >
-                                            <label class="font-weight-bold small text-muted mb-1.5">{{ attr.ten_truong }}</label>
+                                        <template v-for="attr in groupAttrs" :key="attr.id">
+                                            <!-- Force New Line Break -->
+                                            <div v-if="attr.force_new_row || (attr.cau_hinh && (attr.cau_hinh.force_new_row || attr.cau_hinh.force_new_row === 'true'))" class="w-100 d-none d-md-block"></div>
+
+                                            <div 
+                                                :class="[getColClass(attr.col_span || (['textarea', 'file', 'image'].includes(attr.kieu_du_lieu) ? 12 : 6)), 'mb-3']"
+                                            >
+                                                <label class="font-weight-bold small text-muted mb-1.5">{{ attr.ten_truong }}</label>
                                             
                                             <!-- Textarea -->
                                             <LTETextArea 
@@ -122,6 +116,7 @@
                                                 :placeholder="`Nhập ${attr.ten_truong.toLowerCase()}...`"
                                             />
                                         </div>
+                                    </template>
                                     </div>
                                 </div>
 

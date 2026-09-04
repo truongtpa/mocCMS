@@ -158,6 +158,49 @@
                                     </template>
                                     <template #tbody>
                                         <tbody>
+                                            <!-- System Default Fixed Fields Notice -->
+                                            <tr style="background-color: #f8fafc; border-left: 4px solid #64748b;">
+                                                <td colspan="7" class="py-1 px-2.5">
+                                                    <div class="d-flex align-items-center justify-content-between">
+                                                        <div class="d-flex align-items-center">
+                                                            <i class="fas fa-lock text-secondary mr-1.5 text-xs"></i>
+                                                            <span class="font-weight-bold text-secondary text-xs uppercase">Thuộc tính mặc định hệ thống</span>
+                                                            <span class="badge badge-light border text-muted ml-2 px-2 py-0.5">2 trường cố định</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr class="bg-light text-muted">
+                                                <td class="text-center py-1 px-2 text-xs" style="width: 52px; min-width: 52px; max-width: 52px;">
+                                                    <i class="fas fa-lock text-muted mr-1" title="Cố định"></i>
+                                                    <span class="font-weight-bold text-muted">-</span>
+                                                </td>
+                                                <td class="py-1 px-2"><code style="font-size: 0.78rem;" class="text-secondary font-weight-bold">ma_doi_tuong</code></td>
+                                                <td class="font-weight-bold text-secondary py-1 px-2 text-xs">
+                                                    <span>{{ getCodeHeaderLabel() }}</span>
+                                                    <span class="text-danger ml-1" title="Bắt buộc nhập">*</span>
+                                                </td>
+                                                <td class="py-1 px-2 text-xs"><AppBadge variant="light"><i class="fas fa-font text-secondary mr-1"></i>Text</AppBadge></td>
+                                                <td class="text-center py-1 px-2"><AppBadge variant="danger">Khóa</AppBadge></td>
+                                                <td class="text-center py-1 px-2"><AppBadge variant="success">Bắt buộc</AppBadge></td>
+                                                <td class="text-center py-1 px-2 text-muted text-xs">Mặc định</td>
+                                            </tr>
+                                            <tr class="bg-light text-muted border-bottom">
+                                                <td class="text-center py-1 px-2 text-xs" style="width: 52px; min-width: 52px; max-width: 52px;">
+                                                    <i class="fas fa-lock text-muted mr-1" title="Cố định"></i>
+                                                    <span class="font-weight-bold text-muted">-</span>
+                                                </td>
+                                                <td class="py-1 px-2"><code style="font-size: 0.78rem;" class="text-secondary font-weight-bold">ten_hien_thi</code></td>
+                                                <td class="font-weight-bold text-secondary py-1 px-2 text-xs">
+                                                    <span>{{ getNameHeaderLabel() }}</span>
+                                                    <span class="text-danger ml-1" title="Bắt buộc nhập">*</span>
+                                                </td>
+                                                <td class="py-1 px-2 text-xs"><AppBadge variant="light"><i class="fas fa-font text-secondary mr-1"></i>Text</AppBadge></td>
+                                                <td class="text-center py-1 px-2"><AppBadge variant="danger">Khóa</AppBadge></td>
+                                                <td class="text-center py-1 px-2"><AppBadge variant="success">Bắt buộc</AppBadge></td>
+                                                <td class="text-center py-1 px-2 text-muted text-xs">Mặc định</td>
+                                            </tr>
+
                                             <template v-for="(groupFields, groupName) in groupedFields" :key="groupName">
                                                 <!-- Group Subheader Row matching Permissions.vue subheaders -->
                                                 <tr 
@@ -435,99 +478,114 @@
                                             </div>
 
                                             <div class="row m-0">
-                                                <div 
-                                                    v-for="(field, fIdx) in groupFields" 
-                                                    :key="field.id"
-                                                    :class="[
-                                                        previewDevice === 'mobile' ? 'col-12' : getColClass(field.col_span),
-                                                        'p-1'
-                                                    ]"
-                                                    draggable="true"
-                                                    @dragstart="onDragStart($event, field, groupName)"
-                                                    @dragover.prevent="onDragOverField($event, field, groupName)"
-                                                    @dragleave="onDragLeave"
-                                                    @dragend="onDragEnd"
-                                                    @drop="onDropLayout($event, field, groupName)"
-                                                >
+                                                <template v-for="(field, fIdx) in groupFields" :key="field.id">
+                                                    <!-- Force New Line Break Visual Render -->
+                                                    <div v-if="field.force_new_row" class="w-100 d-none d-md-block"></div>
+
                                                     <div 
-                                                        class="field-card p-2 bg-slate-50 hover:bg-blue-50/40 rounded-lg border transition-all shadow-2xs group relative"
-                                                        :class="{
-                                                            'border-primary border-2 shadow-md bg-blue-50/90 scale-[1.01]': dragOverField && dragOverField.id === field.id,
-                                                            'opacity-40 border-dashed border-primary': draggedField && draggedField.id === field.id,
-                                                            'border-slate-200': !dragOverField || dragOverField.id !== field.id
-                                                        }"
+                                                        :class="[
+                                                            previewDevice === 'mobile' ? 'col-12' : getColClass(field.col_span),
+                                                            'p-1'
+                                                        ]"
+                                                        draggable="true"
+                                                        @dragstart="onDragStart($event, field, groupName)"
+                                                        @dragover.prevent="onDragOverField($event, field, groupName)"
+                                                        @dragleave="onDragLeave"
+                                                        @dragend="onDragEnd"
+                                                        @drop="onDropLayout($event, field, groupName)"
                                                     >
-                                                        <!-- Insertion Line Indicator -->
                                                         <div 
-                                                            v-if="dragOverField && dragOverField.id === field.id"
-                                                            class="absolute left-0 right-0 h-1 bg-primary rounded-full z-10"
-                                                            :class="dragOverPosition === 'below' ? '-bottom-1' : '-top-1'"
-                                                        ></div>
-                                                        <div class="d-flex align-items-center justify-content-between mb-1.5">
-                                                            <div class="d-flex align-items-center gap-1">
-                                                                <i class="fas fa-grip-vertical text-slate-400 cursor-grab hover:text-blue-600 mr-1" title="Kéo để di chuyển"></i>
-                                                                <code class="text-primary font-bold text-xs">{{ field.ma_truong }}</code>
-                                                                <span v-if="field.bat_buoc" class="text-danger font-bold ml-0.5">*</span>
-                                                                <span v-if="field.cho_phep_chinh_sua === false || field.cho_phep_chinh_sua === 0 || field.cho_phep_chinh_sua === '0'" class="badge badge-light border text-danger text-[10px] ml-1">Khóa</span>
+                                                            class="field-card p-2 bg-slate-50 hover:bg-blue-50/40 rounded-lg border transition-all shadow-2xs group relative"
+                                                            :class="{
+                                                                'border-primary border-2 shadow-md bg-blue-50/90 scale-[1.01]': dragOverField && dragOverField.id === field.id,
+                                                                'opacity-40 border-dashed border-primary': draggedField && draggedField.id === field.id,
+                                                                'border-slate-200': !dragOverField || dragOverField.id !== field.id
+                                                            }"
+                                                        >
+                                                            <!-- Insertion Line Indicator -->
+                                                            <div 
+                                                                v-if="dragOverField && dragOverField.id === field.id"
+                                                                class="absolute left-0 right-0 h-1 bg-primary rounded-full z-10"
+                                                                :class="dragOverPosition === 'below' ? '-bottom-1' : '-top-1'"
+                                                            ></div>
+                                                            <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                                                <div class="d-flex align-items-center gap-1">
+                                                                    <i class="fas fa-grip-vertical text-slate-400 cursor-grab hover:text-blue-600 mr-1" title="Kéo để di chuyển"></i>
+                                                                    <code class="text-primary font-bold text-xs">{{ field.ma_truong }}</code>
+                                                                    <span v-if="field.bat_buoc" class="text-danger font-bold ml-0.5">*</span>
+                                                                    <span v-if="field.cho_phep_chinh_sua === false || field.cho_phep_chinh_sua === 0 || field.cho_phep_chinh_sua === '0'" class="badge badge-light border text-danger text-[10px] ml-1">Khóa</span>
+                                                                </div>
+
+                                                                <!-- Quick Col Width Buttons -->
+                                                                <div class="btn-group btn-group-toggle" role="group">
+                                                                    <button 
+                                                                        type="button" 
+                                                                        title="Bắt đầu dòng mới (Ngắt dòng trước thuộc tính này)" 
+                                                                        class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
+                                                                        :class="field.force_new_row ? 'btn-warning text-dark border-warning' : 'btn-light border text-muted'"
+                                                                        @click="field.force_new_row = !field.force_new_row"
+                                                                    >
+                                                                        <i class="fas fa-level-down-alt fa-rotate-90 mr-0.5"></i> Dòng mới
+                                                                    </button>
+                                                                    <button 
+                                                                        type="button" 
+                                                                        title="Độ rộng 100% (1 cột full)" 
+                                                                        class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
+                                                                        :class="field.col_span === 12 ? 'btn-primary' : 'btn-light border'"
+                                                                        @click="setFieldColSpan(field, 12)"
+                                                                    >
+                                                                        100%
+                                                                    </button>
+                                                                    <button 
+                                                                        type="button" 
+                                                                        title="Độ rộng 50% (2 cột)" 
+                                                                        class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
+                                                                        :class="field.col_span === 6 ? 'btn-primary' : 'btn-light border'"
+                                                                        @click="setFieldColSpan(field, 6)"
+                                                                    >
+                                                                        50%
+                                                                    </button>
+                                                                    <button 
+                                                                        type="button" 
+                                                                        title="Độ rộng 33% (3 cột)" 
+                                                                        class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
+                                                                        :class="field.col_span === 4 ? 'btn-primary' : 'btn-light border'"
+                                                                        @click="setFieldColSpan(field, 4)"
+                                                                    >
+                                                                        33%
+                                                                    </button>
+                                                                    <button 
+                                                                        type="button" 
+                                                                        title="Độ rộng 25% (4 cột)" 
+                                                                        class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
+                                                                        :class="field.col_span === 3 ? 'btn-primary' : 'btn-light border'"
+                                                                        @click="setFieldColSpan(field, 3)"
+                                                                    >
+                                                                        25%
+                                                                    </button>
+                                                                </div>
                                                             </div>
 
-                                                            <!-- Quick Col Width Buttons -->
-                                                            <div class="btn-group btn-group-toggle" role="group">
-                                                                <button 
-                                                                    type="button" 
-                                                                    title="Độ rộng 100% (1 cột full)" 
-                                                                    class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
-                                                                    :class="field.col_span === 12 ? 'btn-primary' : 'btn-light border'"
-                                                                    @click="setFieldColSpan(field, 12)"
-                                                                >
-                                                                    100%
-                                                                </button>
-                                                                <button 
-                                                                    type="button" 
-                                                                    title="Độ rộng 50% (2 cột)" 
-                                                                    class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
-                                                                    :class="field.col_span === 6 ? 'btn-primary' : 'btn-light border'"
-                                                                    @click="setFieldColSpan(field, 6)"
-                                                                >
-                                                                    50%
-                                                                </button>
-                                                                <button 
-                                                                    type="button" 
-                                                                    title="Độ rộng 33% (3 cột)" 
-                                                                    class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
-                                                                    :class="field.col_span === 4 ? 'btn-primary' : 'btn-light border'"
-                                                                    @click="setFieldColSpan(field, 4)"
-                                                                >
-                                                                    33%
-                                                                </button>
-                                                                <button 
-                                                                    type="button" 
-                                                                    title="Độ rộng 25% (4 cột)" 
-                                                                    class="btn btn-xs px-1.5 py-0.5 text-[10px] font-weight-bold"
-                                                                    :class="field.col_span === 3 ? 'btn-primary' : 'btn-light border'"
-                                                                    @click="setFieldColSpan(field, 3)"
-                                                                >
-                                                                    25%
-                                                                </button>
+                                                            <div class="text-xs font-bold text-dark mb-1 d-flex align-items-center justify-content-between">
+                                                                <span>{{ field.ten_truong }}</span>
+                                                                <span v-if="field.force_new_row" class="badge badge-warning text-[9px] px-1 py-0.2">Đầu dòng mới</span>
                                                             </div>
-                                                        </div>
 
-                                                        <div class="text-xs font-bold text-dark mb-1">{{ field.ten_truong }}</div>
-
-                                                        <!-- Live Component Mockup Preview -->
-                                                        <div class="preview-mockup pointer-events-none opacity-80">
-                                                            <textarea v-if="field.kieu_du_lieu === 'textarea'" rows="2" class="w-full bg-white border rounded px-2 py-1 text-xs" readonly placeholder="Textarea ô nhập nhiều dòng..."></textarea>
-                                                            <div v-else-if="['file', 'image'].includes(field.kieu_du_lieu)" class="p-1.5 bg-white border rounded text-xs text-center text-muted">
-                                                                <i :class="getDataTypeIcon(field.kieu_du_lieu) + ' text-primary mr-1'"></i> {{ getDataTypeLabel(field.kieu_du_lieu) }} (Tệp đính kèm)
+                                                            <!-- Live Component Mockup Preview -->
+                                                            <div class="preview-mockup pointer-events-none opacity-80">
+                                                                <textarea v-if="field.kieu_du_lieu === 'textarea'" rows="2" class="w-full bg-white border rounded px-2 py-1 text-xs" readonly placeholder="Textarea ô nhập nhiều dòng..."></textarea>
+                                                                <div v-else-if="['file', 'image'].includes(field.kieu_du_lieu)" class="p-1.5 bg-white border rounded text-xs text-center text-muted">
+                                                                    <i :class="getDataTypeIcon(field.kieu_du_lieu) + ' text-primary mr-1'"></i> {{ getDataTypeLabel(field.kieu_du_lieu) }} (Tệp đính kèm)
+                                                                </div>
+                                                                <div v-else-if="['select', 'multiselect'].includes(field.kieu_du_lieu)" class="w-full bg-white border rounded px-2 py-1 text-xs text-muted d-flex justify-content-between align-items-center">
+                                                                    <span>-- Chọn {{ field.ten_truong }} --</span>
+                                                                    <i class="fas fa-chevron-down text-[10px]"></i>
+                                                                </div>
+                                                                <input v-else type="text" class="w-full bg-white border rounded px-2 py-1 text-xs" readonly :placeholder="'Nhập ' + field.ten_truong.toLowerCase() + '...'" />
                                                             </div>
-                                                            <div v-else-if="['select', 'multiselect'].includes(field.kieu_du_lieu)" class="w-full bg-white border rounded px-2 py-1 text-xs text-muted d-flex justify-content-between align-items-center">
-                                                                <span>-- Chọn {{ field.ten_truong }} --</span>
-                                                                <i class="fas fa-chevron-down text-[10px]"></i>
-                                                            </div>
-                                                            <input v-else type="text" class="w-full bg-white border rounded px-2 py-1 text-xs" readonly :placeholder="'Nhập ' + field.ten_truong.toLowerCase() + '...'" />
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </template>
                                             </div>
                                         </div>
 
@@ -1597,6 +1655,7 @@ export default {
                     id: f.id,
                     thu_tu: idx + 1,
                     col_span: f.col_span || 6,
+                    force_new_row: !!f.force_new_row,
                     phan_nhom: f.phan_nhom
                 }))
                 const res = await axios.post(route('DynamicObjectController.putLayoutConfig'), {
