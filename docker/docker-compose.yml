@@ -1,11 +1,11 @@
 networks:
-    qlvb_network:
+    hoso_sinhvien_network:
         driver: bridge
 
 services:
-    qlvb_nginx:
+    hoso_sinhvien_nginx:
         image: nginx:alpine
-        container_name: qlvb_nginx
+        container_name: hoso_sinhvien_nginx
         restart: unless-stopped
         tty: true
         ports:
@@ -14,30 +14,31 @@ services:
             - ../:/var/www/app/
             - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
         depends_on:
-            - qlvb_vite
-            - qlvb_php
+            - hoso_sinhvien_vite
+            - hoso_sinhvien_php
         networks:
-            - qlvb_network
+            - hoso_sinhvien_network
 
-    qlvb_php:
+    hoso_sinhvien_php:
         build:
             context: .
             dockerfile: Dockerfile
-        container_name: qlvb_php
+        container_name: hoso_sinhvien_php
         restart: unless-stopped
         tty: true
         working_dir: /var/www/app
         volumes:
             - ../:/var/www/app
         networks:
-            - qlvb_network
+            - hoso_sinhvien_network
 
-    qlvb_vite:
+    hoso_sinhvien_vite:
         image: node:18
-        container_name: qlvb_vite
+        container_name: hoso_sinhvien_vite
         working_dir: /var/www/app
         volumes:
             - ../:/var/www/app
         command: sh -c "npm install && npm run build"
         networks:
-            - qlvb_network
+            - hoso_sinhvien_network
+

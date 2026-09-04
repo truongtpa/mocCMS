@@ -12,6 +12,17 @@ class VLUTE
     const SESSION_HoTen = 'ho_ten';
     const SESSION_IDDonVi = 'id_don_vi';
 
+    public static function getCaiDat($khoa, $macDinh = null)
+    {
+        if (Schema::hasTable('cai_dat')) {
+            $setting = DB::table('cai_dat')->where('khoa', $khoa)->first();
+            if ($setting && $setting->gia_tri !== null && $setting->gia_tri !== '') {
+                return $setting->gia_tri;
+            }
+        }
+        return env($khoa, $macDinh);
+    }
+
     public static function checkPermission($permissionKey, $idTaiKhoan = null)
     {
         if (!$idTaiKhoan) {

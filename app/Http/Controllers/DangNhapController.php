@@ -90,13 +90,11 @@ class DangNhapController extends Controller
                     // ----------------------------------------------------
                     // LUỒNG SINH VIÊN (Gọi API đào tạo & Lưu thông tin sinh viên + EAV)
                     // ----------------------------------------------------
-                    $apiUrl = env('DAOTAO_API_URL', 'https://daotao.vlute.edu.vn/api/admin/tt-sinh-vien');
-                    $apiToken = env('DAOTAO_API_TOKEN', 'tgHkYe3wgiSJcZ5hw3Ze1v4nTuQFTG7b');
-                    $apiCookie = env('DAOTAO_API_COOKIE', 'laravel_session=xT67QhnCJZTg1L1tCE16gDbAUketgtN0AhHDS7ug');
+                    $apiUrl = \App\VLUTE::getCaiDat('DAOTAO_API_URL', 'https://daotao.vlute.edu.vn/api/admin/tt-sinh-vien');
+                    $apiToken = \App\VLUTE::getCaiDat('DAOTAO_API_TOKEN');
 
                     $response = \Illuminate\Support\Facades\Http::withHeaders([
-                        'Authorization' => 'Bearer ' . $apiToken,
-                        'Cookie' => $apiCookie
+                        'Authorization' => 'Bearer ' . $apiToken
                     ])->withOptions([
                         'verify' => false
                     ])->get($apiUrl, [
