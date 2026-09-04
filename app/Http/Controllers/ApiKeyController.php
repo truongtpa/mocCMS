@@ -137,7 +137,6 @@ class ApiKeyController extends Controller
                 }
                 $thuocTinh[$field->ma_truong] = [
                     'ten_truong' => $field->ten_truong,
-                    'kieu_du_lieu' => $field->kieu_du_lieu,
                     'gia_tri' => $rawVal
                 ];
             }
