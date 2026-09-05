@@ -59,7 +59,7 @@ class ApiKeyController extends Controller
             return Response::Success([], 'Cập nhật API Key thành công');
         }
 
-        $key = 'vlute_sk_' . Str::random(32);
+        $key = Str::random(32);
         $newId = DB::table('api_key')->insertGetId([
             'ten_ung_dung' => $tenUngDung,
             'api_key' => $key,

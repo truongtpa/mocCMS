@@ -2,7 +2,6 @@
     <LTEContentWrapper>
         <template #content>
             <div class="container-fluid p-0">
-                <!-- Page Header Banner -->
                 <div class="bg-white rounded-xl border border-slate-200 p-3.5 mb-4 shadow-sm d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-3">
                         <IconButton 
@@ -21,7 +20,6 @@
                         </div>
                     </div>
 
-                    <!-- Object Type Switcher Dropdown -->
                     <div class="d-flex align-items-center gap-2">
                         <label class="text-xs font-weight-bold text-slate-700 uppercase mb-0 d-none d-md-inline">Loại đối tượng:</label>
                         <LTESelect2Option
@@ -38,29 +36,29 @@
                     </div>
                 </div>
 
-                <!-- STEP 1: FILE UPLOAD & CONFIGURATION CARD -->
                 <div class="card border-0 shadow-sm rounded-xl overflow-hidden mb-4" style="border: 1px solid #e2e8f0 !important; border-radius: 12px !important;">
-                    <div class="card-header bg-white border-bottom py-2.5 px-4 d-flex align-items-center justify-content-between">
+                    <div class="card-header bg-white border-bottom py-2.5 px-4 d-flex align-items-center justify-content-between" style="display: flex !important; justify-content: space-between !important; align-items: center !important;">
                         <h6 class="font-weight-bold mb-0 text-dark text-xs uppercase tracking-wider d-flex align-items-center">
                             <i class="fas fa-cog text-secondary mr-2"></i> BƯỚC 1: CHỌN TỆP EXCEL & CẤU HÌNH QUY TẮC IMPORT
                         </h6>
-                        <LTEButton
-                            variant="outline-primary"
-                            icon="fas fa-download"
-                            text="Tải File Mẫu Excel (.xlsx)"
-                            class="btn-sm text-xs font-weight-bold px-2.5 shadow-sm"
-                            @click="downloadTemplate"
-                        />
+                        <div class="ml-auto">
+                            <LTEButton
+                                variant="outline-primary"
+                                icon="fas fa-download"
+                                text="Tải File Mẫu Excel (.xlsx)"
+                                class="btn-sm text-xs font-weight-bold px-2.5 shadow-sm"
+                                @click="downloadTemplate"
+                            />
+                        </div>
                     </div>
 
                     <div class="card-body p-4">
                         <div class="row">
-                            <!-- File Drag and Drop Zone -->
                             <div class="col-lg-6 mb-3 mb-lg-0">
                                 <label class="block text-xs font-bold text-slate-700 uppercase mb-2">1. Chọn tệp dữ liệu (Excel / CSV)</label>
                                 <div 
-                                    class="border-2 border-dashed border-slate-300 hover:border-slate-400 rounded-xl p-4 text-center bg-slate-50/50 hover:bg-slate-100/50 transition-all cursor-pointer relative h-100 d-flex flex-column align-items-center justify-content-center"
-                                    style="min-height: 140px;"
+                                    class="border-2 border-dashed border-slate-300 hover:border-slate-400 rounded-xl p-4 text-center bg-slate-50/50 hover:bg-slate-100/50 transition-all cursor-pointer relative d-flex flex-column align-items-center justify-content-center"
+                                    style="min-height: 160px;"
                                     @click="$refs.fileInput.click()"
                                 >
                                     <input ref="fileInput" type="file" accept=".xlsx,.xls,.csv" class="hidden" @change="onFileSelect" />
@@ -84,7 +82,6 @@
                                 </div>
                             </div>
 
-                            <!-- Import Rule Selection -->
                             <div class="col-lg-6">
                                 <label class="block text-xs font-bold text-slate-700 uppercase mb-2">2. Quy tắc xử lý khi trùng mã đối tượng</label>
                                 <div class="space-y-2">
@@ -115,8 +112,7 @@
                             </div>
                         </div>
 
-                        <!-- Action Submit Preview Button -->
-                        <div class="d-flex justify-content-end mt-3 pt-3 border-top">
+                        <div class="d-flex justify-content-end mt-4 pt-3 border-top">
                             <LTEButton
                                 variant="primary"
                                 :icon="previewLoading ? 'fas fa-spinner fa-spin' : 'fas fa-search'"
@@ -129,7 +125,6 @@
                     </div>
                 </div>
 
-                <!-- STEP 2: STAGING WORKSPACE & DATA PREVIEW TABLE -->
                 <div v-if="previewData.total_rows > 0" class="card border-0 shadow-sm rounded-xl overflow-hidden mb-4" style="border: 1px solid #e2e8f0 !important; border-radius: 12px !important;">
                     <div class="card-header bg-white border-bottom py-2.5 px-4">
                         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
@@ -137,7 +132,6 @@
                                 <i class="fas fa-list text-secondary mr-2"></i> BƯỚC 2: KẾT QUẢ PHÂN TÍCH XEM TRƯỚC
                             </h6>
 
-                            <!-- Stat Badges Bar -->
                             <div class="d-flex align-items-center gap-1.5 flex-wrap">
                                 <span class="badge badge-light border px-2.5 py-1.5 rounded font-weight-bold text-xs">
                                     Tổng: {{ previewData.total_rows }}
@@ -159,9 +153,7 @@
                     </div>
 
                     <div class="card-body p-3">
-                        <!-- Filter Toolbar -->
                         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
-                            <!-- Action Filter Tabs -->
                             <div class="btn-group btn-group-toggle">
                                 <button 
                                     @click="activeFilter = 'all'" 
@@ -189,7 +181,6 @@
                                 </button>
                             </div>
 
-                            <!-- Auto-clear error option -->
                             <div v-if="previewData.error_count > 0" class="d-flex align-items-center gap-2 bg-light px-3 py-1.5 rounded border">
                                 <input type="checkbox" id="auto_clear_err" v-model="autoClearErrors" class="w-4 h-4 cursor-pointer" />
                                 <label for="auto_clear_err" class="text-xs font-bold text-dark mb-0 cursor-pointer">
@@ -198,7 +189,6 @@
                             </div>
                         </div>
 
-                        <!-- Table Responsive Wrapper -->
                         <div class="table-responsive border rounded-lg">
                             <table class="table table-hover table-striped app-table mb-0 text-xs" style="white-space: nowrap;">
                                 <thead style="background-color: #007bff !important;">
@@ -249,7 +239,6 @@
                         </div>
                     </div>
 
-                    <!-- Footer Action Commit Buttons -->
                     <div class="card-footer bg-white border-top p-3 d-flex align-items-center justify-content-between">
                         <LTEButton 
                             variant="outline-secondary" 

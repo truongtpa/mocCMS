@@ -4,19 +4,21 @@
             <div class="row m-0">
                 <div class="col-12 p-0">
                     <div class="card border-0" style="border: 1px solid #cbd5e1 !important; border-radius: 8px !important; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04) !important; overflow: hidden; background: #ffffff;">
-                        <div class="card-header py-2 px-3 bg-light border-bottom d-flex justify-content-between align-items-center" style="background-color: #f8fafc !important; border-bottom: 1px solid #e2e8f0 !important;">
-                            <h6 class="card-title font-weight-bold mb-0 text-xs text-uppercase tracking-wider text-dark d-flex align-items-center">
+                        <div class="card-header py-2 px-3 bg-light border-bottom d-flex align-items-center justify-content-between" style="background-color: #f8fafc !important; border-bottom: 1px solid #e2e8f0 !important; display: flex !important; justify-content: space-between !important; align-items: center !important;">
+                            <h6 class="font-weight-bold mb-0 text-xs text-uppercase tracking-wider text-dark d-flex align-items-center">
                                 <i class="fas fa-key mr-2 text-primary"></i>
                                 QUẢN LÝ API KEY
                             </h6>
-                            <LTEButton 
-                                v-if="authStore.hasPermission('ApiKeyController.putApiKey')"
-                                variant="success"
-                                icon="fas fa-plus"
-                                text="Tạo API Key mới"
-                                class="btn-sm text-xs font-weight-bold px-2.5 shadow-sm"
-                                @click="themMoi"
-                            />
+                            <div class="ml-auto">
+                                <LTEButton 
+                                    v-if="authStore.hasPermission('ApiKeyController.putApiKey')"
+                                    variant="success"
+                                    icon="fas fa-plus"
+                                    text="Tạo API Key mới"
+                                    class="btn-sm text-xs font-weight-bold px-2.5 shadow-sm"
+                                    @click="themMoi"
+                                />
+                            </div>
                         </div>
 
                         <div class="card-body p-2.5">
@@ -78,23 +80,39 @@
     </LTEContentWrapper>
 
     <LTEModal ref="mdApiKey">
-        <template #content>
-            <div class="form-group mb-3">
-                <label class="text-xs font-weight-bold text-dark">Tên ứng dụng / Đơn vị tích hợp <span class="text-danger">*</span></label>
-                <input type="text" v-model="apiKeyForm.ten_ung_dung" class="form-control form-control-sm text-xs" placeholder="Ví dụ: App Mobile Sinh Vien, Cong Dao Tao...">
-            </div>
-            <div class="form-group mb-3">
-                <label class="text-xs font-weight-bold text-dark">Mô tả mục đích</label>
-                <textarea v-model="apiKeyForm.mo_ta" class="form-control form-control-sm text-xs" rows="3" placeholder="Mô tả ngắn gọn về ứng dụng kết nối..."></textarea>
-            </div>
-            <div class="form-group mb-3">
-                <label class="text-xs font-weight-bold text-dark">Trạng thái</label>
-                <select v-model="apiKeyForm.trang_thai" class="form-control form-control-sm text-xs">
-                    <option :value="1">Hoạt động</option>
-                    <option :value="0">Tắt / Khóa</option>
-                </select>
-            </div>
-        </template>
+        <LTEInput 
+            v-model="apiKeyForm.ten_ung_dung" 
+            label="Tên ứng dụng / Đơn vị tích hợp *" 
+            placeholder="Ví dụ: App Mobile Sinh Vien, Cong Dao Tao..." 
+            input-class="form-control form-control-sm text-xs" 
+            class="mb-3"
+            required
+        />
+
+        <LTETextArea 
+            v-model="apiKeyForm.mo_ta" 
+            label="Mô tả mục đích" 
+            placeholder="Mô tả ngắn gọn về ứng dụng kết nối..." 
+            textarea-class="form-control form-control-sm text-xs" 
+            :rows="3"
+            class="mb-3"
+        />
+
+        <LTESelect2Option 
+            v-model="apiKeyForm.trang_thai"
+            :init-value="apiKeyForm.trang_thai"
+            label="Trạng thái" 
+            placeholder="Chọn trạng thái..." 
+            :data="[
+                { value: 1, text: 'Hoạt động' },
+                { value: 0, text: 'Tắt / Khóa' }
+            ]" 
+            :multiple="false"
+            :close-on-select="true"
+            :allow-clear="false"
+            :enable-data-watch="true"
+            class="mb-3"
+        />
     </LTEModal>
 
     <YesNoModal ref="confirmModal" />
@@ -104,6 +122,9 @@
 import LTEContentWrapper from '@/components/controls/LTEContentWrapper.vue'
 import AppTable from '@/components/controls/AppTable.vue'
 import LTEButton from '@/components/controls/LTEButton.vue'
+import LTEInput from '@/components/controls/LTEInput.vue'
+import LTETextArea from '@/components/controls/LTETextArea.vue'
+import LTESelect2Option from '@/components/controls/LTESelect2Option.vue'
 import LTEModal from '@/components/controls/LTEModal.vue'
 import YesNoModal from '@/components/controls/YesNoModal.vue'
 import LoadingSpinner from '@/components/controls/LoadingSpinner.vue'
@@ -115,6 +136,9 @@ export default {
         LTEContentWrapper,
         AppTable,
         LTEButton,
+        LTEInput,
+        LTETextArea,
+        LTESelect2Option,
         LTEModal,
         YesNoModal,
         LoadingSpinner
