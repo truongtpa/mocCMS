@@ -24,18 +24,18 @@ services:
         networks:
             - hoso_sinhvien_network
 
-    hoso_sinhvien_worker:
-        image: ${IMAGE:-hoso-sinhvien}:${TAG:-latest}
-        container_name: hoso_sinhvien_worker
-        restart: unless-stopped
-        depends_on:
-            - hoso_sinhvien_app
-        environment:
-            CONTAINER_ROLE: worker
-        volumes:
-            - hoso_sinhvien_storage:/var/www/html/storage/app
-        healthcheck:
-            disable: true
-        stop_grace_period: 650s
-        networks:
-            - hoso_sinhvien_network
+#    hoso_sinhvien_worker:
+#        image: ${IMAGE:-hoso-sinhvien}:${TAG:-latest}
+#        container_name: hoso_sinhvien_worker
+#        restart: unless-stopped
+#        depends_on:
+#            - hoso_sinhvien_app
+#        environment:
+#            CONTAINER_ROLE: worker
+#        volumes:
+#            - hoso_sinhvien_storage:/var/www/html/storage/app
+#        healthcheck:
+#            disable: true
+#        stop_grace_period: 650s
+#        networks:
+#            - hoso_sinhvien_network
