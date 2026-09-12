@@ -28,3 +28,7 @@ yarn-error.log
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# k8s: file env/configmap thật (chứa secret)
+/k8s/app-config.yaml
+/k8s/deployment.yaml

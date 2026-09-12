@@ -1,87 +1,106 @@
-FROM php:8.2-fpm
+# =========================== Stage 1: builder ==============================
+FROM dunglas/frankenphp:1.6-php8.4 AS builder
 
-USER root
-WORKDIR /var/www/app
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        git \
+        unzip \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y \
-    curl \
-    libonig-dev \
-    libxml2-dev \
-    libzip-dev \
-    libfreetype6-dev \
-    libjpeg62-turbo-dev \
-    libpng-dev \
-    libpq-dev \
+RUN install-php-extensions \
+    gd \
+    pcntl \
+    opcache \
+    pdo \
+    pdo_mysql \
+    pdo_pgsql \
     zip \
-    unzip \
-    cron \
-    supervisor \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install \
-        pdo \
-        pdo_pgsql \
-        pdo_mysql \
-        mbstring \
-        exif \
-        pcntl \
-        bcmath \
-        zip \
-        gd
+    bcmath \
+    exif \
+    intl \
+    redis
 
-# Use the default production configuration for PHP-FPM ($PHP_INI_DIR variable already set by the default image)
-RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Setup php.ini
-RUN sed -i -r "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g" "$PHP_INI_DIR/php.ini" \
-    && sed -i -r "s/expose_php = On/expose_php = Off/g" "$PHP_INI_DIR/php.ini" \
-    && sed -i -r "s/post_max_size = 8M/post_max_size = 100M/g" "$PHP_INI_DIR/php.ini" \
-    && sed -i -r "s/upload_max_filesize = 2M/upload_max_filesize = 100M/g" "$PHP_INI_DIR/php.ini" \
-    && sed -i -r "s/session.gc_maxlifetime = 1440/session.gc_maxlifetime = 86401/g" "$PHP_INI_DIR/php.ini" \
-    && sed -i -r "s/session.gc_maxlifetime = 1440/session.gc_maxlifetime = 86401/g" "$PHP_INI_DIR/php.ini" \
-    && sed -i -r "s/max_execution_time = 30/max_execution_time = 180/g" "$PHP_INI_DIR/php.ini"
+WORKDIR /var/www/html
 
-# Setup OPcache
-RUN echo "opcache.enable = 1" >> "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini" \
-    && echo "opcache.enable_cli = 1" >> "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini" \
-    && echo "opcache.memory_consumption = 512" >> "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini" \
-    && echo "opcache.interned_strings_buffer = 8" >> "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini" \
-    && echo "opcache.max_accelerated_files = 50000" >> "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini" \
-    && echo "opcache.revalidate_freq = 5" >> "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini" \
-    && echo "opcache.save_comments = 0" >> "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini" \
-    && echo "opcache.enable_file_override = 1" >> "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini" \
-    && echo "opcache.huge_code_pages = 0" >> "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini" \
-    && echo "opcache.fast_shutdown = 1" >> "$PHP_INI_DIR/conf.d/docker-php-ext-opcache.ini"
+# Cache layer cho vendor
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
-# Insert before [www] directive
-RUN sed -i '0,/^\[www\].*/s/^\[www\].*/emergency_restart_threshold = 10\n&/' "/usr/local/etc/php-fpm.d/docker.conf" \
-    && sed -i '0,/^\[www\].*/s/^\[www\].*/emergency_restart_interval = 1m\n&/' "/usr/local/etc/php-fpm.d/docker.conf" \
-    && sed -i '0,/^\[www\].*/s/^\[www\].*/process_control_timeout = 5\n&/' "/usr/local/etc/php-fpm.d/docker.conf"
+# Source ứng dụng (đã bao gồm public/asset/admin/build do build-assets.sh tạo)
+COPY . .
 
-# Setup FPM `www` (default) pool
-RUN sed -i -r "s/pm.max_children = 5/pm.max_children = 640/g" "/usr/local/etc/php-fpm.d/www.conf" \
-    && sed -i -r "s/pm.start_servers = 2/pm.start_servers = 18/g" "/usr/local/etc/php-fpm.d/www.conf" \
-    && sed -i -r "s/pm.min_spare_servers = 1/pm.min_spare_servers = 12/g" "/usr/local/etc/php-fpm.d/www.conf" \
-    && sed -i -r "s/pm.max_spare_servers = 3/pm.max_spare_servers = 24/g" "/usr/local/etc/php-fpm.d/www.conf" \
-    && sed -i -r "s/;pm.process_idle_timeout = 10s/pm.process_idle_timeout = 10s/g" "/usr/local/etc/php-fpm.d/www.conf" \
-    && sed -i -r "s/;pm.max_requests = 500/pm.max_requests = 500/g" "/usr/local/etc/php-fpm.d/www.conf" \
-    && sed -i -r "s/;pm.status_path/pm.status_path/g" "/usr/local/etc/php-fpm.d/www.conf" \
-    && sed -i -r "s/max_execution_time = 30/max_execution_time = 180/g" "/usr/local/etc/php-fpm.d/www.conf"
+# Không mang .env / hot reload / build script của dev vào image
+RUN rm -f .env public/hot && rm -rf node_modules
+RUN composer install --no-dev --no-scripts --optimize-autoloader --prefer-dist
 
-# Composer
-COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+# ========================= Stage 2: production =============================
+FROM dunglas/frankenphp:1.6-php8.4 AS production
 
-# cron
-RUN apt-get update && apt-get install -y cron
-COPY cronjob /etc/cron.d/app-cron
-RUN chmod 0644 /etc/cron.d/app-cron && crontab /etc/cron.d/app-cron
+ENV SERVER_NAME=":8000" \
+    OCTANE_SERVER=frankenphp \
+    CONTAINER_ROLE=app
 
-RUN ln -sf /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
-RUN echo "Asia/Ho_Chi_Minh" > /etc/timezone
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        supervisor \
+        curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Copy entrypoint script
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN install-php-extensions \
+    gd \
+    pcntl \
+    opcache \
+    pdo \
+    pdo_mysql \
+    pdo_pgsql \
+    zip \
+    bcmath \
+    exif \
+    intl \
+    redis
+
+# Timezone VN
+RUN ln -sf /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime \
+    && echo "Asia/Ho_Chi_Minh" > /etc/timezone
+
+RUN groupadd -g 1000 appgroup \
+    && useradd -u 1000 -g appgroup -m appuser \
+    && mkdir -p /var/log/php \
+    && chown -R appuser:appgroup /var/log/php
+
+WORKDIR /var/www/html
+
+COPY --from=builder --chown=appuser:appgroup /var/www/html /var/www/html
+
+# --------------------------- ENV vào container -----------------------------
+# Mặc định .env ; production dùng: --build-arg ENV_FILE=.env.production
+# Trên k8s có thể override từng biến bằng ConfigMap/Secret (envFrom).
+ARG ENV_FILE=.env
+COPY --chown=appuser:appgroup ${ENV_FILE} /var/www/html/.env
+
+# ------------------------------ Configs ------------------------------------
+COPY --chown=appuser:appgroup ./docker/php.prod.ini /usr/local/etc/php/php.ini
+COPY ./docker/supervisor.d/app.conf     /etc/supervisor/conf.d/app.conf
+COPY ./docker/supervisor.d/worker.conf  /etc/supervisor/conf.d/worker.conf
+COPY ./docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Đặt entrypoint mới
+RUN chown -R appuser:appgroup storage bootstrap/cache && chmod -R 775 storage bootstrap/cache
+
+# Publish config/octane.php + public/frankenphp-worker.php ngay lúc build
+RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
+    && php artisan package:discover --ansi \
+    && php artisan octane:install --server=frankenphp --force --no-interaction \
+    && php artisan config:clear \
+    && php artisan route:clear \
+    && php artisan view:clear \
+    && chown -R appuser:appgroup /var/www/html/public /var/www/html/config
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 CMD curl -fsS http://localhost:8000/up || exit 1
+
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

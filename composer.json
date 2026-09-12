@@ -7,8 +7,10 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-openssl": "*",
         "jenssegers/agent": "^2.6",
         "laravel/framework": "^11.31",
+        "laravel/octane": "^2.17",
         "laravel/tinker": "^2.9",
         "league/flysystem-aws-s3-v3": "3.29",
         "nxp/math-executor": "^2.3",
@@ -16,8 +18,7 @@
         "phpoffice/phpword": "^1.4",
         "sentry/sentry-laravel": "^4.13",
         "socialiteproviders/keycloak": "^5.3",
-        "tightenco/ziggy": "^2.5",
-        "ext-openssl": "*"
+        "tightenco/ziggy": "^2.5"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

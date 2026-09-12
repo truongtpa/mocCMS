@@ -1,0 +1,49 @@
+# --- VCS / IDE / OS ---
+.git
+.gitignore
+.gitattributes
+.editorconfig
+.idea
+.vscode
+.fleet
+.nova
+.zed
+.DS_Store
+**/.DS_Store
+
+# --- Dependencies: cài lại trong image ---
+/node_modules
+/vendor
+# ...trừ Ziggy: vite.config.js alias 'ziggy-js' -> vendor/tightenco/ziggy
+!/vendor/tightenco
+!/vendor/tightenco/**
+
+# --- Runtime / cache: không mang vào image ---
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/storage/app/public/*
+/storage/pail
+/bootstrap/cache/*.php
+/public/hot
+/public/storage
+
+# --- Dev-only ---
+# docker/ phải vào context (Dockerfile COPY php.prod.ini, supervisor.d/, entrypoint.sh)
+# chỉ loại manifest k8s
+/k8s
+/tests
+/.phpunit.cache
+.phpunit.result.cache
+.phpactor.json
+composer.phar
+phpunit.xml
+/SKILL.md
+npm-debug.log
+yarn-error.log
+
+# --- Env: CHỈ .env / .env.production được COPY có chủ đích qua ARG ENV_FILE ---
+.env.backup
+.env.sentry-build-plugin
+auth.json
