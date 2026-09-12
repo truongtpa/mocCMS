@@ -1,15 +1,5 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-# Deploy target: DOCKER thuần (máy dev / server đơn lẻ).
-# Build image base (./build-image.sh) rồi chạy docker/docker-compose.yml:
-# 2 container cùng image — app (Octane :8000) + worker (queue + scheduler).
-#
-#   ./build-docker.sh
-#   ENV_FILE=.env.production APP_PORT=8080 ./build-docker.sh
-#   SKIP_ASSETS=1 ./build-docker.sh     # JS đã build sẵn rồi
-#   UP=0 ./build-docker.sh              # chỉ build image, không chạy
-#   FRESH=1 ./build-docker.sh           # down -v trước khi up (xoá volume)
-# ---------------------------------------------------------------------------
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

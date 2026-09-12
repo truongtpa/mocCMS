@@ -1,19 +1,5 @@
 #!/usr/bin/env bash
-# ---------------------------------------------------------------------------
-# Build IMAGE BASE (FrankenPHP + Octane) — dùng chung cho mọi nơi chạy.
-# Không biết gì về docker-compose hay k8s; deploy là việc của:
-#   ./build-docker.sh   (docker thuần)
-#   ./build-k8s.sh      (kubernetes)
-#
-# Luồng:
-#   1. build-assets.sh -> JS build trong docker node, ra public/asset/admin/build
-#   2. docker buildx   -> image copy sẵn JS + .env vào container
-#
-#   ./build-image.sh
-#   ENV_FILE=.env.production TAG=v1.2.0 ./build-image.sh
-#   SKIP_ASSETS=1 ./build-image.sh      # JS đã build sẵn rồi
-#   PLATFORM=linux/arm64 ./build-image.sh
-# ---------------------------------------------------------------------------
+
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

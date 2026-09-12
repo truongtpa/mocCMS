@@ -28,10 +28,8 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
-# Source ứng dụng (đã bao gồm public/asset/admin/build do build-assets.sh tạo)
 COPY . .
 
-# Không mang .env / hot reload / build script của dev vào image
 RUN rm -f .env public/hot && rm -rf node_modules
 RUN composer install --no-dev --no-scripts --optimize-autoloader --prefer-dist
 
@@ -76,8 +74,6 @@ WORKDIR /var/www/html
 COPY --from=builder --chown=appuser:appgroup /var/www/html /var/www/html
 
 # --------------------------- ENV vào container -----------------------------
-# Mặc định .env ; production dùng: --build-arg ENV_FILE=.env.production
-# Trên k8s có thể override từng biến bằng ConfigMap/Secret (envFrom).
 ARG ENV_FILE=.env
 COPY --chown=appuser:appgroup ${ENV_FILE} /var/www/html/.env
 
@@ -90,13 +86,6 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 RUN chown -R appuser:appgroup storage bootstrap/cache && chmod -R 775 storage bootstrap/cache
 
-# Publish config/octane.php + public/frankenphp-worker.php ngay lúc build,
-# để runtime không phải ghi vào public/ (an toàn khi rootfs read-only).
-#
-# KHÔNG dùng `artisan octane:install`: lệnh đó ghi OCTANE_SERVER vào .env, mà
-# .env trong image thuộc appuser -> build fail "file_put_contents(.env):
-# Permission denied" trên daemon rootless/userns. OCTANE_SERVER đã đặt bằng ENV
-# ở trên rồi, nên chỉ cần publish config + copy worker stub.
 RUN rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
     && php artisan package:discover --ansi \
     && php artisan vendor:publish --tag=octane-config --force --no-interaction \

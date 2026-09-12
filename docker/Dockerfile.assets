@@ -1,14 +1,3 @@
-# ---------------------------------------------------------------------------
-# Image "local" dùng để build JS (Vue 3 + Vite) bằng Docker trên máy dev / CI.
-# Không mount source từ host -> build sạch, không phụ thuộc node_modules máy.
-#
-# Dùng qua: ./build-assets.sh   (script sẽ docker cp kết quả ra public/)
-# Không liên quan nơi chạy — chỉ tạo ra JS cho image base ở docker/Dockerfile.
-# ---------------------------------------------------------------------------
-
-# Stage phụ: lấy tightenco/ziggy từ composer.lock.
-# KHÔNG copy vendor/ của máy host — vendor/ bị gitignore nên clone sạch,
-# git worktree hay CI đều không có, build sẽ chết.
 FROM composer:2 AS ziggy
 
 WORKDIR /src

@@ -3,14 +3,6 @@ set -e
 
 cd /var/www/html
 
-# ---------------------------------------------------------------------------
-# CONTAINER_ROLE quyết định process chạy trong pod:
-#   app       -> Octane / FrankenPHP (HTTP :8000)          [mặc định]
-#   worker    -> queue:work + schedule:work
-#   scheduler -> chỉ schedule:work
-#   *         -> chạy lệnh truyền vào (vd: php artisan migrate)
-# ---------------------------------------------------------------------------
-
 ROLE="${CONTAINER_ROLE:-app}"
 
 mkdir -p storage/framework/cache/data \

@@ -1,7 +1,3 @@
-# ---------------------------------------------------------------------------
-# Deploy target: DOCKER thuần. Chạy image base ở docker/Dockerfile.
-# Dùng qua: ./build-docker.sh   (script lo build JS + image trước)
-# ---------------------------------------------------------------------------
 networks:
     hoso_sinhvien_network:
         driver: bridge
@@ -19,16 +15,11 @@ services:
                 ENV_FILE: ${ENV_FILE:-.env}
         container_name: hoso_sinhvien_app
         restart: unless-stopped
-        # KHÔNG dùng env_file: docker truyền giá trị THÔ — "${URL}/api" tới
-        # container vẫn là chuỗi "${URL}/api" (còn nguyên dấu nháy, không nội suy),
-        # và nó đè lên .env đã nướng trong image (dotenv không ghi đè biến có sẵn).
-        # .env đã nằm trong image rồi; cần override thì khai báo thẳng ở đây.
         environment:
             CONTAINER_ROLE: app
         ports:
             - "${APP_PORT:-3005}:8000"
         volumes:
-            # giữ log/upload qua các lần rebuild
             - hoso_sinhvien_storage:/var/www/html/storage/app
         networks:
             - hoso_sinhvien_network
@@ -43,10 +34,8 @@ services:
             CONTAINER_ROLE: worker
         volumes:
             - hoso_sinhvien_storage:/var/www/html/storage/app
-        # worker không phục vụ HTTP -> tắt HEALTHCHECK kế thừa từ image
         healthcheck:
             disable: true
-        # chờ queue job dài (timeout=600) xử lý xong rồi mới kill
         stop_grace_period: 650s
         networks:
             - hoso_sinhvien_network
