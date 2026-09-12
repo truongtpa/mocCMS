@@ -25,6 +25,9 @@
 /bootstrap/cache/*.php
 /public/hot
 /public/storage
+# output cũ của vite khi còn dùng buildDirectory mặc định — đã chuyển sang
+# public/asset/admin/build, giữ lại chỉ khiến @vite ăn nhầm bản cũ
+/public/build
 
 # --- Dev-only ---
 # docker/ phải vào context (Dockerfile COPY php.prod.ini, supervisor.d/, entrypoint.sh)
