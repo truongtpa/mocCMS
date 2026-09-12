@@ -19,10 +19,12 @@ services:
                 ENV_FILE: ${ENV_FILE:-.env}
         container_name: hoso_sinhvien_app
         restart: unless-stopped
+        # KHÔNG dùng env_file: docker truyền giá trị THÔ — "${URL}/api" tới
+        # container vẫn là chuỗi "${URL}/api" (còn nguyên dấu nháy, không nội suy),
+        # và nó đè lên .env đã nướng trong image (dotenv không ghi đè biến có sẵn).
+        # .env đã nằm trong image rồi; cần override thì khai báo thẳng ở đây.
         environment:
             CONTAINER_ROLE: app
-        env_file:
-            - ../${ENV_FILE:-.env}
         ports:
             - "${APP_PORT:-3005}:8000"
         volumes:
@@ -39,8 +41,6 @@ services:
             - hoso_sinhvien_app
         environment:
             CONTAINER_ROLE: worker
-        env_file:
-            - ../${ENV_FILE:-.env}
         volumes:
             - hoso_sinhvien_storage:/var/www/html/storage/app
         # worker không phục vụ HTTP -> tắt HEALTHCHECK kế thừa từ image
