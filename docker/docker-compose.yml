@@ -1,6 +1,3 @@
-# Không hardcode tên project: tên container/network lấy từ biến PROJECT do
-# build.sh sinh ra (theo tên thư mục source). Service name để chung là
-# app/worker vì YAML key không nhận biến.
 networks:
     default:
         name: ${PROJECT:-app}_network
@@ -21,8 +18,6 @@ services:
         ports:
             - "${APP_PORT:-3005}:8000"
         volumes:
-            # mount thẳng storage/ của source: log, upload, session file nằm
-            # trên host — xem trực tiếp được và sống qua các lần rebuild
             - ../storage:/var/www/html/storage
 
 #    worker:
@@ -34,7 +29,6 @@ services:
 #        environment:
 #            CONTAINER_ROLE: worker
 #        volumes:
-#            # dùng chung storage với app: chung log, chung session file
 #            - ../storage:/var/www/html/storage
 #        healthcheck:
 #            disable: true
