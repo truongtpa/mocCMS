@@ -1,41 +1,41 @@
+# Không hardcode tên project: tên container/network lấy từ biến PROJECT do
+# build.sh sinh ra (theo tên thư mục source). Service name để chung là
+# app/worker vì YAML key không nhận biến.
 networks:
-    hoso_sinhvien_network:
+    default:
+        name: ${PROJECT:-app}_network
         driver: bridge
 
-volumes:
-    hoso_sinhvien_storage:
-
 services:
-    hoso_sinhvien_app:
-        image: ${IMAGE:-hoso-sinhvien}:${TAG:-latest}
+    app:
+        image: ${IMAGE:-app}:${TAG:-latest}
         build:
             context: ..
             dockerfile: docker/Dockerfile
             args:
                 ENV_FILE: ${ENV_FILE:-.env}
-        container_name: hoso_sinhvien_app
+        container_name: ${PROJECT:-app}_app
         restart: unless-stopped
         environment:
             CONTAINER_ROLE: app
         ports:
             - "${APP_PORT:-3005}:8000"
         volumes:
-            - hoso_sinhvien_storage:/var/www/html/storage/app
-        networks:
-            - hoso_sinhvien_network
+            # mount thẳng storage/ của source: log, upload, session file nằm
+            # trên host — xem trực tiếp được và sống qua các lần rebuild
+            - ../storage:/var/www/html/storage
 
-#    hoso_sinhvien_worker:
-#        image: ${IMAGE:-hoso-sinhvien}:${TAG:-latest}
-#        container_name: hoso_sinhvien_worker
+#    worker:
+#        image: ${IMAGE:-app}:${TAG:-latest}
+#        container_name: ${PROJECT:-app}_worker
 #        restart: unless-stopped
 #        depends_on:
-#            - hoso_sinhvien_app
+#            - app
 #        environment:
 #            CONTAINER_ROLE: worker
 #        volumes:
-#            - hoso_sinhvien_storage:/var/www/html/storage/app
+#            # dùng chung storage với app: chung log, chung session file
+#            - ../storage:/var/www/html/storage
 #        healthcheck:
 #            disable: true
 #        stop_grace_period: 650s
-#        networks:
-#            - hoso_sinhvien_network
