@@ -21,14 +21,14 @@ export default defineConfig({
 
     resolve: {
         alias: {
-            'ziggy-js': path.resolve('vendor/tightenco/ziggy'),
+            '@': path.resolve('resources/js'),
         },
     },
 
     plugins: [
         vue(),
         laravel({
-            input: ["resources/js/main.js"],
+            input: ['resources/js/main.js'],
             buildDirectory: 'asset/admin/build',
             refresh: true,
         })
