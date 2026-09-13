@@ -1,35 +1,18 @@
-networks:
-    default:
-        name: ${PROJECT:-app}_network
-        driver: bridge
+x-app-build: &app-build
+    context: ..
+    dockerfile: docker/Dockerfile
+    args:
+        ENV_FILE: .env
 
 services:
-    app:
-        image: ${IMAGE:-app}:${TAG:-latest}
-        build:
-            context: ..
-            dockerfile: docker/Dockerfile
-            args:
-                ENV_FILE: ${ENV_FILE:-.env}
-        container_name: ${PROJECT:-app}_app
+    hoso_sv__app:
+        image: hoso_sv
+        build: *app-build
+        container_name: hoso_sv__app
         restart: unless-stopped
         environment:
             CONTAINER_ROLE: app
         ports:
-            - "${APP_PORT:-3005}:8000"
+            - "${APP_PORT:-3002}:8000"
         volumes:
             - ../storage:/var/www/html/storage
-
-#    worker:
-#        image: ${IMAGE:-app}:${TAG:-latest}
-#        container_name: ${PROJECT:-app}_worker
-#        restart: unless-stopped
-#        depends_on:
-#            - app
-#        environment:
-#            CONTAINER_ROLE: worker
-#        volumes:
-#            - ../storage:/var/www/html/storage
-#        healthcheck:
-#            disable: true
-#        stop_grace_period: 650s

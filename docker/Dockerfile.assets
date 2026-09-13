@@ -46,4 +46,4 @@ RUN rm -f public/hot
 RUN npm run build
 
 # Kết quả:
-#   /app/public/asset/admin/build   (buildDirectory trong vite.config.js)
+#   /app/public/asset/giang-vien/build   (buildDirectory trong vite.config.js)
