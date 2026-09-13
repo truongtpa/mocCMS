@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 ENV_FILE=${ENV_FILE:-.env}
-OUT=public/build
+OUT=public/asset/admin/build
 DC="docker compose -f docker/docker-compose.yml"
 
 echo "==> Build JS"
