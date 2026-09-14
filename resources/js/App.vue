@@ -37,6 +37,12 @@ export default {
                     href: '/',
                     icon: 'bi-speedometer',
                 },
+                {
+                    type: 'item',
+                    text: 'Bài viết',
+                    href: '/bai-viet',
+                    icon: 'bi-newspaper',
+                },
             ],
         }
     }

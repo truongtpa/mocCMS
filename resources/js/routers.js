@@ -8,6 +8,12 @@ const routes = [
         meta: { title: 'Bảng điều khiển' },
     },
     {
+        path: '/bai-viet',
+        name: 'router-baiviet',
+        component: () => import('@/pages/pageBaiViet.vue'),
+        meta: { title: 'Bài viết' },
+    },
+    {
         path: '/:pathMatch(.*)*',
         redirect: '/',
     },
