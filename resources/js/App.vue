@@ -1,21 +1,19 @@
 <template>
-    <LteDashboardLayout
+    <AppLayout
         :menu-items="menu"
         :current-path="$route.path"
         :link-component="RouterLink"
         :user="user"
         logo="/favicon.ico"
         brand-text="mocCMS"
-        footer-right-text=""
+        @logout="dangXuat"
     >
         <router-view />
 
-        <template #user-body></template>
-        <template #user-footer></template>
         <template #footer>
             <strong>mocCMS</strong>
         </template>
-    </LteDashboardLayout>
+    </AppLayout>
 </template>
 
 <script>
@@ -45,6 +43,11 @@ export default {
                 },
             ],
         }
-    }
+    },
+    methods: {
+        dangXuat() {
+            // TODO: nối vào route đăng xuất khi có phần xác thực
+        },
+    },
 }
 </script>

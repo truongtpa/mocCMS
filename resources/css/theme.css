@@ -1,0 +1,683 @@
+/* ==========================================================================
+   mocCMS — Theme global cho Bootstrap 5.3
+   Ngôn ngữ thiết kế theo control panel của Statamic:
+     - Mọi bề mặt đều có viền 1px rõ ràng, bo góc nhỏ, đổ bóng rất nhẹ
+     - Nút luôn có viền thấy được + 5 state tách bạch
+       (default / hover / active / focus-visible / disabled)
+     - Bảng chỉ kẻ ngang, header chữ nhỏ in hoa màu xám
+     - Chữ nhỏ, đặc, nhiều khoảng thở
+
+   Cách hoạt động: file này ghi đè CSS variable của Bootstrap chứ không đè
+   selector, nên mọi component (kể cả AppTable/AppModal tự viết) đều ăn theo.
+
+   Đổi màu nhấn: sửa đúng --app-accent* ở khối :root bên dưới.
+   ========================================================================== */
+
+:root {
+    /*
+       Màu lõi khai báo dạng RGB triplet vì các utility nền/chữ của Bootstrap
+       (.bg-body, .text-body, mọi chỗ dùng rgba(var(--bs-*-rgb), .5)) đọc biến
+       --bs-*-rgb chứ không đọc bản hex. Thiếu triplet là những chỗ đó rơi về
+       màu mặc định của Bootstrap.
+    */
+    --app-bg-rgb: 235, 238, 242;
+    --app-surface-rgb: 255, 255, 255;
+    --app-surface-sunken-rgb: 249, 250, 251;
+    --app-text-rgb: 47, 54, 64;
+    --app-accent-rgb: 43, 116, 224;
+
+    /* ----- Thang xám ----- */
+    --app-gray-50: #f9fafb;
+    --app-gray-100: #f3f4f6;
+    --app-gray-200: #e8eaee;
+    --app-gray-300: #d3d9e0;
+    --app-gray-400: #b7bec8;
+    --app-gray-500: #8b94a1;
+    --app-gray-600: #626b7a;
+    --app-gray-700: #454d59;
+    --app-gray-800: #2f3640;
+    --app-gray-900: #1a1e24;
+
+    /* ----- Màu nhấn ----- */
+    --app-accent: rgb(var(--app-accent-rgb));
+    --app-accent-hover: #2264c6;
+    --app-accent-active: #1c55a8;
+    --app-accent-subtle: #e8f1fd;
+    --app-accent-border-subtle: #bcd6f7;
+
+    /* ----- Bề mặt ----- */
+    --app-bg: rgb(var(--app-bg-rgb));
+    --app-surface: rgb(var(--app-surface-rgb));
+    --app-surface-sunken: rgb(var(--app-surface-sunken-rgb));
+    --app-border: var(--app-gray-300);
+    --app-border-strong: var(--app-gray-400);
+
+    /* ----- Chữ ----- */
+    --app-text: rgb(var(--app-text-rgb));
+    --app-text-muted: var(--app-gray-600);
+    --app-text-subtle: var(--app-gray-500);
+
+    /* ----- Bo góc: Statamic bo nhỏ hơn mặc định Bootstrap ----- */
+    --app-radius-sm: 2px;
+    --app-radius: 4px;
+    --app-radius-lg: 6px;
+
+    /* Bo góc riêng cho bảng — khung ngoài và dải header cùng ăn token này */
+    --app-table-radius: 8px;
+
+    /* ----- Đổ bóng: rất nhẹ, chỉ đủ tách lớp ----- */
+    --app-shadow-xs: 0 1px 1px rgba(16, 24, 40, 0.04);
+    --app-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+    --app-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 1px 3px rgba(16, 24, 40, 0.06);
+    --app-shadow-lg: 0 4px 6px -2px rgba(16, 24, 40, 0.05), 0 12px 16px -4px rgba(16, 24, 40, 0.1);
+    --app-shadow-inset: inset 0 2px 3px rgba(16, 24, 40, 0.12);
+
+    /* ----- Vòng focus ----- */
+    --app-ring-width: 3px;
+    --app-ring: color-mix(in srgb, var(--app-accent) 28%, transparent);
+}
+
+/* ==========================================================================
+   Dark mode — chỉ đổi token, phần dưới không phải viết lại
+   ========================================================================== */
+[data-bs-theme='dark'] {
+    --app-bg-rgb: 20, 24, 29;
+    --app-surface-rgb: 27, 32, 39;
+    --app-surface-sunken-rgb: 23, 28, 34;
+    --app-text-rgb: 221, 226, 233;
+    --app-accent-rgb: 75, 142, 240;
+
+    --app-border: #2c333d;
+    --app-border-strong: #3a424e;
+
+    --app-text-muted: #98a2b1;
+    --app-text-subtle: #7b8593;
+
+    --app-accent-hover: #649df3;
+    --app-accent-active: #3a7ad8;
+    --app-accent-subtle: #1c2a3f;
+    --app-accent-border-subtle: #2f4a70;
+
+    --app-shadow-xs: 0 1px 1px rgba(0, 0, 0, 0.3);
+    --app-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --app-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.35);
+    --app-shadow-lg: 0 4px 6px -2px rgba(0, 0, 0, 0.3), 0 12px 16px -4px rgba(0, 0, 0, 0.45);
+    --app-shadow-inset: inset 0 2px 3px rgba(0, 0, 0, 0.45);
+}
+
+/* ==========================================================================
+   Nối token vào biến Bootstrap
+   ========================================================================== */
+:root,
+[data-bs-theme='light'],
+[data-bs-theme='dark'] {
+    --bs-body-bg: var(--app-bg);
+    --bs-body-bg-rgb: var(--app-bg-rgb);
+    --bs-body-color: var(--app-text);
+    --bs-body-color-rgb: var(--app-text-rgb);
+    --bs-emphasis-color: var(--app-text);
+    --bs-emphasis-color-rgb: var(--app-text-rgb);
+    --bs-primary-rgb: var(--app-accent-rgb);
+    --bs-secondary-color: var(--app-text-muted);
+    --bs-tertiary-color: var(--app-text-subtle);
+
+    /* --bs-secondary-bg là nền của sidebar (.app-sidebar trong layout.css) */
+    --bs-secondary-bg: var(--app-gray-200);
+    /* Tertiary dùng cho các bề mặt chìm -> cho bằng luôn nền trang */
+    --bs-tertiary-bg: var(--app-bg);
+    --bs-tertiary-bg-rgb: var(--app-bg-rgb);
+
+    --bs-border-color: var(--app-border);
+    --bs-border-color-translucent: var(--app-border);
+
+    --bs-border-radius-sm: var(--app-radius-sm);
+    --bs-border-radius: var(--app-radius);
+    --bs-border-radius-lg: var(--app-radius-lg);
+    --bs-border-radius-xl: 10px;
+
+    --bs-primary: var(--app-accent);
+    --bs-link-color: var(--app-accent);
+    --bs-link-hover-color: var(--app-accent-hover);
+
+    --bs-primary-bg-subtle: var(--app-accent-subtle);
+    --bs-primary-border-subtle: var(--app-accent-border-subtle);
+
+    --bs-focus-ring-color: var(--app-ring);
+    --bs-focus-ring-width: var(--app-ring-width);
+
+    --bs-body-font-size: 0.875rem;
+    --bs-body-line-height: 1.55;
+
+    --bs-box-shadow-sm: var(--app-shadow-sm);
+    --bs-box-shadow: var(--app-shadow);
+    --bs-box-shadow-lg: var(--app-shadow-lg);
+}
+
+[data-bs-theme='dark'] {
+    --bs-secondary-bg: #242b34;
+}
+
+body {
+    background-color: var(--app-bg);
+    color: var(--app-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   Khung ứng dụng
+   ========================================================================== */
+.app-content,
+.app-main {
+    background-color: var(--app-bg);
+}
+
+.app-header {
+    background-color: var(--app-surface);
+    border-bottom: 1px solid var(--app-border);
+    box-shadow: none;
+}
+
+/*
+   Tiêu đề trang. Bootstrap để h3 = 1.75rem (28px) co giãn theo vw, quá to so
+   với chữ nền 14px của theme nên nhìn rời khỏi phần còn lại.
+   Selector .app-main .app-content-header khớp với luật padding gốc trong
+   layout.css; file này nạp sau nên thắng.
+*/
+.app-main .app-content-header {
+    padding: 1.25rem 0.5rem 0.875rem;
+}
+
+.app-content-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 650;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    color: var(--app-text);
+}
+
+.app-content-header .breadcrumb {
+    background: transparent;
+    padding-left: 0;
+    margin-bottom: 0;
+    line-height: 1.3;
+    font-size: 0.8125rem;
+    color: var(--app-text-muted);
+}
+
+/* Cho tiêu đề và breadcrumb nằm cùng một đường ngang */
+.app-content-header .row {
+    align-items: center;
+}
+
+/* ==========================================================================
+   CARD — bề mặt chính: viền rõ, bo nhỏ, bóng nhẹ, header chìm
+   ========================================================================== */
+.card {
+    --bs-card-bg: var(--app-surface);
+    --bs-card-border-color: var(--app-border);
+    --bs-card-border-width: 1px;
+    --bs-card-border-radius: var(--app-radius-lg);
+    --bs-card-inner-border-radius: calc(var(--app-radius-lg) - 1px);
+    --bs-card-spacer-y: 1.125rem;
+    --bs-card-spacer-x: 1.125rem;
+    --bs-card-cap-padding-y: 0.75rem;
+    --bs-card-cap-padding-x: 1.125rem;
+    --bs-card-cap-bg: var(--app-surface-sunken);
+
+    box-shadow: var(--app-shadow-sm);
+}
+
+/*
+   Header chìm hơn thân card. Viết thẳng selector chứ không chỉ chỉnh
+   --bs-card-cap-bg, vì còn phải đặt cả màu viền dưới và độ đậm chữ — hai thứ
+   Bootstrap không đưa ra biến riêng.
+*/
+.card > .card-header {
+    background-color: var(--app-surface-sunken);
+    padding: var(--bs-card-cap-padding-y) var(--bs-card-cap-padding-x);
+    border-bottom: 1px solid var(--app-border);
+    border-top-left-radius: var(--bs-card-inner-border-radius);
+    border-top-right-radius: var(--bs-card-inner-border-radius);
+    font-weight: 600;
+    color: var(--app-text);
+}
+
+/* Card không có body/footer phía dưới thì header phải bo cả 4 góc */
+.card > .card-header:only-child {
+    border-bottom: 0;
+    border-radius: var(--bs-card-inner-border-radius);
+}
+
+.card > .card-header .card-title {
+    font-size: 1rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+
+.card > .card-footer {
+    background-color: var(--app-surface-sunken);
+    border-top: 1px solid var(--app-border);
+}
+
+/* Biến thể viền mảnh, không bóng — dùng cho card lồng nhau */
+.card.card-outline,
+.card.card-flat {
+    box-shadow: none;
+}
+
+/* ==========================================================================
+   BUTTON — chữ ký của Statamic: luôn có viền, 5 state tách bạch
+   ========================================================================== */
+.btn {
+    --bs-btn-font-size: 0.875rem;
+    --bs-btn-font-weight: 500;
+    --bs-btn-padding-y: 0.4rem;
+    --bs-btn-padding-x: 0.8rem;
+    --bs-btn-border-width: 1px;
+    --bs-btn-border-radius: var(--app-radius);
+
+    box-shadow: var(--app-shadow-xs);
+    transition:
+        background-color 0.12s ease,
+        border-color 0.12s ease,
+        box-shadow 0.12s ease,
+        color 0.12s ease;
+}
+
+.btn-sm {
+    --bs-btn-font-size: 0.8125rem;
+    --bs-btn-padding-y: 0.25rem;
+    --bs-btn-padding-x: 0.55rem;
+    --bs-btn-border-radius: var(--app-radius-sm);
+}
+
+.btn-lg {
+    --bs-btn-font-size: 0.9375rem;
+    --bs-btn-padding-y: 0.55rem;
+    --bs-btn-padding-x: 1.1rem;
+    --bs-btn-border-radius: var(--app-radius);
+}
+
+/* State: nhấn xuống — lún vào bằng bóng inset */
+.btn:active,
+.btn.active,
+.btn.show {
+    box-shadow: var(--app-shadow-inset);
+}
+
+/* State: focus bằng bàn phím — vòng ring, không dùng :focus để chuột không bị ring */
+.btn:focus-visible {
+    box-shadow: 0 0 0 var(--app-ring-width) var(--app-ring);
+    outline: none;
+}
+
+/* State: khoá */
+.btn:disabled,
+.btn.disabled {
+    box-shadow: none;
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/*
+   Nút đặc (primary/danger/success/...): Bootstrap để viền trùng màu nền nên
+   nhìn "trôi". Statamic luôn có viền đậm hơn nền một nấc -> lấy lại bằng color-mix.
+*/
+.btn:not(.btn-link):not([class*='btn-outline-']) {
+    border-color: color-mix(in srgb, var(--bs-btn-bg, transparent) 84%, #000);
+}
+
+.btn:not(.btn-link):not([class*='btn-outline-']):hover {
+    border-color: color-mix(in srgb, var(--bs-btn-hover-bg, var(--bs-btn-bg, transparent)) 80%, #000);
+}
+
+.btn:not(.btn-link):not([class*='btn-outline-']):active,
+.btn:not(.btn-link):not([class*='btn-outline-']).active {
+    border-color: color-mix(in srgb, var(--bs-btn-active-bg, var(--bs-btn-bg, transparent)) 74%, #000);
+}
+
+/* Nút trung tính: nền trắng + viền xám, đây là nút mặc định của Statamic */
+.btn-default,
+.btn-light,
+.btn-white {
+    --bs-btn-color: var(--app-text);
+    --bs-btn-bg: var(--app-surface);
+    --bs-btn-border-color: var(--app-border-strong);
+    --bs-btn-hover-color: var(--app-text);
+    --bs-btn-hover-bg: var(--app-gray-100);
+    --bs-btn-hover-border-color: var(--app-border-strong);
+    --bs-btn-active-color: var(--app-text);
+    --bs-btn-active-bg: var(--app-gray-200);
+    --bs-btn-active-border-color: var(--app-border-strong);
+    --bs-btn-disabled-bg: var(--app-surface);
+    --bs-btn-disabled-border-color: var(--app-border);
+}
+
+[data-bs-theme='dark'] .btn-default,
+[data-bs-theme='dark'] .btn-light,
+[data-bs-theme='dark'] .btn-white {
+    --bs-btn-hover-bg: #242b34;
+    --bs-btn-active-bg: #2a323c;
+}
+
+/* Nút primary bám đúng màu nhấn */
+.btn-primary {
+    --bs-btn-bg: var(--app-accent);
+    --bs-btn-border-color: var(--app-accent-active);
+    --bs-btn-hover-bg: var(--app-accent-hover);
+    --bs-btn-hover-border-color: var(--app-accent-active);
+    --bs-btn-active-bg: var(--app-accent-active);
+    --bs-btn-disabled-bg: var(--app-accent);
+    --bs-btn-disabled-border-color: var(--app-accent);
+}
+
+/* Nút viền: nền trong suốt, viền rõ */
+[class*='btn-outline-'] {
+    box-shadow: none;
+}
+
+[class*='btn-outline-']:active,
+[class*='btn-outline-'].active {
+    box-shadow: var(--app-shadow-inset);
+}
+
+.btn-link {
+    box-shadow: none;
+    text-decoration: none;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+/* Nhóm nút: gộp viền để không bị dày gấp đôi ở chỗ giáp nhau */
+.btn-group > .btn + .btn {
+    margin-left: -1px;
+}
+
+.btn-group > .btn:focus-visible {
+    z-index: 2;
+}
+
+/* ==========================================================================
+   TABLE — chỉ kẻ ngang, header chữ nhỏ in hoa
+   ========================================================================== */
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-border-color: var(--app-border);
+    --bs-table-striped-bg: var(--app-surface-sunken);
+    --bs-table-hover-bg: color-mix(in srgb, var(--app-accent) 5%, transparent);
+    --bs-table-color: var(--app-text);
+
+    margin-bottom: 0;
+}
+
+/* Statamic để danh sách thở: ô cao và rộng hơn mặc định của Bootstrap */
+.table > :not(caption) > * > * {
+    padding: 0.75rem 1rem;
+}
+
+/* Header bảng: nền xanh cố định, chữ trắng in đậm */
+.table > thead > tr > th {
+    background-color: #007bff !important;
+    color: #fff;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+    white-space: nowrap;
+    border-bottom: 0;
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+}
+
+/* Bo góc trên trái/phải cho dải header; trừ 1px vì khung ngoài đã có viền */
+.table > thead > tr:first-child > th:first-child {
+    border-top-left-radius: calc(var(--app-table-radius) - 1px);
+}
+
+.table > thead > tr:first-child > th:last-child {
+    border-top-right-radius: calc(var(--app-table-radius) - 1px);
+}
+
+/* Vạch ngăn mảnh giữa các ô header, sáng hơn nền xanh */
+.table > thead > tr > th + th {
+    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.18);
+}
+
+/* Checkbox trên nền xanh */
+.table > thead > tr > th .form-check-input {
+    border-color: rgba(255, 255, 255, 0.65);
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.table > thead > tr > th .form-check-input:checked,
+.table > thead > tr > th .form-check-input:indeterminate {
+    background-color: #fff;
+    border-color: #fff;
+}
+
+.table > tbody > tr > td {
+    vertical-align: middle;
+    border-top: 0;
+    border-bottom: 1px solid var(--app-border);
+}
+
+.table > tbody > tr:last-child > td {
+    border-bottom: 0;
+}
+
+/* Mặc định bỏ kẻ dọc cho giống Statamic; cần kẻ dọc thì thêm .table-bordered */
+.table:not(.table-bordered) > :not(caption) > * > * {
+    border-left: 0;
+    border-right: 0;
+}
+
+.table-hover > tbody > tr:hover > * {
+    background-color: var(--bs-table-hover-bg);
+}
+
+.card > .card-body > .table-responsive:only-child,
+.card > .table-responsive:only-child {
+    margin: calc(var(--bs-card-spacer-y) * -1) calc(var(--bs-card-spacer-x) * -1);
+    width: auto;
+}
+
+/* ==========================================================================
+   FORM — viền mảnh, focus đổi viền + ring
+   ========================================================================== */
+.form-control,
+.form-select {
+    background-color: var(--app-surface);
+    border-color: var(--app-border-strong);
+    border-radius: var(--app-radius);
+    color: var(--app-text);
+    font-size: 0.875rem;
+    padding: 0.4rem 0.65rem;
+    box-shadow: var(--app-shadow-xs);
+    transition:
+        border-color 0.12s ease,
+        box-shadow 0.12s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--app-accent);
+    box-shadow: 0 0 0 var(--app-ring-width) var(--app-ring);
+}
+
+.form-control::placeholder {
+    color: var(--app-text-subtle);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+    background-color: var(--app-surface-sunken);
+    box-shadow: none;
+}
+
+.form-control-sm,
+.form-select-sm {
+    font-size: 0.8125rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--app-radius-sm);
+}
+
+.form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--app-text);
+    margin-bottom: 0.3rem;
+}
+
+.form-text {
+    font-size: 0.75rem;
+    color: var(--app-text-muted);
+}
+
+.form-check-input {
+    border-color: var(--app-border-strong);
+}
+
+.form-check-input:checked {
+    background-color: var(--app-accent);
+    border-color: var(--app-accent-active);
+}
+
+.form-check-input:focus-visible {
+    border-color: var(--app-accent);
+    box-shadow: 0 0 0 var(--app-ring-width) var(--app-ring);
+}
+
+/* Input group: viền chung, không nhân đôi ở chỗ giáp nhau */
+.input-group > .form-control:focus,
+.input-group > .form-select:focus,
+.input-group > .btn:focus-visible {
+    z-index: 4;
+}
+
+/* ==========================================================================
+   BADGE
+   ========================================================================== */
+.badge {
+    --bs-badge-font-size: 0.6875rem;
+    --bs-badge-font-weight: 600;
+    --bs-badge-padding-x: 0.5em;
+    --bs-badge-padding-y: 0.32em;
+    --bs-badge-border-radius: var(--app-radius-sm);
+
+    letter-spacing: 0.01em;
+}
+
+/* ==========================================================================
+   PAGINATION
+   ========================================================================== */
+.pagination {
+    --bs-pagination-color: var(--app-text);
+    --bs-pagination-bg: var(--app-surface);
+    --bs-pagination-border-color: var(--app-border-strong);
+    --bs-pagination-border-radius: var(--app-radius);
+    --bs-pagination-hover-bg: var(--app-gray-100);
+    --bs-pagination-hover-color: var(--app-text);
+    --bs-pagination-hover-border-color: var(--app-border-strong);
+    --bs-pagination-focus-bg: var(--app-gray-100);
+    --bs-pagination-focus-box-shadow: 0 0 0 var(--app-ring-width) var(--app-ring);
+    --bs-pagination-active-bg: var(--app-accent);
+    --bs-pagination-active-border-color: var(--app-accent-active);
+    --bs-pagination-disabled-bg: var(--app-surface-sunken);
+    --bs-pagination-disabled-border-color: var(--app-border);
+    --bs-pagination-font-size: 0.8125rem;
+}
+
+[data-bs-theme='dark'] .pagination {
+    --bs-pagination-hover-bg: #242b34;
+    --bs-pagination-focus-bg: #242b34;
+}
+
+.page-link {
+    box-shadow: var(--app-shadow-xs);
+}
+
+/* ==========================================================================
+   MODAL / DROPDOWN / POPOVER — cùng ngôn ngữ bề mặt với card
+   ========================================================================== */
+.modal-content {
+    background-color: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: var(--app-radius-lg);
+    box-shadow: var(--app-shadow-lg);
+}
+
+.modal-header {
+    background-color: var(--app-surface-sunken);
+    border-bottom: 1px solid var(--app-border);
+    border-top-left-radius: calc(var(--app-radius-lg) - 1px);
+    border-top-right-radius: calc(var(--app-radius-lg) - 1px);
+    padding: 0.85rem 1.125rem;
+}
+
+.modal-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 1.125rem;
+}
+
+.modal-footer {
+    background-color: var(--app-surface-sunken);
+    border-top: 1px solid var(--app-border);
+    padding: 0.75rem 1.125rem;
+}
+
+.modal-backdrop.show {
+    opacity: 0.4;
+}
+
+.dropdown-menu {
+    --bs-dropdown-bg: var(--app-surface);
+    --bs-dropdown-border-color: var(--app-border);
+    --bs-dropdown-border-radius: var(--app-radius);
+    --bs-dropdown-font-size: 0.8125rem;
+    --bs-dropdown-link-hover-bg: var(--app-surface-sunken);
+    --bs-dropdown-link-active-bg: var(--app-accent);
+    --bs-dropdown-padding-y: 0.25rem;
+
+    box-shadow: var(--app-shadow-lg);
+}
+
+/* ==========================================================================
+   ALERT
+   ========================================================================== */
+.alert {
+    --bs-alert-border-radius: var(--app-radius);
+    border-width: 1px;
+    font-size: 0.875rem;
+}
+
+/* ==========================================================================
+   NAV TABS
+   ========================================================================== */
+.nav-tabs {
+    --bs-nav-tabs-border-color: var(--app-border);
+    --bs-nav-tabs-link-active-bg: var(--app-surface);
+    --bs-nav-tabs-link-active-border-color: var(--app-border) var(--app-border) var(--app-surface);
+    --bs-nav-link-font-size: 0.875rem;
+    --bs-nav-link-color: var(--app-text-muted);
+    --bs-nav-link-hover-color: var(--app-text);
+}
+
+/* ==========================================================================
+   Tôn trọng prefers-reduced-motion
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    .btn,
+    .form-control,
+    .form-select {
+        transition: none;
+    }
+}

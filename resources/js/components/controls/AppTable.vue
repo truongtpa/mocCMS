@@ -20,7 +20,7 @@
             <table class="table app-table mb-0" :class="tableClass" :style="{ minWidth: minWidth || null }">
                 <caption v-if="caption" class="visually-hidden">{{ caption }}</caption>
 
-                <thead :class="headerVariant === 'primary' ? 'app-table-head-primary' : 'app-table-head-default'">
+                <thead>
                     <tr>
                         <th v-if="selectable" scope="col" class="app-table-check-col">
                             <input
@@ -34,14 +34,11 @@
                             >
                         </th>
 
-                        <th v-if="showIndex" scope="col" class="app-table-index-col">{{ indexLabel }}</th>
-
                         <th
                             v-for="col in columns"
                             :key="col.key"
                             scope="col"
-                            :style="headerStyle(col)"
-                            :class="[col.headerClass, { 'app-table-sortable': isSortable(col) }]"
+                            :class="[colClass(col), col.headerClass, { 'app-table-sortable': isSortable(col) }]"
                             :aria-sort="ariaSort(col)"
                         >
                             <component
@@ -58,7 +55,6 @@
                             v-if="$slots.actions"
                             scope="col"
                             class="app-table-actions-col"
-                            :style="{ width: actionsWidth }"
                         >
                             {{ actionsLabel }}
                         </th>
@@ -66,14 +62,7 @@
                 </thead>
 
                 <tbody>
-                    <!-- Trạng thái đang tải lần đầu: skeleton -->
-                    <template v-if="loading && !rows.length">
-                        <tr v-for="n in skeletonRows" :key="`sk-${n}`" class="app-table-skeleton">
-                            <td v-for="i in totalColumns" :key="i"><span class="app-table-skeleton-bar"></span></td>
-                        </tr>
-                    </template>
-
-                    <template v-else-if="rows.length">
+                    <template v-if="rows.length">
                         <template v-for="(item, index) in rows" :key="rowKey(item, index)">
                             <!-- Dòng tiêu đề nhóm -->
                             <tr v-if="groupBy && isNewGroup(item, index)" class="app-table-group">
@@ -108,15 +97,18 @@
                                     >
                                 </td>
 
-                                <td v-if="showIndex" class="app-table-index-col text-muted">{{ displayIndex(index) }}</td>
-
                                 <td
                                     v-for="col in columns"
                                     :key="col.key"
-                                    :style="{ textAlign: col.align || null }"
-                                    :class="[col.class, { 'text-nowrap': col.nowrap }]"
+                                    :class="[colClass(col), col.class]"
                                 >
-                                    <slot :name="`cell-${col.key}`" :item="item" :value="rawValue(item, col)" :index="index">
+                                    <slot
+                                        :name="`cell-${col.key}`"
+                                        :item="item"
+                                        :value="rawValue(item, col)"
+                                        :index="index"
+                                        :highlight="highlightParts"
+                                    >
                                         <template v-if="highlight && !col.formatter">
                                             <!-- Highlight an toàn: không dùng v-html -->
                                             <template v-for="(part, pi) in highlightParts(cellText(item, col))" :key="pi">
@@ -152,13 +144,6 @@
                     <slot name="footer" :items="rows" />
                 </tfoot>
             </table>
-
-            <!-- Overlay khi tải lại (đã có dữ liệu cũ) -->
-            <div v-if="loading && rows.length" class="app-table-overlay">
-                <div class="spinner-border spinner-border-sm" role="status">
-                    <span class="visually-hidden">Đang tải…</span>
-                </div>
-            </div>
         </div>
 
         <!-- Phân trang -->
@@ -217,8 +202,14 @@ const props = defineProps({
     items: { type: Array, default: () => [] },
 
     /**
-     * Cấu hình cột:
-     * { key, label, width, minWidth, align, nowrap, sortable, formatter(value,item), class, headerClass }
+     * Cấu hình cột — chỉ dữ liệu và hành vi:
+     *   { key, label, sortable, formatter(value, item), class, headerClass }
+     *
+     * Phần trình bày (bề rộng, căn lề, xuống dòng...) làm bằng CSS.
+     * Mỗi ô được gắn sẵn class `app-col-<key>` ở cả <th> lẫn <td>:
+     *
+     *   .card :deep(.app-col-tieu_de) { width: 26%; }
+     *   .card :deep(.app-col-ngay_tao) { text-align: right; white-space: nowrap; }
      */
     columns: { type: Array, default: () => [] },
 
@@ -228,29 +219,23 @@ const props = defineProps({
     /** Trường làm khoá định danh dòng */
     itemKey: { type: String, default: 'id' },
 
-    loading: { type: Boolean, default: false },
     emptyText: { type: String, default: 'Không có dữ liệu.' },
     caption: { type: String, default: '' },
 
     /* ----- Giao diện ----- */
     hover: { type: Boolean, default: true },
     striped: { type: Boolean, default: false },
-    bordered: { type: Boolean, default: true },
+    /* Mặc định không kẻ dọc cho khớp theme global; cần kẻ thì truyền bordered */
+    bordered: { type: Boolean, default: false },
     small: { type: Boolean, default: false },
     stickyHeader: { type: Boolean, default: false },
     /** Bề rộng tối thiểu của bảng; hẹp hơn thì cuộn ngang thay vì bóp nát cột */
     minWidth: { type: String, default: '860px' },
-    headerVariant: { type: String, default: 'default', validator: (v) => ['default', 'primary'].includes(v) },
     rowClass: { type: Function, default: null },
 
-    showIndex: { type: Boolean, default: false },
-    indexLabel: { type: String, default: '#' },
-
     actionsLabel: { type: String, default: 'Thao tác' },
-    actionsWidth: { type: String, default: '110px' },
 
     showPagination: { type: Boolean, default: true },
-    skeletonRows: { type: Number, default: 5 },
 
     /** Chuỗi cần làm nổi bật trong ô (an toàn, không dùng v-html) */
     highlight: { type: String, default: '' },
@@ -349,7 +334,6 @@ const meta = computed(() => {
 const totalColumns = computed(() => {
     let n = props.columns.length
     if (props.selectable) n++
-    if (props.showIndex) n++
     if (slotsHasActions.value) n++
     return n || 1
 })
@@ -363,10 +347,6 @@ const tableClass = computed(() => ({
     'table-bordered': props.bordered,
     'table-sm': props.small,
 }))
-
-function displayIndex(index) {
-    return meta.value.from ? meta.value.from + index : index + 1
-}
 
 /* ------------------------------------------------------------------ */
 /* Nội dung ô                                                          */
@@ -382,14 +362,32 @@ function cellText(item, col) {
     return v === null || v === undefined ? '' : v
 }
 
+/**
+ * Bỏ dấu 1 ký tự nhưng GIỮ NGUYÊN độ dài chuỗi, để vị trí khớp vẫn ánh xạ
+ * đúng sang chuỗi gốc. Cần thiết vì collation MySQL so khớp không phân biệt
+ * dấu ("khai giang" tìm ra "Khai giảng"), nếu client so khớp có dấu thì
+ * tìm ra kết quả mà không tô được chữ nào.
+ */
+function boDau(chuoi) {
+    let out = ''
+    for (const ch of String(chuoi)) {
+        const tach = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        let c = tach === '' ? ch : tach[0]
+        if (c === 'đ') c = 'd'
+        else if (c === 'Đ') c = 'D'
+        out += c.toLowerCase()
+    }
+    return out
+}
+
 function highlightParts(text) {
     const s = String(text ?? '')
     const term = props.highlight.trim()
     if (!term) return [{ text: s, hit: false }]
 
     const parts = []
-    const lower = s.toLowerCase()
-    const needle = term.toLowerCase()
+    const lower = boDau(s)
+    const needle = boDau(term)
     let i = 0
 
     while (i < s.length) {
@@ -437,12 +435,9 @@ function ariaSort(col) {
     return localSortOrder.value === 'asc' ? 'ascending' : 'descending'
 }
 
-function headerStyle(col) {
-    return {
-        width: col.width || null,
-        minWidth: col.minWidth || null,
-        textAlign: col.align || null,
-    }
+/** Class ổn định cho từng cột, để trang tự chỉnh bề rộng/căn lề bằng CSS */
+function colClass(col) {
+    return `app-col-${String(col.key).replace(/[^a-zA-Z0-9_-]+/g, '-')}`
 }
 
 /* ------------------------------------------------------------------ */
@@ -634,7 +629,8 @@ defineExpose({ clearSelection, selectedItems, setSelected })
 .app-table-scroll {
     position: relative;
     border: 1px solid var(--app-table-border);
-    border-radius: var(--bs-border-radius, 0.375rem);
+    /* Token do theme global đặt, để khung ngoài khớp với bo góc của header */
+    border-radius: var(--app-table-radius, var(--bs-border-radius, 0.375rem));
 }
 
 .app-table {
@@ -653,25 +649,6 @@ defineExpose({ clearSelection, selectedItems, setSelected })
 .app-table :deep(tr > *:last-child) { border-right: 0; }
 .app-table :deep(thead tr:first-child > *) { border-top: 0; }
 .app-table :deep(tbody tr:last-child > *) { border-bottom: 0; }
-
-/* ----- Đầu bảng ----- */
-.app-table-head-default :deep(th) {
-    background: var(--bs-tertiary-bg, #f8f9fa);
-    color: var(--bs-emphasis-color, #000);
-    font-weight: 600;
-    font-size: 0.8125rem;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-}
-
-.app-table-head-primary :deep(th) {
-    background: var(--bs-primary, #0d6efd);
-    color: #fff;
-    font-weight: 600;
-    font-size: 0.8125rem;
-    white-space: nowrap;
-}
 
 .app-table-sticky thead th {
     position: sticky;
@@ -701,7 +678,7 @@ defineExpose({ clearSelection, selectedItems, setSelected })
 }
 
 .app-table-sorticon { font-size: 0.7em; }
-.app-table-sorticon.is-idle { opacity: 0.35; }
+.app-table-sorticon.is-idle { opacity: 0.6; }
 
 /* ----- Cột đặc biệt ----- */
 .app-table-check-col {
@@ -709,13 +686,8 @@ defineExpose({ clearSelection, selectedItems, setSelected })
     text-align: center;
 }
 
-.app-table-index-col {
-    width: 56px;
-    text-align: center;
-    white-space: nowrap;
-}
-
 .app-table-actions-col {
+    width: 110px;
     text-align: center;
     white-space: nowrap;
 }
@@ -769,42 +741,6 @@ defineExpose({ clearSelection, selectedItems, setSelected })
     font-size: 2rem;
     opacity: 0.4;
     margin-bottom: 0.5rem;
-}
-
-/* ----- Đang tải ----- */
-.app-table-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 3.5rem;
-    background: color-mix(in srgb, var(--bs-body-bg, #fff) 60%, transparent);
-    backdrop-filter: blur(1px);
-    z-index: 3;
-}
-
-.app-table-skeleton-bar {
-    display: block;
-    height: 0.75rem;
-    border-radius: 4px;
-    background: linear-gradient(
-        90deg,
-        var(--bs-secondary-bg, #e9ecef) 25%,
-        var(--bs-tertiary-bg, #f8f9fa) 37%,
-        var(--bs-secondary-bg, #e9ecef) 63%
-    );
-    background-size: 400% 100%;
-    animation: app-table-shimmer 1.4s ease infinite;
-}
-
-@keyframes app-table-shimmer {
-    0% { background-position: 100% 50%; }
-    100% { background-position: 0 50%; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .app-table-skeleton-bar { animation: none; }
 }
 
 /* ----- Chân bảng ----- */

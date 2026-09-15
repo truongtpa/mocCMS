@@ -1,13 +1,13 @@
 <template>
-    <LteAppContent title="Bảng điều khiển">
+    <AppContent title="Bảng điều khiển">
         <div class="row">
             <div class="col-12">
-                <LteCard title="mocCMS">
+                <AppCard title="mocCMS">
                     Project Vue đã sẵn sàng để phát triển.
-                </LteCard>
+                </AppCard>
             </div>
         </div>
-    </LteAppContent>
+    </AppContent>
 </template>
 
 <script>

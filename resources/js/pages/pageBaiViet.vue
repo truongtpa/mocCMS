@@ -1,16 +1,14 @@
 <template>
-    <LteAppContent title="Bài viết">
-        <LteCard title="Danh sách bài viết">
+    <AppContent title="Bài viết">
+        <AppCard title="Danh sách bài viết">
             <AppTable
                 :items="tableBaiViet.list"
                 :columns="columns"
                 :pagination="tableBaiViet.pagination"
-                :loading="dangTai"
                 :highlight="boLoc.daApDung"
                 item-key="id_tin_tuc"
                 empty-text="Không tìm thấy bài viết nào."
                 selectable
-                show-index
                 sticky-header
                 v-model:sort-key="boLoc.sortKey"
                 v-model:sort-order="boLoc.sortOrder"
@@ -32,7 +30,7 @@
                                 <button type="button" class="btn btn-primary" title="Tìm kiếm" @click="timKiem">
                                     <i class="bi bi-search"></i>
                                 </button>
-                                <button type="button" class="btn btn-secondary" title="Xóa bộ lọc" @click="xoaBoLoc">
+                                <button type="button" class="btn btn-default" title="Xóa bộ lọc" @click="xoaBoLoc">
                                     <i class="bi bi-arrow-counterclockwise"></i>
                                 </button>
                             </div>
@@ -57,6 +55,16 @@
                     <span v-else class="text-muted">—</span>
                 </template>
 
+                <template #cell-tieu_de="{ item, highlight }">
+                    <div class="app-bv-tieu-de">
+                        <template v-for="(phan, i) in highlight(item.tieu_de)" :key="i"><mark
+                            v-if="phan.hit"
+                            class="app-bv-mark"
+                        >{{ phan.text }}</mark><template v-else>{{ phan.text }}</template></template>
+                    </div>
+                    <div class="app-bv-tom-tat">{{ tomTat(item.noi_dung, 220) }}</div>
+                </template>
+
                 <template #cell-xuat_ban="{ value }">
                     <span class="badge" :class="value ? 'text-bg-success' : 'text-bg-secondary'">
                         {{ value ? 'Đã xuất bản' : 'Bản nháp' }}
@@ -72,7 +80,7 @@
                     </button>
                 </template>
             </AppTable>
-        </LteCard>
+        </AppCard>
 
         <!-- Modal xem chi tiết -->
         <AppModal
@@ -109,7 +117,7 @@
         </AppModal>
 
         <AppConfirm ref="xacNhan" />
-    </LteAppContent>
+    </AppContent>
 </template>
 
 <script>
@@ -117,7 +125,6 @@ export default {
     name: 'pageBaiViet',
     data() {
         return {
-            dangTai: false,
             daChon: [],
             chiTiet: {},
             boLoc: {
@@ -130,22 +137,13 @@ export default {
                 pagination: {},
                 list: [],
             },
+            // Chỉ dữ liệu + hành vi. Bề rộng/căn lề xem khối <style> cuối file.
             columns: [
-                { key: 'thumbnail', label: 'Ảnh', width: '90px', align: 'center' },
-                { key: 'tieu_de', label: 'Tiêu đề', width: '26%', sortable: true },
-                {
-                    key: 'noi_dung',
-                    label: 'Nội dung',
-                    formatter: (v) => this.tomTat(v),
-                },
-                { key: 'xuat_ban', label: 'Trạng thái', align: 'center', nowrap: true, sortable: true },
-                {
-                    key: 'ngay_tao',
-                    label: 'Ngày tạo',
-                    nowrap: true,
-                    sortable: true,
-                    formatter: (v) => this.formatNgay(v),
-                },
+                { key: 'thumbnail', label: 'Ảnh' },
+                // Tiêu đề + tóm tắt nội dung gộp chung một ô, xem slot #cell-tieu_de
+                { key: 'tieu_de', label: 'Tiêu đề', sortable: true },
+                { key: 'xuat_ban', label: 'Trạng thái', sortable: true },
+                { key: 'ngay_tao', label: 'Ngày tạo', sortable: true, formatter: (v) => this.formatNgay(v) },
             ],
         }
     },
@@ -161,8 +159,6 @@ export default {
             this.getBaiViet(1)
         },
         getBaiViet(page = 1) {
-            this.dangTai = true
-
             this.$axios.get(this.route('BaiVietController.getBaiViet', undefined, false), {
                 params: {
                     s: this.boLoc.s,
@@ -174,8 +170,6 @@ export default {
                 this.tableBaiViet.list = response.data.data.data
                 this.tableBaiViet.pagination = response.data.data
                 this.boLoc.daApDung = this.boLoc.s
-            }).finally(() => {
-                this.dangTai = false
             })
         },
         xemChiTiet(item) {
@@ -231,6 +225,53 @@ export default {
 </script>
 
 <style scoped>
+/* Trình bày từng cột — AppTable gắn sẵn class app-col-<key> lên cả th và td */
+:deep(.app-col-thumbnail) {
+    width: 90px;
+    text-align: center;
+}
+
+/* Cột gộp lấy hết phần còn lại */
+:deep(.app-col-tieu_de) {
+    width: auto;
+    min-width: 260px;
+}
+
+.app-bv-tieu-de {
+    font-weight: 600;
+    color: var(--app-text);
+}
+
+.app-bv-tom-tat {
+    margin-top: 0.15rem;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--app-text-muted);
+    /* Giữ ô gọn: tóm tắt tối đa 2 dòng rồi cắt bằng dấu ba chấm */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.app-bv-mark {
+    padding: 0 0.1em;
+    background: var(--bs-warning-bg-subtle, #fff3cd);
+    color: inherit;
+    border-radius: 2px;
+}
+
+:deep(.app-col-xuat_ban) {
+    width: 120px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+:deep(.app-col-ngay_tao) {
+    width: 130px;
+    white-space: nowrap;
+}
+
 .app-thumb {
     width: 72px;
     height: 48px;

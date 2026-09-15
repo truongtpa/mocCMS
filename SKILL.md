@@ -1,6 +1,6 @@
 ---
 name: moc-cms
-description: Quy ước bắt buộc khi viết code cho mocCMS dùng Laravel 11, Vue 3 Options API và AdminLTE Vue.
+description: Quy ước bắt buộc khi viết code cho mocCMS dùng Laravel 11, Vue 3 Options API và bộ khung tự dựng trên Bootstrap 5.
 ---
 
 # Quy ước dự án mocCMS
@@ -13,7 +13,7 @@ Tên biến, hàm, bảng và cột dùng tiếng Việt không dấu. Nhãn và
 
 - Backend: Laravel 11, PHP 8.2.
 - Frontend: Vue 3 Options API, vue-router.
-- Giao diện: `@adminlte/vue`, AdminLTE 4, Bootstrap 5.3, Bootstrap Icons.
+- Giao diện: bộ khung tự dựng ở `resources/js/components/layout/`, Bootstrap 5.3, Bootstrap Icons.
 - Build: Vite qua `laravel-vite-plugin`.
 - Không dùng Composition API, `<script setup>`, TypeScript, Inertia, Repository hoặc Service cho nghiệp vụ thông thường.
 
@@ -102,15 +102,17 @@ export default {
 </script>
 ```
 
-## AdminLTE Vue
+## Giao diện
 
-- Layout gốc dùng `LteDashboardLayout`.
-- Nội dung page dùng `LteAppContent`.
-- Dùng component có sẵn như `LteCard`, `LteButton`, `LteInput`, `LteSelect`, `LteModal`, `LteAlert`, `LteBreadcrumb` trước khi tự tạo component mới.
-- Bố cục dùng grid và utility của Bootstrap 5.
+- Layout gốc dùng `AppLayout`, nội dung page dùng `AppContent`, khung có tiêu đề dùng `AppCard`.
+- Dùng control có sẵn `AppTable`, `AppModal`, `AppConfirm` trước khi tự tạo component mới.
+  Xem `resources/js/components/layout/README.md` và `resources/js/components/controls/README.md`.
+- Bố cục dùng grid và utility của Bootstrap 5, không tự viết lại.
 - Icon dùng Bootstrap Icons với tiền tố `bi-`.
-- Không chép lại AdminLTE bằng HTML hoặc CSS thủ công.
-- Không dùng jQuery, Bootstrap 4, Font Awesome hoặc asset AdminLTE 3 cũ.
+- Màu, bo góc, kiểu chữ chỉnh bằng biến `--app-*` trong `resources/css/theme.css`,
+  không đè selector rải rác từng component.
+- Bố cục khung (sidebar, thanh trên, chân trang) nằm ở `resources/css/layout.css`.
+- Không dùng jQuery, Bootstrap 4, Font Awesome hoặc asset AdminLTE cũ.
 
 ## Cách viết
 
@@ -126,6 +128,6 @@ export default {
 - Route API có tên `<Controller>.<method>` và URL kebab-case.
 - URL chi tiết dùng path phân cấp.
 - Page dùng Options API và đúng tiền tố `page`.
-- Giao diện dùng component `@adminlte/vue` và Bootstrap 5.
-- Không còn dependency hoặc markup AdminLTE 3.
+- Giao diện dùng component trong `components/layout`, `components/controls` và Bootstrap 5.
+- Không còn dependency hoặc markup AdminLTE.
 - Không có comment và `try/catch` thừa.

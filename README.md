@@ -1,6 +1,6 @@
 # mocCMS
 
-Starter Laravel 11, Vue 3 và AdminLTE Vue.
+Starter Laravel 11, Vue 3 và bộ khung quản trị tự dựng trên Bootstrap 5.
 
 ## Cài đặt
 
@@ -21,4 +21,12 @@ composer run dev
 
 ```bash
 npm run build
+```
+
+# Technical
+
+```
+silex.me
+https://webstudio.is/
+https://github.com/vchaitanyachowdari/Open-Source-Alternatives
 ```
