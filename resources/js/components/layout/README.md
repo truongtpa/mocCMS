@@ -51,8 +51,7 @@ luôn đè được lên layout.
 | `link-component` | `'a'` | Truyền `RouterLink` để menu đi bằng vue-router, không tải lại trang |
 | `user` | `null` | `{ name, image, role }`. `null` thì ẩn hẳn menu tài khoản |
 | `logo` / `logo-href` / `brand-text` | `''` / `'/'` / `''` | Phần thương hiệu góc trên trái |
-| `sidebar-theme` | `'dark'` | `'auto'` đi theo chế độ màu của trang, `'light'` luôn sáng |
-| `floating` | `false` | Tách sidebar và thanh trên thành hai mặt phẳng bo góc, cách nhau khe hở |
+| `sidebar-theme` | `'dark'` | `'light'` nếu muốn sidebar sáng theo trang |
 | `color-mode-toggle` / `fullscreen` | `true` | Ẩn/hiện hai nút trên thanh trên |
 | `footer-right-text` | `''` | Chữ góc phải chân trang |
 | `sidebar-breakpoint` | `992` | Ngưỡng px chuyển sang kiểu mobile |
@@ -68,41 +67,6 @@ dropdown tài khoản.
 ### Events
 
 `@logout`, `@profile` — phát khi bấm hai mục mặc định trong dropdown tài khoản.
-
-### Kiểu floating
-
-`App.vue` đang bật `floating` kèm `sidebar-theme="auto"`. Bỏ `floating` đi là
-về kiểu liền khối: sidebar và thanh trên dính sát mép, ngăn nhau bằng đường kẻ.
-
-Ba lớp chồng lên nhau, tông sáng dần theo độ cao:
-
-| Lớp | Nền | Gồm |
-|---|---|---|
-| Dưới cùng | `--app-bg` | Khe hở và lề ngoài |
-| Khung | `--app-surface-sunken` | Sidebar, và hộp bên phải |
-| Trên cùng | `--app-surface` | `AppCard` — có viền và bóng |
-
-Bên phải **không** tách thanh trên và nội dung thành hai mảnh rời: cả hai là
-một hộp liền, thanh trên chỉ là dải đầu hộp ngăn bằng một vạch kẻ. Card nằm
-trong lòng hộp đó.
-
-Hai điều dễ làm hỏng thứ tự lớp:
-
-- **Đừng cho khung đổ bóng.** Nó là lớp dưới; có bóng thì nó cũng nổi lên và
-  card không còn tách khỏi nền được nữa.
-- **Đừng cho khung nền `--app-surface`.** Trùng màu card thì card biến mất.
-
-Mép card được căn thẳng hàng với tiêu đề trang bằng cách bỏ gutter của
-`.container-fluid` và đẩy padding ra ngoài hộp; `.row` bên trong vẫn chạy bình
-thường vì margin âm của `.row` và padding của `.col` triệt tiêu nhau.
-
-Ba biến chỉnh nhanh, khai báo ở đầu `layout.css`:
-
-```css
---app-layout-gap: 0.5rem;    /* khe hở giữa các mảng, cũng là lề ngoài */
---app-panel-radius: 10px;    /* độ bo góc */
---app-panel-pad: 1rem;       /* padding trong lòng hộp */
-```
 
 ---
 

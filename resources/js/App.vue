@@ -6,8 +6,6 @@
         :user="user"
         logo="/favicon.ico"
         brand-text="mocCMS"
-        floating
-        sidebar-theme="auto"
         @logout="dangXuat"
     >
         <router-view />

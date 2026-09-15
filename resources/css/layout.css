@@ -15,11 +15,6 @@
     --app-sidebar-width: 250px;
     --app-topbar-height: 3.5rem;
     --app-layout-speed: 0.3s;
-
-    /* Chỉ dùng ở chế độ floating (xem cuối file) */
-    --app-layout-gap: 0.5rem;
-    --app-panel-radius: 10px;
-    --app-panel-pad: 1rem;
 }
 
 /* ==========================================================================
@@ -141,18 +136,13 @@
    Sidebar
    ========================================================================== */
 .app-sidebar {
-    /*
-       Bảng màu cho nền sáng — bản tối nằm ở khối [data-bs-theme=dark] bên dưới.
-       Ăn theo token của theme.css để mục đang mở dùng đúng màu nhấn của dự án
-       thay vì một mảng xám vô danh; giá trị sau dấu phẩy là phòng khi dùng
-       layout.css một mình.
-    */
-    --app-sidebar-color: var(--app-text-muted, #626b7a);
-    --app-sidebar-hover-color: var(--app-text, #2f3640);
-    --app-sidebar-hover-bg: var(--app-gray-100, #f3f4f6);
-    --app-sidebar-active-color: var(--app-accent, #2b74e0);
-    --app-sidebar-active-bg: var(--app-accent-subtle, #e8f1fd);
-    --app-sidebar-header-color: var(--app-text-subtle, #8b94a1);
+    /* Bảng màu cho nền sáng — bản tối nằm ở khối [data-bs-theme=dark] bên dưới */
+    --app-sidebar-color: #343a40;
+    --app-sidebar-hover-color: #212529;
+    --app-sidebar-hover-bg: rgba(0, 0, 0, 0.08);
+    --app-sidebar-active-color: #000;
+    --app-sidebar-active-bg: rgba(0, 0, 0, 0.1);
+    --app-sidebar-header-color: #6c757d;
 
     z-index: 1038;
     display: flex;
@@ -430,140 +420,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .app-wrapper,
     .app-sidebar,
     .sidebar-menu .nav-arrow {
         transition: none;
-    }
-}
-
-/* ==========================================================================
-   CHẾ ĐỘ FLOATING — bật bằng <AppLayout floating>
-
-   Ba lớp chồng lên nhau, tông sáng dần theo độ cao:
-
-     nền trang   --app-bg              (khe hở, lề ngoài — lớp dưới cùng)
-     khung       --app-surface-sunken  (sidebar + hộp nội dung)
-     card        --app-surface         (nổi trên khung, có viền và bóng)
-
-   Bên phải KHÔNG tách thanh trên và nội dung thành hai mảnh rời: cả hai là
-   một hộp liền, thanh trên chỉ là dải đầu hộp ngăn bằng một vạch kẻ. Card
-   nằm trong lòng hộp đó.
-
-   Khung cố tình không có box-shadow — nó là lớp dưới, đổ bóng nữa thì mất
-   thứ tự lớp, card không còn nổi lên được nữa.
-
-   Mọi luật ở đây đều bắt đầu bằng .app-wrapper.is-floating nên thắng được
-   luật nền/viền tương ứng trong theme.css mà không cần !important.
-   ========================================================================== */
-.app-wrapper.is-floating {
-    column-gap: var(--app-layout-gap);
-    /* Thanh trên và nội dung phải dính liền nhau nên hàng không có khe */
-    row-gap: 0;
-    padding: var(--app-layout-gap);
-    background-color: var(--bs-body-bg);
-    transition: column-gap var(--app-layout-speed) ease-in-out;
-}
-
-.app-wrapper.is-floating .app-sidebar,
-.app-wrapper.is-floating .app-header,
-.app-wrapper.is-floating .app-main {
-    background-color: var(--app-surface-sunken, var(--bs-body-bg));
-    border: 1px solid var(--bs-border-color);
-    box-shadow: none;
-}
-
-.app-wrapper.is-floating .app-sidebar {
-    border-radius: var(--app-panel-radius);
-    /* Ẩn tràn để vạch kẻ dưới thanh thương hiệu không đâm ra khỏi góc bo */
-    overflow: hidden;
-}
-
-/* Dải đầu hộp: bo hai góc trên, vạch kẻ dưới là ranh giới với phần nội dung */
-.app-wrapper.is-floating .app-header {
-    border-radius: var(--app-panel-radius) var(--app-panel-radius) 0 0;
-}
-
-/* Thân hộp: nối thẳng vào dải đầu nên bỏ viền trên, bo hai góc dưới */
-.app-wrapper.is-floating .app-main {
-    border-top: 0;
-    border-radius: 0 0 var(--app-panel-radius) var(--app-panel-radius);
-    padding: 0 var(--app-panel-pad) var(--app-panel-pad);
-    /* .row thò ra 12px mỗi bên so với container; chặn để không sinh cuộn ngang */
-    overflow-x: clip;
-}
-
-/* Cho nội dung thanh trên thụt vào đúng bằng nội dung thân hộp */
-.app-wrapper.is-floating .app-header > .container-fluid {
-    padding-right: var(--app-panel-pad);
-    padding-left: var(--app-panel-pad);
-}
-
-/*
-   Padding của hộp đã thay cho padding hai bên của vùng nội dung. Bỏ luôn
-   gutter của .container-fluid để mép card thẳng hàng với tiêu đề trang.
-
-   .row bên trong vẫn giữ gutter âm của Bootstrap: -12px margin của .row và
-   12px padding của .col triệt tiêu nhau, nên card vẫn nằm đúng mép.
-*/
-.app-wrapper.is-floating .app-content,
-.app-wrapper.is-floating .app-main .app-content-header,
-.app-wrapper.is-floating .app-content > .container-fluid,
-.app-wrapper.is-floating .app-content > .container-lg,
-.app-wrapper.is-floating .app-content-header > .container-fluid,
-.app-wrapper.is-floating .app-content-header > .container-lg {
-    padding-right: 0;
-    padding-left: 0;
-}
-
-.app-wrapper.is-floating .app-main .app-content-header {
-    padding-top: var(--app-panel-pad);
-}
-
-/* Chân trang nằm ngoài hộp, thẳng trên nền trang */
-.app-wrapper.is-floating .app-footer {
-    margin-top: var(--app-layout-gap);
-    padding: 0 var(--app-panel-pad);
-    background-color: transparent;
-    border: 0;
-}
-
-/*
-   Thu gọn: margin âm chỉ kéo được cột về 0, khe hở giữa hai cột vẫn còn.
-   Phải đóng bằng column-gap, và cho nó chạy cùng nhịp với margin để nội dung
-   không giật một nhịp 8px ở đầu hiệu ứng.
-*/
-.app-wrapper.is-floating.sidebar-collapse {
-    column-gap: 0;
-}
-
-.app-wrapper.is-floating.sidebar-collapse .app-sidebar {
-    margin-left: calc(var(--app-sidebar-width) * -1);
-}
-
-@media (min-width: 992px) {
-    /* Dính cách mép trên đúng bằng khe hở, và chừa khe hở ở cả hai đầu */
-    .app-wrapper.is-floating .app-sidebar {
-        top: var(--app-layout-gap);
-        max-height: calc(100vh - var(--app-layout-gap) * 2);
-    }
-}
-
-@media (max-width: 991.98px) {
-    /* Sidebar ra khỏi luồng lưới nên cột trái rỗng, khe hở thành thừa */
-    .app-wrapper.is-floating {
-        column-gap: 0;
-    }
-
-    /* Bản mobile trôi tự do nên tự chừa lề, không ăn theo khe hở của lưới */
-    .app-wrapper.is-floating .app-sidebar {
-        top: var(--app-layout-gap);
-        bottom: var(--app-layout-gap);
-        max-height: none;
-        margin-left: calc((var(--app-sidebar-width) + var(--app-layout-gap)) * -1);
-    }
-
-    .app-wrapper.is-floating.sidebar-open .app-sidebar {
-        margin-left: var(--app-layout-gap);
     }
 }

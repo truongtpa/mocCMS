@@ -1,5 +1,5 @@
 <template>
-    <aside class="app-sidebar" :data-bs-theme="theme === 'auto' ? null : theme">
+    <aside class="app-sidebar" :data-bs-theme="theme">
         <slot name="brand">
             <div class="sidebar-brand">
                 <component :is="brandTag" v-bind="brandProps" class="brand-link">
@@ -46,16 +46,8 @@ const props = defineProps({
     logoHref: { type: String, default: '/' },
     brandText: { type: String, default: '' },
 
-    /**
-     * 'auto'  — đi theo chế độ màu của trang (không gắn data-bs-theme)
-     * 'dark'  — luôn tối, kể cả khi trang đang sáng (kiểu admin cổ điển)
-     * 'light' — luôn sáng
-     */
-    theme: {
-        type: String,
-        default: 'dark',
-        validator: (v) => ['auto', 'dark', 'light'].includes(v),
-    },
+    /** Sidebar tối ngay cả khi trang đang ở chế độ sáng — đổi thành 'light' nếu muốn ngược lại */
+    theme: { type: String, default: 'dark', validator: (v) => ['dark', 'light'].includes(v) },
 
     linkComponent: { type: [String, Object, Function], default: 'a' },
 })
