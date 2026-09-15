@@ -49,52 +49,6 @@
                     </ul>
                 </li>
 
-                <li v-if="user" class="nav-item dropdown user-menu">
-                    <button
-                        type="button"
-                        class="nav-link"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                    >
-                        <img v-if="user.image" :src="user.image" class="user-image rounded-circle" :alt="user.name">
-                        <span class="d-none d-md-inline">{{ user.name }}</span>
-                    </button>
-
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <slot name="user-menu" :user="user" :logout="onLogout" :profile="onProfile">
-                            <li class="user-header">
-                                <slot name="user-header" :user="user">
-                                    <img v-if="user.image" :src="user.image" class="rounded-circle" :alt="user.name">
-                                    <div class="user-header-text">
-                                        <strong>{{ user.name }}</strong>
-                                        <small v-if="user.role">{{ user.role }}</small>
-                                    </div>
-                                </slot>
-                            </li>
-
-                            <li v-if="$slots['user-body']" class="user-body">
-                                <slot name="user-body" :user="user" />
-                            </li>
-
-                            <li v-if="$slots['user-footer']" class="user-footer">
-                                <slot name="user-footer" :user="user" :logout="onLogout" :profile="onProfile" />
-                            </li>
-                            <template v-else>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <button type="button" class="dropdown-item" @click="onProfile">
-                                        <i class="bi bi-person me-2" aria-hidden="true"></i>Thông tin tài khoản
-                                    </button>
-                                </li>
-                                <li>
-                                    <button type="button" class="dropdown-item text-danger" @click="onLogout">
-                                        <i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Đăng xuất
-                                    </button>
-                                </li>
-                            </template>
-                        </slot>
-                    </ul>
-                </li>
             </ul>
         </div>
     </nav>
@@ -106,19 +60,16 @@ import { useSidebar } from './useSidebar'
 import { useColorMode } from './useColorMode'
 
 /**
- * Thanh trên cùng: nút thu gọn sidebar, chế độ màu, toàn màn hình, menu tài khoản.
+ * Thanh trên cùng: nút thu gọn sidebar, chế độ màu, toàn màn hình.
+ * Menu tài khoản nằm trên đầu sidebar, xem AppSidebar.vue.
  *
  * Dropdown chạy bằng JS của Bootstrap qua `data-bs-toggle="dropdown"`, nên
  * main.js phải còn dòng `import 'bootstrap'`.
  */
 defineProps({
-    /** null/undefined thì ẩn hẳn menu tài khoản */
-    user: { type: Object, default: null },
     colorModeToggle: { type: Boolean, default: true },
     fullscreen: { type: Boolean, default: true },
 })
-
-const emit = defineEmits(['logout', 'profile'])
 
 const { toggle } = useSidebar()
 const { colorMode, setColorMode } = useColorMode()
@@ -146,7 +97,4 @@ function toggleFullscreen() {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
     else document.documentElement.requestFullscreen().catch(() => {})
 }
-
-const onLogout = () => emit('logout')
-const onProfile = () => emit('profile')
 </script>

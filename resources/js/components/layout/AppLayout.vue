@@ -1,33 +1,31 @@
 <template>
     <div :class="['app-wrapper', { 'sidebar-collapse': isCollapsed, 'sidebar-open': isMobileOpen }]">
-        <AppTopbar
-            :user="user"
-            :color-mode-toggle="colorModeToggle"
-            :fullscreen="fullscreen"
-            @logout="$emit('logout')"
-            @profile="$emit('profile')"
-        >
+        <AppTopbar :color-mode-toggle="colorModeToggle" :fullscreen="fullscreen">
             <template #start><slot name="topbar-start" /></template>
             <template #end><slot name="topbar-end" /></template>
-
-            <template v-if="$slots['user-menu']" #user-menu="p"><slot name="user-menu" v-bind="p" /></template>
-            <template v-if="$slots['user-header']" #user-header="p"><slot name="user-header" v-bind="p" /></template>
-            <template v-if="$slots['user-body']" #user-body="p"><slot name="user-body" v-bind="p" /></template>
-            <template v-if="$slots['user-footer']" #user-footer="p"><slot name="user-footer" v-bind="p" /></template>
         </AppTopbar>
 
         <AppSidebar
             :items="menuItems"
             :current-path="currentPath"
             :logo="logo"
+            :brand-icon="brandIcon"
             :logo-href="logoHref"
             :brand-text="brandText"
             :theme="sidebarTheme"
             :link-component="linkComponent"
+            :user="user"
+            @logout="$emit('logout')"
+            @profile="$emit('profile')"
         >
             <template v-if="$slots['sidebar-brand']" #brand><slot name="sidebar-brand" /></template>
             <template v-if="$slots.logo" #logo><slot name="logo" /></template>
             <template v-if="$slots.sidebar" #default><slot name="sidebar" /></template>
+
+            <template v-if="$slots['user-menu']" #user-menu="p"><slot name="user-menu" v-bind="p" /></template>
+            <template v-if="$slots['user-header']" #user-header="p"><slot name="user-header" v-bind="p" /></template>
+            <template v-if="$slots['user-body']" #user-body="p"><slot name="user-body" v-bind="p" /></template>
+            <template v-if="$slots['user-footer']" #user-footer="p"><slot name="user-footer" v-bind="p" /></template>
         </AppSidebar>
 
         <main class="app-main">
@@ -35,10 +33,10 @@
         </main>
 
         <footer class="app-footer">
-            <div v-if="footerRightText || $slots['footer-right']" class="float-end d-none d-sm-inline">
+            <slot name="footer" />
+            <div v-if="footerRightText || $slots['footer-right']" class="footer-right d-none d-sm-block">
                 <slot name="footer-right">{{ footerRightText }}</slot>
             </div>
-            <slot name="footer" />
         </footer>
 
         <!-- Lớp phủ mobile: bấm ra ngoài để đóng sidebar -->
@@ -68,6 +66,7 @@ const props = defineProps({
     currentPath: { type: String, default: '/' },
 
     logo: { type: String, default: '' },
+    brandIcon: { type: String, default: '' },
     logoHref: { type: String, default: '/' },
     brandText: { type: String, default: '' },
     sidebarTheme: { type: String, default: 'dark' },
@@ -75,6 +74,7 @@ const props = defineProps({
     /** Truyền RouterLink để menu đi bằng vue-router thay vì tải lại trang */
     linkComponent: { type: [String, Object, Function], default: 'a' },
 
+    /** null/undefined thì ẩn hẳn khu tài khoản trên đầu sidebar */
     user: { type: Object, default: null },
     colorModeToggle: { type: Boolean, default: true },
     fullscreen: { type: Boolean, default: true },

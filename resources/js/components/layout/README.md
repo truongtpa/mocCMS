@@ -32,7 +32,7 @@ luôn đè được lên layout.
     :current-path="$route.path"
     :link-component="RouterLink"
     :user="user"
-    logo="/favicon.ico"
+    brand-icon="bi-tree-fill"
     brand-text="mocCMS"
     @logout="dangXuat"
 >
@@ -49,8 +49,9 @@ luôn đè được lên layout.
 | `menu-items` | `[]` | Cấu trúc menu, xem phần dưới |
 | `current-path` | `'/'` | Thường là `$route.path`, dùng để tô sáng mục đang mở |
 | `link-component` | `'a'` | Truyền `RouterLink` để menu đi bằng vue-router, không tải lại trang |
-| `user` | `null` | `{ name, image, role }`. `null` thì ẩn hẳn menu tài khoản |
+| `user` | `null` | `{ name, image, role }`, hiện ngay dưới logo ở đầu sidebar. `null` thì ẩn hẳn khu tài khoản |
 | `logo` / `logo-href` / `brand-text` | `''` / `'/'` / `''` | Phần thương hiệu góc trên trái |
+| `brand-icon` | `''` | Icon Bootstrap thay ảnh logo, ví dụ `bi-tree-fill` |
 | `sidebar-theme` | `'dark'` | `'light'` nếu muốn sidebar sáng theo trang |
 | `color-mode-toggle` / `fullscreen` | `true` | Ẩn/hiện hai nút trên thanh trên |
 | `footer-right-text` | `''` | Chữ góc phải chân trang |
@@ -62,7 +63,7 @@ luôn đè được lên layout.
 `#default` (nội dung trang), `#footer`, `#footer-right`, `#topbar-start`,
 `#topbar-end`, `#sidebar` (thay cả cây menu), `#sidebar-brand`, `#logo`,
 và bộ `#user-menu` / `#user-header` / `#user-body` / `#user-footer` cho
-dropdown tài khoản.
+dropdown tài khoản ở đầu sidebar.
 
 ### Events
 

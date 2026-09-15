@@ -4,14 +4,14 @@
         :current-path="$route.path"
         :link-component="RouterLink"
         :user="user"
-        logo="/favicon.ico"
-        brand-text="mocCMS"
+        brand-icon="bi-tree-fill"
+        brand-text="Mộc CMS"
         @logout="dangXuat"
     >
         <router-view />
 
         <template #footer>
-            <strong>mocCMS</strong>
+            <strong>Mộc CMS - Hệ thống quản trị nội dung</strong>
         </template>
     </AppLayout>
 </template>
@@ -26,14 +26,22 @@ export default {
             RouterLink,
             user: {
                 name: 'mocCMS',
-                image: '/favicon.ico',
+                role: 'Quản trị viên',
             },
             menu: [
+                {
+                    type: 'header',
+                    text: 'Tổng quan',
+                },
                 {
                     type: 'item',
                     text: 'Bảng điều khiển',
                     href: '/',
                     icon: 'bi-speedometer',
+                },
+                {
+                    type: 'header',
+                    text: 'Nội dung',
                 },
                 {
                     type: 'item',
