@@ -1,6 +1,7 @@
 <template>
-    <AppContent title="Bài viết">
-        <AppCard title="Danh sách bài viết">
+    <AppContent>
+        <br>
+        <AppCard title="Bài viết / Danh sách">
             <AppTable
                 :items="tableBaiViet.list"
                 :columns="columns"
@@ -8,13 +9,11 @@
                 :highlight="boLoc.daApDung"
                 item-key="id_tin_tuc"
                 empty-text="Không tìm thấy bài viết nào."
-                selectable
                 sticky-header
                 v-model:sort-key="boLoc.sortKey"
                 v-model:sort-order="boLoc.sortOrder"
                 @sort-change="getBaiViet(1)"
                 @page-change="getBaiViet"
-                @selection-change="daChon = $event"
             >
                 <template #toolbar>
                     <div class="row g-2">
@@ -30,29 +29,13 @@
                                 <button type="button" class="btn btn-primary" title="Tìm kiếm" @click="timKiem">
                                     <i class="bi bi-search"></i>
                                 </button>
-                                <button type="button" class="btn btn-default" title="Xóa bộ lọc" @click="xoaBoLoc">
-                                    <i class="bi bi-arrow-counterclockwise"></i>
-                                </button>
                             </div>
                         </div>
                     </div>
                 </template>
 
-                <template #selection-actions>
-                    <button type="button" class="btn btn-sm btn-outline-danger" @click="xoaNhieu">
-                        <i class="bi bi-trash3"></i> Xóa mục đã chọn
-                    </button>
-                </template>
-
                 <template #cell-thumbnail="{ value, item }">
-                    <img
-                        v-if="value"
-                        :src="value"
-                        :alt="item.tieu_de"
-                        class="rounded app-thumb"
-                        loading="lazy"
-                    >
-                    <span v-else class="text-muted">—</span>
+                    <AppImage :src="value" :alt="item.tieu_de" width="72" height="48" class="rounded" />
                 </template>
 
                 <template #cell-tieu_de="{ item, highlight }">
@@ -125,7 +108,6 @@ export default {
     name: 'pageBaiViet',
     data() {
         return {
-            daChon: [],
             chiTiet: {},
             boLoc: {
                 s: '',
@@ -152,10 +134,6 @@ export default {
     },
     methods: {
         timKiem() {
-            this.getBaiViet(1)
-        },
-        xoaBoLoc() {
-            this.boLoc.s = ''
             this.getBaiViet(1)
         },
         getBaiViet(page = 1) {
@@ -187,19 +165,6 @@ export default {
 
             if (dongY) {
                 // TODO: gọi API xóa khi endpoint sẵn sàng
-            }
-        },
-        async xoaNhieu() {
-            const dongY = await this.$refs.xacNhan.open({
-                title: `Xóa ${this.daChon.length} bài viết?`,
-                message: 'Các bài viết đã chọn sẽ bị xóa khỏi hệ thống.',
-                detail: 'Hành động này không thể hoàn tác.',
-                variant: 'danger',
-                okLabel: 'Xóa tất cả',
-            })
-
-            if (dongY) {
-                // TODO: gọi API xóa hàng loạt khi endpoint sẵn sàng
             }
         },
         tomTat(noiDung, gioiHan = 180) {
@@ -270,12 +235,6 @@ export default {
 :deep(.app-col-ngay_tao) {
     width: 130px;
     white-space: nowrap;
-}
-
-.app-thumb {
-    width: 72px;
-    height: 48px;
-    object-fit: cover;
 }
 
 .app-noi-dung {

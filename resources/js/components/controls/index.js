@@ -1,8 +1,9 @@
 import AppTable from './AppTable.vue'
 import AppModal from './AppModal.vue'
 import AppConfirm from './AppConfirm.vue'
+import AppImage from './AppImage.vue'
 
-export { AppTable, AppModal, AppConfirm }
+export { AppTable, AppModal, AppConfirm, AppImage }
 
 /**
  * Đăng ký toàn cục các control dùng chung.
@@ -15,5 +16,6 @@ export default {
         app.component('AppTable', AppTable)
         app.component('AppModal', AppModal)
         app.component('AppConfirm', AppConfirm)
+        app.component('AppImage', AppImage)
     },
 }

@@ -8,6 +8,7 @@ thẳng trong template, không cần import từng trang.
 | `AppTable` | `TablePro`, `AppTable`, `LTETable`, `LTETableV2` | Danh sách có phân trang |
 | `AppModal` | `LTEModal`, `LTEModal2` | Form / xem chi tiết |
 | `AppConfirm` | `YesNoModal` | Hỏi xác nhận trước hành động |
+| `AppImage` | — | Mọi chỗ hiện ảnh từ dữ liệu |
 
 ---
 
@@ -158,6 +159,31 @@ if (dongY) { … }
 ```
 
 Gọi nhanh: `await this.$refs.xacNhan.open('Bạn có chắc không?')`.
+
+---
+
+## AppImage
+
+Ảnh tải trễ, link hỏng thì rơi về ảnh mặc định, không có ảnh mặc định thì hiện ô icon.
+
+```vue
+<AppImage :src="item.anh_bia" alt="Ảnh bìa" width="120" height="80" />
+<AppImage :src="item.anh_dai_dien" fallback="/asset/img/nguoi-dung.png" class="rounded-circle" width="40" height="40" />
+```
+
+Thứ tự rơi về: `src` → `fallback` → ô icon. Đổi `src` lúc chạy thì tự chạy lại từ đầu.
+
+| Prop | Mặc định | Ghi chú |
+|---|---|---|
+| `src` / `alt` | `''` / `''` | `src` rỗng thì hiện luôn ô icon |
+| `fallback` | `''` | Ảnh mặc định khi `src` lỗi; ảnh này lỗi nốt thì về ô icon |
+| `icon` | `'bi-image'` | Icon của ô thay thế |
+| `width` / `height` | `''` | Số hiểu là px. Nên truyền để khung ảnh không nhảy khi tải |
+| `fit` | `'cover'` | `object-fit` của ảnh |
+| `lazy` | `true` | Gắn `loading="lazy"`; đặt `false` cho ảnh nằm ngay đầu trang |
+
+Bo góc, đổ bóng... đặt class thẳng lên component (`class="rounded-circle"`), khung ngoài
+đã `overflow: hidden` nên ảnh bị cắt theo.
 
 ---
 

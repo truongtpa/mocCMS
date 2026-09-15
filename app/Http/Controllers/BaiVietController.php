@@ -27,7 +27,7 @@ class BaiVietController extends Controller
 
         return response()->json([
             'status' => 200,
-            'data' => $baiViet->paginate(10)->withQueryString(),
+            'data' => $baiViet->paginate(50)->withQueryString(),
         ]);
     }
 }
