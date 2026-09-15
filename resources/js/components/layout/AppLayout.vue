@@ -1,5 +1,14 @@
 <template>
-    <div :class="['app-wrapper', { 'sidebar-collapse': isCollapsed, 'sidebar-open': isMobileOpen }]">
+    <div
+        :class="[
+            'app-wrapper',
+            {
+                'is-floating': floating,
+                'sidebar-collapse': isCollapsed,
+                'sidebar-open': isMobileOpen,
+            },
+        ]"
+    >
         <AppTopbar
             :user="user"
             :color-mode-toggle="colorModeToggle"
@@ -70,6 +79,7 @@ const props = defineProps({
     logo: { type: String, default: '' },
     logoHref: { type: String, default: '/' },
     brandText: { type: String, default: '' },
+    /** 'auto' | 'dark' | 'light' — xem AppSidebar.vue */
     sidebarTheme: { type: String, default: 'dark' },
 
     /** Truyền RouterLink để menu đi bằng vue-router thay vì tải lại trang */
@@ -80,6 +90,12 @@ const props = defineProps({
     fullscreen: { type: Boolean, default: true },
 
     footerRightText: { type: String, default: '' },
+
+    /**
+     * Tách sidebar và thanh trên thành hai mặt phẳng bo góc, cách nhau một khe
+     * hở, thay vì dính liền thành một khối. Phần style ở cuối layout.css.
+     */
+    floating: { type: Boolean, default: false },
 
     /** Ngưỡng (px) chuyển sang kiểu mobile: sidebar trượt đè + lớp phủ */
     sidebarBreakpoint: { type: Number, default: 992 },
