@@ -16,21 +16,17 @@
                 @page-change="getBaiViet"
             >
                 <template #toolbar>
-                    <div class="row g-2">
-                        <div class="col-lg-5 col-12">
-                            <div class="input-group">
-                                <input
-                                    v-model="boLoc.s"
-                                    type="text"
-                                    class="form-control"
-                                    placeholder="Nhập tiêu đề bài viết và nhấn Enter ..."
-                                    @keyup.enter="timKiem"
-                                >
-                                <button type="button" class="btn btn-primary" title="Tìm kiếm" @click="timKiem">
-                                    <i class="bi bi-search"></i>
-                                </button>
-                            </div>
-                        </div>
+                    <div class="input-group app-toolbar-search">
+                        <input
+                            v-model="boLoc.s"
+                            type="text"
+                            class="form-control"
+                            placeholder="Nhập tiêu đề bài viết và nhấn Enter ..."
+                            @keyup.enter="timKiem"
+                        >
+                        <button type="button" class="btn btn-default" title="Tìm kiếm" @click="timKiem">
+                            <i class="bi bi-search"></i>
+                        </button>
                     </div>
                 </template>
 

@@ -285,6 +285,11 @@ function rowKey(item, index) {
     return k === undefined || k === null ? `idx-${index}` : k
 }
 
+/** Dòng mở đầu một nhóm — items phải được sắp theo groupBy sẵn từ server */
+function isNewGroup(item, index) {
+    return index === 0 || rows.value[index - 1]?.[props.groupBy] !== item?.[props.groupBy]
+}
+
 /* ------------------------------------------------------------------ */
 /* Dữ liệu hiển thị                                                    */
 /* ------------------------------------------------------------------ */
@@ -610,7 +615,13 @@ defineExpose({ clearSelection, selectedItems, setSelected })
     position: relative;
 }
 
+/* Nhóm thao tác dạt trái, ô tìm kiếm dạt phải — xem .app-toolbar-* ở theme.css */
 .app-table-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
     margin-bottom: 0.75rem;
 }
 

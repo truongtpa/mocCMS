@@ -61,6 +61,10 @@
     --app-text-muted: var(--app-gray-600);
     --app-text-subtle: var(--app-gray-500);
 
+    /* ----- Chữ: Source Sans như AdminLTE ----- */
+    --app-font-sans: 'Source Sans 3', 'Source Sans Pro', -apple-system, BlinkMacSystemFont,
+        'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
     /* ----- Bo góc: Statamic bo nhỏ hơn mặc định Bootstrap ----- */
     --app-radius-sm: 2px;
     --app-radius: 4px;
@@ -152,8 +156,10 @@
     --bs-focus-ring-color: var(--app-ring);
     --bs-focus-ring-width: var(--app-ring-width);
 
+    --bs-font-sans-serif: var(--app-font-sans);
+    --bs-body-font-family: var(--app-font-sans);
     --bs-body-font-size: 0.875rem;
-    --bs-body-line-height: 1.55;
+    --bs-body-line-height: 1.5;
 
     --bs-box-shadow-sm: var(--app-shadow-sm);
     --bs-box-shadow: var(--app-shadow);
@@ -164,11 +170,13 @@
     --bs-secondary-bg: #242b34;
 }
 
+/*
+   Không bật -webkit-font-smoothing: antialiased. Trên macOS nó đổi subpixel
+   sang grayscale, Source Sans vốn thanh nên nét chữ mỏng đi thấy rõ.
+*/
 body {
     background-color: var(--app-bg);
     color: var(--app-text);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
 /* ==========================================================================
@@ -276,17 +284,17 @@ body {
 }
 
 /* ==========================================================================
-   BUTTON — chữ ký của Statamic: luôn có viền, 5 state tách bạch
+   BUTTON — phẳng kiểu AdminLTE, 5 state tách bạch
    ========================================================================== */
 .btn {
     --bs-btn-font-size: 0.875rem;
-    --bs-btn-font-weight: 500;
-    --bs-btn-padding-y: 0.4rem;
-    --bs-btn-padding-x: 0.8rem;
+    --bs-btn-font-weight: 400;
+    --bs-btn-padding-y: 0.375rem;
+    --bs-btn-padding-x: 0.75rem;
     --bs-btn-border-width: 1px;
     --bs-btn-border-radius: var(--app-radius);
 
-    box-shadow: var(--app-shadow-xs);
+    box-shadow: none;
     transition:
         background-color 0.12s ease,
         border-color 0.12s ease,
@@ -294,25 +302,34 @@ body {
         color 0.12s ease;
 }
 
+/* Icon đứng cùng chữ trong nút: canh tâm và chừa đúng một khoảng */
+.btn > .bi {
+    vertical-align: -0.075em;
+}
+
+.btn > .bi + * {
+    margin-left: 0.3rem;
+}
+
 .btn-sm {
     --bs-btn-font-size: 0.8125rem;
     --bs-btn-padding-y: 0.25rem;
-    --bs-btn-padding-x: 0.55rem;
+    --bs-btn-padding-x: 0.5rem;
     --bs-btn-border-radius: var(--app-radius-sm);
 }
 
 .btn-lg {
     --bs-btn-font-size: 0.9375rem;
-    --bs-btn-padding-y: 0.55rem;
-    --bs-btn-padding-x: 1.1rem;
+    --bs-btn-padding-y: 0.5rem;
+    --bs-btn-padding-x: 1rem;
     --bs-btn-border-radius: var(--app-radius);
 }
 
-/* State: nhấn xuống — lún vào bằng bóng inset */
+/* State: nhấn xuống — chìm nhẹ, không dùng bóng inset dày như trước */
 .btn:active,
 .btn.active,
 .btn.show {
-    box-shadow: var(--app-shadow-inset);
+    box-shadow: inset 0 1px 2px rgba(16, 24, 40, 0.14);
 }
 
 /* State: focus bằng bàn phím — vòng ring, không dùng :focus để chuột không bị ring */
@@ -330,19 +347,23 @@ body {
 }
 
 /*
-   Nút đặc (primary/danger/success/...): Bootstrap để viền trùng màu nền nên
-   nhìn "trôi". Statamic luôn có viền đậm hơn nền một nấc -> lấy lại bằng color-mix.
+   Nút đặc (primary/danger/success/...): viền tối hơn nền để cạnh đọc được
+   trên nền trắng, và đậm thêm một nấc khi hover / nhấn.
+
+   Trừ nhóm nút trung tính: nền của chúng là màu bề mặt nên trộn với đen ra
+   xám nhạt hơn cả --app-border-strong, viền lại mờ đi. Chúng tự khai báo
+   viền riêng ở khối bên dưới.
 */
-.btn:not(.btn-link):not([class*='btn-outline-']) {
-    border-color: color-mix(in srgb, var(--bs-btn-bg, transparent) 84%, #000);
+.btn:not(.btn-link):not([class*='btn-outline-']):not(.btn-default):not(.btn-light):not(.btn-white) {
+    border-color: color-mix(in srgb, var(--bs-btn-bg, transparent) 86%, #000);
 }
 
-.btn:not(.btn-link):not([class*='btn-outline-']):hover {
+.btn:not(.btn-link):not([class*='btn-outline-']):not(.btn-default):not(.btn-light):not(.btn-white):hover {
     border-color: color-mix(in srgb, var(--bs-btn-hover-bg, var(--bs-btn-bg, transparent)) 80%, #000);
 }
 
-.btn:not(.btn-link):not([class*='btn-outline-']):active,
-.btn:not(.btn-link):not([class*='btn-outline-']).active {
+.btn:not(.btn-link):not([class*='btn-outline-']):not(.btn-default):not(.btn-light):not(.btn-white):active,
+.btn:not(.btn-link):not([class*='btn-outline-']):not(.btn-default):not(.btn-light):not(.btn-white).active {
     border-color: color-mix(in srgb, var(--bs-btn-active-bg, var(--bs-btn-bg, transparent)) 74%, #000);
 }
 
@@ -355,10 +376,10 @@ body {
     --bs-btn-border-color: var(--app-border-strong);
     --bs-btn-hover-color: var(--app-text);
     --bs-btn-hover-bg: var(--app-gray-100);
-    --bs-btn-hover-border-color: var(--app-border-strong);
+    --bs-btn-hover-border-color: var(--app-gray-500);
     --bs-btn-active-color: var(--app-text);
     --bs-btn-active-bg: var(--app-gray-200);
-    --bs-btn-active-border-color: var(--app-border-strong);
+    --bs-btn-active-border-color: var(--app-gray-600);
     --bs-btn-disabled-bg: var(--app-surface);
     --bs-btn-disabled-border-color: var(--app-border);
 }
@@ -368,6 +389,9 @@ body {
 [data-bs-theme='dark'] .btn-white {
     --bs-btn-hover-bg: #242b34;
     --bs-btn-active-bg: #2a323c;
+    /* Nền tối thì viền phải sáng lên mới nổi, không tối đi như bản sáng */
+    --bs-btn-hover-border-color: #57616f;
+    --bs-btn-active-border-color: #6b7686;
 }
 
 /* Nút primary bám đúng màu nhấn */
@@ -381,14 +405,15 @@ body {
     --bs-btn-disabled-border-color: var(--app-accent);
 }
 
-/* Nút viền: nền trong suốt, viền rõ */
+/* Nút viền: nền trong suốt, viền rõ và đậm thêm khi hover */
 [class*='btn-outline-'] {
     box-shadow: none;
+    --bs-btn-hover-border-color: color-mix(in srgb, var(--bs-btn-hover-bg, var(--bs-btn-color)) 82%, #000);
 }
 
 [class*='btn-outline-']:active,
 [class*='btn-outline-'].active {
-    box-shadow: var(--app-shadow-inset);
+    box-shadow: inset 0 1px 2px rgba(16, 24, 40, 0.14);
 }
 
 .btn-link {
@@ -491,6 +516,49 @@ body {
 .card > .table-responsive:only-child {
     margin: calc(var(--bs-card-spacer-y) * -1) calc(var(--bs-card-spacer-x) * -1);
     width: auto;
+}
+
+/*
+   Nút thao tác trong bảng: bỏ viền và nền, chỉ còn icon màu như AdminLTE.
+   Chỉ ghi đè biến của Bootstrap nên mọi biến thể btn-outline-* giữ nguyên
+   màu riêng, hover chỉ là một lớp nền nhạt cùng tông.
+*/
+.app-table-actions .btn {
+    --bs-btn-bg: transparent;
+    --bs-btn-border-color: transparent;
+    --bs-btn-hover-color: var(--bs-btn-color);
+    --bs-btn-hover-bg: color-mix(in srgb, var(--bs-btn-color) 14%, transparent);
+    --bs-btn-hover-border-color: transparent;
+    --bs-btn-active-color: var(--bs-btn-color);
+    --bs-btn-active-bg: color-mix(in srgb, var(--bs-btn-color) 22%, transparent);
+    --bs-btn-active-border-color: transparent;
+    --bs-btn-disabled-border-color: transparent;
+    --bs-btn-padding-x: 0.35rem;
+    --bs-btn-padding-y: 0.2rem;
+    --bs-btn-font-size: 1rem;
+
+    box-shadow: none;
+    line-height: 1;
+}
+
+.app-table-actions .btn:active,
+.app-table-actions .btn.active {
+    box-shadow: none;
+}
+
+/* ==========================================================================
+   TOOLBAR TRÊN BẢNG — nhóm thao tác bên trái, ô tìm kiếm dạt phải
+   ========================================================================== */
+.app-toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.app-toolbar-search {
+    width: min(320px, 100%);
+    margin-left: auto;
 }
 
 /* ==========================================================================

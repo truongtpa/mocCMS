@@ -14,6 +14,24 @@ const routes = [
         meta: { title: 'Bài viết' },
     },
     {
+        path: '/quyen',
+        name: 'router-quyen',
+        component: () => import('@/pages/pageQuyen.vue'),
+        meta: { title: 'Nhóm quyền' },
+    },
+    {
+        path: '/quyen-nhom',
+        name: 'router-quyennhom',
+        component: () => import('@/pages/pageQuyenNhom.vue'),
+        meta: { title: 'Nhóm quyền tài khoản' },
+    },
+    {
+        path: '/quyen-nhom/:id(\\d+)',
+        name: 'router-quyennhomct',
+        component: () => import('@/pages/pageQuyenNhomCT.vue'),
+        meta: { title: 'Chi tiết nhóm quyền' },
+    },
+    {
         path: '/:pathMatch(.*)*',
         redirect: '/',
     },

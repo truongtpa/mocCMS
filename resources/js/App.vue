@@ -49,6 +49,22 @@ export default {
                     href: '/bai-viet',
                     icon: 'bi-newspaper',
                 },
+                {
+                    type: 'header',
+                    text: 'Phân quyền',
+                },
+                {
+                    type: 'item',
+                    text: 'Nhóm quyền',
+                    href: '/quyen',
+                    icon: 'bi-shield-lock',
+                },
+                {
+                    type: 'item',
+                    text: 'Nhóm quyền tài khoản',
+                    href: '/quyen-nhom',
+                    icon: 'bi-people',
+                },
             ],
         }
     },
